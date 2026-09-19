@@ -9,7 +9,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
@@ -45,7 +44,7 @@ export function RoleSwitcher() {
         <ChevronsUpDown className="size-4 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-[--anchor-width] min-w-56" align="start">
-        <DropdownMenuLabel>Switch role</DropdownMenuLabel>
+        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Switch role</div>
         <DropdownMenuGroup>
           {(Object.keys(roleLabels) as Role[]).map((r) => {
             const RIcon = roleMeta[r].icon

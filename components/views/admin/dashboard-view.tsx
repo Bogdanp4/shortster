@@ -1,0 +1,116 @@
+"use client"
+
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { DollarSign, Users, Megaphone, ShieldAlert } from "lucide-react"
+
+import { useApp } from "@/components/app/app-provider"
+import { adminStatsSeries, adminUsers, campaigns, fraudCases, auditLogs } from "@/lib/mock-data"
+import { formatCurrency, formatNumber } from "@/lib/format"
+import { PageHeader } from "@/components/shared/page-header"
+import { StatCard } from "@/components/shared/stat-card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
+
+const chartConfig = {
+  gmv: { label: "GMV", color: "var(--chart-1)" },
+  revenue: { label: "Revenue", color: "var(--chart-2)" },
+} satisfies ChartConfig
+
+export function AdminDashboardView() {
+  const { navigate } = useApp()
+  const gmv = adminStatsSeries.at(-1)!.gmv
+  const revenue = adminStatsSeries.at(-1)!.revenue
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Dashboard" description="Platform-wide health and financials." />
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Monthly GMV" value={formatCurrency(gmv)} icon={DollarSign} trend={{ value: "+20.3%", positive: true }} />
+        <StatCard label="Platform revenue" value={formatCurrency(revenue)} icon={DollarSign} trend={{ value: "+20.3%", positive: true }} />
+        <StatCard label="Total users" value={formatNumber(adminUsers.length * 184)} icon={Users} trend={{ value: "+412", positive: true }} />
+        <StatCard label="Active campaigns" value={campaigns.filter((c) => c.status === "active").length} icon={Megaphone} />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>GMV & revenue</CardTitle>
+          <CardDescription>Gross marketplace volume and platform take-rate over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="aspect-[3/1] w-full">
+            <AreaChart data={adminStatsSeries} margin={{ left: 12, right: 12, top: 8 }}>
+              <defs>
+                <linearGradient id="fillGmv" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-gmv)" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="var(--color-gmv)" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-revenue)" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="var(--color-revenue)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} />
+              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
+              <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `$${v / 1000}K`} />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Area dataKey="gmv" type="natural" fill="url(#fillGmv)" stroke="var(--color-gmv)" strokeWidth={2} />
+              <Area dataKey="revenue" type="natural" fill="url(#fillRevenue)" stroke="var(--color-revenue)" strokeWidth={2} />
+            </AreaChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Open fraud cases</CardTitle>
+            <CardDescription>Requires attention</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {fraudCases.map((c) => (
+              <button
+                key={c.id}
+                className="flex items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:bg-muted/50"
+                onClick={() => navigate("admin-fraud")}
+              >
+                <div className="flex items-center gap-3">
+                  <ShieldAlert className="size-4 text-destructive" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{c.creatorName}</span>
+                    <span className="text-xs text-muted-foreground">{c.campaign}</span>
+                  </div>
+                </div>
+                <Badge variant="destructive">Risk {c.riskScore}</Badge>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent activity</CardTitle>
+            <CardDescription>Latest platform events</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-1">
+            {auditLogs.slice(0, 5).map((log, i, arr) => (
+              <div key={log.id}>
+                <div className="flex items-start justify-between gap-4 py-2.5">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm">{log.action}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {log.actor} → {log.target}
+                    </span>
+                  </div>
+                  <span className="whitespace-nowrap text-xs text-muted-foreground">{log.time.split(" ").slice(-1)}</span>
+                </div>
+                {i < arr.length - 1 && <div className="border-t border-border" />}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}

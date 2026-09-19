@@ -77,6 +77,19 @@ export function VerificationStatusBadge({ status }: { status: VerificationStatus
   return <StatusPill tone={tone}>{label}</StatusPill>
 }
 
+type TransactionStatus = "completed" | "pending" | "failed"
+
+const transactionMap: Record<TransactionStatus, { tone: Tone; label: string }> = {
+  completed: { tone: "success", label: "Completed" },
+  pending: { tone: "warning", label: "Pending" },
+  failed: { tone: "danger", label: "Failed" },
+}
+
+export function TransactionStatusBadge({ status }: { status: TransactionStatus }) {
+  const { tone, label } = transactionMap[status]
+  return <StatusPill tone={tone}>{label}</StatusPill>
+}
+
 export function RiskBadge({ score }: { score: number }) {
   const tone: Tone = score >= 60 ? "danger" : score >= 30 ? "warning" : "success"
   const label = score >= 60 ? "High Risk" : score >= 30 ? "Medium Risk" : "Low Risk"

@@ -11,7 +11,7 @@ import {
   Users,
   Settings,
   ClipboardCheck,
-  Instagram,
+  Camera,
   ShieldAlert,
   History,
   Receipt,
@@ -54,7 +54,7 @@ export const navConfig: Record<Role, NavItem[]> = {
   ],
   moderator: [
     { key: "queue", label: "Review Queue", icon: ClipboardCheck },
-    { key: "ig-verify", label: "Instagram Verification", icon: Instagram },
+    { key: "ig-verify", label: "Instagram Verification", icon: Camera },
     { key: "fraud", label: "Fraud Review", icon: ShieldAlert },
     { key: "history", label: "History", icon: History },
   ],

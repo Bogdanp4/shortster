@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils"
-import { Music2, Instagram, Youtube } from "lucide-react"
+import { Music2, Camera, Play } from "lucide-react"
 import type { Platform } from "@/lib/types"
 
 const map: Record<Platform, { icon: typeof Music2; label: string; className: string }> = {
   tiktok: { icon: Music2, label: "TikTok", className: "text-foreground" },
-  instagram: { icon: Instagram, label: "Instagram", className: "text-chart-5" },
-  youtube: { icon: Youtube, label: "YouTube", className: "text-destructive" },
+  instagram: { icon: Camera, label: "Instagram", className: "text-chart-5" },
+  youtube: { icon: Play, label: "YouTube", className: "text-destructive" },
 }
 
 export function PlatformIcon({ platform, className }: { platform: Platform; className?: string }) {
