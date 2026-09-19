@@ -1,11 +1,15 @@
 import type {
   AdminUser,
+  AdvertiserWallet,
   AuditLog,
   Campaign,
+  CreatorWallet,
   DuplicateInfo,
   FraudCase,
   IgVerification,
   Notification,
+  PaymentMethod,
+  PayoutMethod,
   Platform,
   ResolvedVideo,
   SocialAccount,
@@ -287,30 +291,48 @@ export const creatorSocialAccounts: SocialAccount[] = [
     platform: "tiktok",
     handle: "@shortster",
     displayName: "Shortster",
-    followers: 128000,
+    followers: 128400,
     method: "oauth",
     status: "verified",
     connectedAt: "Aug 12, 2026",
+    verifiedAt: "Aug 12, 2026",
+    lastChecked: "2h ago",
   },
   {
     id: "sa2",
-    platform: "youtube",
-    handle: "Shortster Clips",
-    displayName: "Shortster Clips",
-    followers: 54000,
-    method: "google",
+    platform: "tiktok",
+    handle: "@shortstergaming",
+    displayName: "Shortster Gaming",
+    followers: 84100,
+    method: "oauth",
     status: "verified",
-    connectedAt: "Aug 14, 2026",
+    connectedAt: "Aug 18, 2026",
+    verifiedAt: "Aug 18, 2026",
+    lastChecked: "5h ago",
   },
   {
     id: "sa3",
+    platform: "youtube",
+    handle: "Shortster Clips",
+    displayName: "Shortster Clips",
+    followers: 54200,
+    method: "google",
+    status: "verified",
+    connectedAt: "Aug 14, 2026",
+    verifiedAt: "Aug 14, 2026",
+    lastChecked: "1d ago",
+  },
+  {
+    id: "sa4",
     platform: "instagram",
     handle: "@shortsterclips",
     displayName: "Shortster Clips",
-    followers: 31000,
+    followers: 42300,
     method: "bio_challenge",
     status: "verified",
     connectedAt: "Aug 20, 2026",
+    verifiedAt: "Aug 20, 2026",
+    lastChecked: "3h ago",
   },
 ]
 
@@ -551,7 +573,7 @@ export const creatorEarningsSeries = [
 ]
 
 // ADVERTISER
-export const advertiserWallet = {
+export const advertiserWallet: AdvertiserWallet = {
   available: 15000,
   reserved: 10000,
   totalDeposited: 45000,
@@ -665,11 +687,22 @@ export const adminStatsSeries = [
   { month: "Sep", gmv: 142000, revenue: 14200 },
 ]
 
-export const creatorWallet = {
+export const creatorWallet: CreatorWallet = {
   available: 1284.25,
   pending: 384.1,
   lifetime: 14820.4,
 }
+
+// Creator starts with NO payout method configured so the "Add Payout Method"
+// flow is demonstrable. Adding one produces the Bank Account •••• 4821 example.
+export const creatorPayoutMethods: PayoutMethod[] = []
+
+// Advertiser starts with a saved card so deposits work immediately.
+export const advertiserPaymentMethods: PaymentMethod[] = [
+  { id: "pm-1", type: "card", label: "Visa", last4: "4242", detail: "Expires 08/28" },
+]
+
+export const creatorMinWithdrawal = 20
 
 // ── Submit-flow demo fixtures ──────────────────────────────────────────────
 // Video IDs already submitted anywhere on Shortster. Used for the duplicate

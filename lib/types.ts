@@ -31,6 +31,42 @@ export interface SocialAccount {
   method: VerificationMethod
   status: VerificationStatus
   connectedAt: string
+  verifiedAt?: string
+  lastChecked?: string
+}
+
+export type PayoutMethodType = "bank" | "paypal" | "crypto"
+
+export interface PayoutMethod {
+  id: string
+  type: PayoutMethodType
+  label: string
+  last4: string
+  detail?: string
+  verified: boolean
+}
+
+export type PaymentMethodType = "card" | "wire" | "crypto"
+
+export interface PaymentMethod {
+  id: string
+  type: PaymentMethodType
+  label: string
+  last4: string
+  detail?: string
+}
+
+export interface CreatorWallet {
+  available: number
+  pending: number
+  lifetime: number
+}
+
+export interface AdvertiserWallet {
+  available: number
+  reserved: number
+  totalDeposited: number
+  totalSpent: number
 }
 
 export interface Campaign {

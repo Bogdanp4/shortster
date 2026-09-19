@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Check, Rocket } from "lucide-react"
+import { Check, Rocket, AlertTriangle, Plus } from "lucide-react"
 import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
@@ -9,6 +9,7 @@ import { formatCurrency } from "@/lib/format"
 import type { Platform } from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
 import { PlatformIcon } from "@/components/shared/platform-icon"
+import { DepositDialog } from "@/components/advertiser/deposit-dialog"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,6 +18,7 @@ import { Field, FieldGroup, FieldLabel, FieldDescription, FieldSet, FieldLegend 
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Separator } from "@/components/ui/separator"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 const platforms: { value: Platform; label: string }[] = [
   { value: "tiktok", label: "TikTok" },
@@ -25,17 +27,26 @@ const platforms: { value: Platform; label: string }[] = [
 ]
 
 export function CreateCampaignView() {
-  const { navigate } = useApp()
+  const { navigate, advertiserWallet, reserveForCampaign } = useApp()
   const [selected, setSelected] = useState<string[]>(["tiktok", "instagram"])
   const [budget, setBudget] = useState("10000")
   const [rate, setRate] = useState("500")
+  const [title, setTitle] = useState("")
+  const [depositOpen, setDepositOpen] = useState(false)
 
   const budgetNum = Number(budget) || 0
   const rateNum = Number(rate) || 0
   const estimatedViews = rateNum > 0 ? (budgetNum / rateNum) * 1_000_000 : 0
+  const insufficient = budgetNum > advertiserWallet.available
+  const shortfall = Math.max(0, budgetNum - advertiserWallet.available)
 
   function launch() {
-    toast.success("Campaign created", { description: "Your campaign is now live and discoverable by creators." })
+    if (insufficient) return
+    const name = title.trim() || "Untitled campaign"
+    reserveForCampaign(budgetNum, name)
+    toast.success("Campaign created", {
+      description: `${formatCurrency(budgetNum)} reserved. Your campaign is now live and discoverable by creators.`,
+    })
     navigate("campaigns")
   }
 
@@ -59,7 +70,12 @@ export function CreateCampaignView() {
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="title">Campaign title</FieldLabel>
-                  <Input id="title" placeholder="e.g. Summer Highlights" defaultValue="" />
+                  <Input
+                    id="title"
+                    placeholder="e.g. Summer Highlights"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="category">Category</FieldLabel>
@@ -177,6 +193,13 @@ export function CreateCampaignView() {
                 </div>
               </div>
               <Separator />
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Wallet available</span>
+                <span className={`font-medium tabular-nums ${insufficient ? "text-destructive" : ""}`}>
+                  {formatCurrency(advertiserWallet.available)}
+                </span>
+              </div>
+              <Separator />
               <div className="flex flex-col gap-2">
                 {["Verified views only", "Fraud protection included", "Cancel anytime"].map((f) => (
                   <div key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -185,14 +208,32 @@ export function CreateCampaignView() {
                   </div>
                 ))}
               </div>
-              <Button size="lg" onClick={launch}>
-                <Rocket data-icon="inline-start" />
-                Launch campaign
-              </Button>
+              {insufficient && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="size-4" />
+                  <AlertTitle>Insufficient balance</AlertTitle>
+                  <AlertDescription>
+                    You need {formatCurrency(shortfall)} more to reserve this budget. Add funds to launch.
+                  </AlertDescription>
+                </Alert>
+              )}
+              {insufficient ? (
+                <Button size="lg" variant="secondary" onClick={() => setDepositOpen(true)}>
+                  <Plus data-icon="inline-start" />
+                  Add {formatCurrency(shortfall)}
+                </Button>
+              ) : (
+                <Button size="lg" onClick={launch}>
+                  <Rocket data-icon="inline-start" />
+                  Launch campaign
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>
       </div>
+
+      <DepositDialog open={depositOpen} onOpenChange={setDepositOpen} />
     </div>
   )
 }

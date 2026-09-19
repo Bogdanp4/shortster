@@ -1,0 +1,267 @@
+"use client"
+
+import { useMemo, useState } from "react"
+import { CheckCircle2, CreditCard, Landmark, Bitcoin, ArrowRight, Plus, Loader2 } from "lucide-react"
+
+import { useApp } from "@/components/app/app-provider"
+import { formatCurrency } from "@/lib/format"
+import type { PaymentMethod } from "@/lib/types"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
+import { Separator } from "@/components/ui/separator"
+import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
+import { AddPaymentMethodDialog } from "./add-payment-method-dialog"
+
+const methodIcon = { card: CreditCard, wire: Landmark, crypto: Bitcoin }
+const presets = [500, 1000, 5000]
+const MIN_DEPOSIT = 100
+
+type Step = "form" | "review" | "success"
+
+export function DepositDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const { advertiserWallet, paymentMethods, deposit } = useApp()
+  const [step, setStep] = useState<Step>("form")
+  const [amount, setAmount] = useState("")
+  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null)
+  const [addMethodOpen, setAddMethodOpen] = useState(false)
+  const [processing, setProcessing] = useState(false)
+
+  const numeric = Number(amount) || 0
+  const method = useMemo(
+    () => paymentMethods.find((m) => m.id === selectedMethodId) ?? paymentMethods[0] ?? null,
+    [paymentMethods, selectedMethodId],
+  )
+
+  let error: string | null = null
+  if (amount !== "" && numeric <= 0) error = "Enter a valid amount."
+  else if (numeric > 0 && numeric < MIN_DEPOSIT) error = `Minimum deposit is ${formatCurrency(MIN_DEPOSIT)}.`
+  else if (paymentMethods.length === 0) error = "Add a payment method to continue."
+
+  const canReview = numeric >= MIN_DEPOSIT && !error
+
+  function reset() {
+    setStep("form")
+    setAmount("")
+    setSelectedMethodId(null)
+    setProcessing(false)
+  }
+
+  function confirm() {
+    if (!method) return
+    setProcessing(true)
+    setTimeout(() => {
+      deposit(numeric, method)
+      setProcessing(false)
+      setStep("success")
+    }, 900)
+  }
+
+  function close() {
+    reset()
+    onOpenChange(false)
+  }
+
+  return (
+    <>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) reset()
+          onOpenChange(next)
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          {step === "form" && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Add funds</DialogTitle>
+                <DialogDescription>
+                  Available:{" "}
+                  <span className="font-medium text-foreground">{formatCurrency(advertiserWallet.available)}</span>
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex flex-col gap-4">
+                <Field data-invalid={!!error && amount !== "" ? true : undefined}>
+                  <FieldLabel htmlFor="dep-amount">Deposit amount</FieldLabel>
+                  <InputGroup>
+                    <InputGroupAddon>$</InputGroupAddon>
+                    <InputGroupInput
+                      id="dep-amount"
+                      inputMode="decimal"
+                      placeholder="0.00"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      aria-invalid={!!error && amount !== "" ? true : undefined}
+                    />
+                  </InputGroup>
+                </Field>
+
+                <div className="flex items-center gap-2">
+                  {presets.map((p) => (
+                    <Button
+                      key={p}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => setAmount(String(p))}
+                    >
+                      {formatCurrency(p)}
+                    </Button>
+                  ))}
+                </div>
+
+                <Separator />
+
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm font-medium">Payment method</span>
+                  {paymentMethods.length === 0 ? (
+                    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-border p-4">
+                      <p className="text-sm text-muted-foreground">No payment method added</p>
+                      <Button variant="secondary" size="sm" onClick={() => setAddMethodOpen(true)}>
+                        <Plus data-icon="inline-start" />
+                        Add payment method
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {paymentMethods.map((m) => {
+                        const Icon = methodIcon[m.type]
+                        const selected = method?.id === m.id
+                        return (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => setSelectedMethodId(m.id)}
+                            className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${
+                              selected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                            }`}
+                          >
+                            <div className="flex size-9 items-center justify-center rounded-md bg-muted">
+                              <Icon className="size-4" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">{m.label}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {m.last4 === "WIRE" ? "Bank wire" : `•••• ${m.last4}`}
+                              </span>
+                            </div>
+                            {selected && <CheckCircle2 className="ml-auto size-4 text-primary" />}
+                          </button>
+                        )
+                      })}
+                      <Button variant="ghost" size="sm" className="self-start" onClick={() => setAddMethodOpen(true)}>
+                        <Plus data-icon="inline-start" />
+                        Add another method
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {error && amount !== "" && <p className="text-sm text-destructive">{error}</p>}
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={close}>
+                  Cancel
+                </Button>
+                <Button disabled={!canReview} onClick={() => setStep("review")}>
+                  Review deposit
+                  <ArrowRight data-icon="inline-end" />
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+
+          {step === "review" && method && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Add funds</DialogTitle>
+                <DialogDescription>Confirm your deposit details.</DialogDescription>
+              </DialogHeader>
+
+              <div className="flex flex-col gap-3 rounded-lg border border-border p-4">
+                <Row label="Deposit amount" value={formatCurrency(numeric)} />
+                <Row label="Processing fee" value={formatCurrency(0)} />
+                <Separator />
+                <Row label="Total charged" value={formatCurrency(numeric)} strong />
+                <Row label="Payment method" value={`${method.label}${method.last4 === "WIRE" ? "" : ` •••• ${method.last4}`}`} />
+                <Row label="New available balance" value={formatCurrency(advertiserWallet.available + numeric)} />
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setStep("form")} disabled={processing}>
+                  Back
+                </Button>
+                <Button onClick={confirm} disabled={processing}>
+                  {processing ? (
+                    <>
+                      <Loader2 data-icon="inline-start" className="animate-spin" />
+                      Processing
+                    </>
+                  ) : (
+                    "Confirm deposit"
+                  )}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+
+          {step === "success" && (
+            <>
+              <DialogHeader>
+                <div className="flex size-12 items-center justify-center rounded-full bg-primary/12">
+                  <CheckCircle2 className="size-6 text-primary" />
+                </div>
+                <DialogTitle>Funds added</DialogTitle>
+                <DialogDescription>Your balance is ready for campaigns.</DialogDescription>
+              </DialogHeader>
+
+              <div className="flex flex-col items-center gap-1 py-2">
+                <span className="text-3xl font-semibold tabular-nums text-primary">+{formatCurrency(numeric)}</span>
+                <span className="text-sm text-muted-foreground">
+                  New balance:{" "}
+                  <span className="text-foreground">{formatCurrency(advertiserWallet.available)}</span>
+                </span>
+              </div>
+
+              <DialogFooter>
+                <Button onClick={close}>Done</Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <AddPaymentMethodDialog
+        open={addMethodOpen}
+        onOpenChange={setAddMethodOpen}
+        onAdded={(m) => setSelectedMethodId(m.id)}
+      />
+    </>
+  )
+}
+
+function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={strong ? "font-semibold tabular-nums" : "tabular-nums"}>{value}</span>
+    </div>
+  )
+}
