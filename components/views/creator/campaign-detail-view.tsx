@@ -76,11 +76,23 @@ export function CampaignDetailView() {
             <Badge variant="secondary">{campaign.category}</Badge>
             <CampaignStatusBadge status={campaign.status} />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-semibold tracking-tight lg:text-4xl">{campaign.title}</h1>
             <div className="flex items-center gap-2 text-muted-foreground">
               <BrandAvatar name={campaign.brand} className="size-6" />
               <span className="text-sm">by {campaign.brand}</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">Available on</span>
+              {campaign.platforms.map((p) => (
+                <span
+                  key={p}
+                  className="flex items-center gap-1 rounded-md bg-background/70 px-2 py-0.5 text-xs backdrop-blur"
+                >
+                  <PlatformIcon platform={p} className="size-3" />
+                  {platformLabel(p)}
+                </span>
+              ))}
             </div>
           </div>
         </div>

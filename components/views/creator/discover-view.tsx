@@ -29,19 +29,20 @@ export function DiscoverView() {
     })
   }, [query, category])
 
-  const totalBudget = campaigns.reduce((sum, c) => sum + (c.budget - c.spent), 0)
+  const activeCampaigns = campaigns.filter((c) => c.status === "active")
+  const activeBudgetRemaining = activeCampaigns.reduce((sum, c) => sum + Math.max(0, c.budget - c.spent), 0)
   const totalViews = campaigns.reduce((sum, c) => sum + c.views, 0)
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Discover Campaigns"
-        description="Browse active campaigns, clip content, and earn per verified view. New drops added weekly."
+        description="Create short-form content and earn based on the views locked in at submission. New drops added weekly."
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Live campaigns" value={String(campaigns.filter((c) => c.status === "active").length)} icon={Megaphone} accent="brand" />
-        <StatCard label="Budget available" value={formatMoney(totalBudget, { compact: true })} icon={DollarSign} accent="success" hint="Across all campaigns" />
+        <StatCard label="Active campaigns" value={String(activeCampaigns.length)} icon={Megaphone} accent="brand" hint="Accepting submissions now" />
+        <StatCard label="Active budget remaining" value={formatMoney(activeBudgetRemaining, { compact: true })} icon={DollarSign} accent="success" hint="Across active campaigns" />
         <StatCard label="Total views driven" value={compactNumber(totalViews)} icon={Eye} hint="By all creators" />
       </div>
 

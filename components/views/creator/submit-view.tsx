@@ -20,20 +20,21 @@ import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
 import { getCampaign, resolveMockVideo } from "@/lib/mock-data"
-import { formatMoney, formatNumber, calcPayout } from "@/lib/format"
-import type { ResolvedVideo, VideoCheckOutcome, DuplicateInfo, Submission } from "@/lib/types"
+import { formatMoney, formatNumber, calcPayout, detectPlatformFromUrl, platformUrlPlaceholder } from "@/lib/format"
+import type { Platform, ResolvedVideo, VideoCheckOutcome, DuplicateInfo, Submission } from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
-import { PlatformIcon } from "@/components/shared/platform-icon"
+import { PlatformIcon, platformLabel } from "@/components/shared/platform-icon"
 import { SubmissionStatusBadge } from "@/components/shared/status-badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Field, FieldGroup, FieldLabel, FieldDescription } from "@/components/ui/field"
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty"
+import { cn } from "@/lib/utils"
 
 type Stage = "input" | "validating" | "failed" | "review"
 
@@ -64,6 +65,29 @@ export function SubmitView() {
 
   const account = eligibleAccounts.find((a) => a.id === accountId)
   const remaining = campaign.budget - campaign.spent
+
+  // Group the campaign's allowed platforms with the creator's verified accounts
+  // on each, so we can show one section per platform (with a connect CTA when
+  // the creator has no verified account there).
+  const platformGroups = useMemo(
+    () =>
+      campaign.platforms.map((platform) => ({
+        platform,
+        accounts: eligibleAccounts.filter((a) => a.platform === platform),
+      })),
+    [campaign.platforms, eligibleAccounts],
+  )
+
+  const connectLabel: Record<Platform, string> = {
+    tiktok: "Connect TikTok",
+    instagram: "Verify Instagram",
+    youtube: "Connect YouTube",
+  }
+
+  // Warn when the pasted URL is clearly from a different platform than the
+  // selected account (e.g. TikTok account but an Instagram link).
+  const urlPlatform = detectPlatformFromUrl(url)
+  const mismatch = !!(account && urlPlatform && urlPlatform !== account.platform)
 
   const payout = video ? calcPayout({
     views: video.views,
@@ -201,10 +225,86 @@ export function SubmitView() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
-          {/* Step 1 — details */}
+          {/* Step 1 — choose platform & account */}
           <Card>
             <CardHeader>
-              <CardTitle>1. Video details</CardTitle>
+              <CardTitle>1. Choose platform &amp; account</CardTitle>
+              <CardDescription>
+                This campaign runs on {campaign.platforms.map(platformLabel).join(", ")}. Pick the verified account you
+                posted from.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-5">
+              {platformGroups.map(({ platform, accounts }) => (
+                <div key={platform} className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <PlatformIcon platform={platform} className="size-4" />
+                    <span className="text-sm font-medium">{platformLabel(platform)}</span>
+                  </div>
+                  {accounts.length > 0 ? (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {accounts.map((a) => {
+                        const active = a.id === accountId
+                        return (
+                          <button
+                            key={a.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={active}
+                            disabled={stage === "validating"}
+                            onClick={() => {
+                              setAccountId(a.id)
+                              if (stage !== "input") setStage("input")
+                            }}
+                            className={cn(
+                              "flex items-center gap-3 rounded-lg border p-3 text-left transition-colors disabled:opacity-60",
+                              active
+                                ? "border-primary bg-primary/5 ring-1 ring-primary"
+                                : "border-border hover:border-primary/40 hover:bg-muted/40",
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "flex size-4 shrink-0 items-center justify-center rounded-full border",
+                                active ? "border-primary" : "border-muted-foreground/40",
+                              )}
+                            >
+                              {active && <span className="size-2 rounded-full bg-primary" />}
+                            </span>
+                            <div className="flex min-w-0 flex-1 flex-col">
+                              <span className="truncate text-sm font-medium">{a.handle}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {formatNumber(a.followers)} followers
+                              </span>
+                            </div>
+                            <Badge variant="secondary" className="gap-1 text-success">
+                              <ShieldCheck className="size-3" />
+                              Verified
+                            </Badge>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-start gap-2 rounded-lg border border-dashed p-3 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        No verified {platformLabel(platform)} account.
+                      </span>
+                      <Button variant="outline" size="sm" onClick={() => navigate("social")}>
+                        {connectLabel[platform]}
+                        <ArrowRight data-icon="inline-end" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Step 2 — video link */}
+          <Card>
+            <CardHeader>
+              <CardTitle>2. Video link</CardTitle>
               <CardDescription>
                 Paste the link to your already-posted public video. We verify the view count directly from the
                 platform — you can&apos;t edit it after submitting.
@@ -212,24 +312,6 @@ export function SubmitView() {
             </CardHeader>
             <CardContent>
               <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="account">Posting account</FieldLabel>
-                  <Select value={accountId} onValueChange={setAccountId} disabled={stage === "validating"}>
-                    <SelectTrigger id="account">
-                      <SelectValue placeholder="Select account" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {eligibleAccounts.map((a) => (
-                          <SelectItem key={a.id} value={a.id}>
-                            {a.handle} · {formatNumber(a.followers)} followers
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  <FieldDescription>Only verified accounts on eligible platforms are shown.</FieldDescription>
-                </Field>
                 <Field>
                   <FieldLabel htmlFor="url">Video URL</FieldLabel>
                   <InputGroup>
@@ -240,7 +322,7 @@ export function SubmitView() {
                     )}
                     <InputGroupInput
                       id="url"
-                      placeholder="https://tiktok.com/@you/video/7409..."
+                      placeholder={account ? platformUrlPlaceholder[account.platform] : "Paste your video link"}
                       value={url}
                       onChange={(e) => {
                         setUrl(e.target.value)
@@ -248,12 +330,46 @@ export function SubmitView() {
                       }}
                     />
                   </InputGroup>
-                  <FieldDescription>Must be a public post that follows the campaign requirements.</FieldDescription>
+                  <FieldDescription>
+                    {account
+                      ? `Paste the ${platformLabel(account.platform)} link for ${account.handle}.`
+                      : "Select a posting account above first."}
+                  </FieldDescription>
                 </Field>
               </FieldGroup>
 
+              {mismatch && account && urlPlatform && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertTriangle />
+                  <AlertTitle>Platform mismatch</AlertTitle>
+                  <AlertDescription className="flex flex-col gap-3">
+                    <span>
+                      You selected a {platformLabel(account.platform)} account but pasted a{" "}
+                      {platformLabel(urlPlatform)} link. Choose the matching account or paste the correct link.
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {platformGroups.find((g) => g.platform === urlPlatform)?.accounts.length ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const match = eligibleAccounts.find((a) => a.platform === urlPlatform)
+                            if (match) setAccountId(match.id)
+                          }}
+                        >
+                          Switch to {platformLabel(urlPlatform)} account
+                        </Button>
+                      ) : null}
+                      <Button size="sm" variant="ghost" onClick={() => setUrl("")}>
+                        Use another video
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {stage === "input" && (
-                <Button className="mt-4" onClick={runValidation}>
+                <Button className="mt-4" onClick={runValidation} disabled={!account || !url.trim() || mismatch}>
                   Validate video
                   <ArrowRight data-icon="inline-end" />
                 </Button>
@@ -265,7 +381,7 @@ export function SubmitView() {
           {(stage === "validating" || stage === "failed" || stage === "review") && (
             <Card>
               <CardHeader>
-                <CardTitle>2. Verification</CardTitle>
+                <CardTitle>3. Verification</CardTitle>
                 <CardDescription>Automated checks run before your submission is accepted.</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-3">
@@ -292,7 +408,7 @@ export function SubmitView() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Lock className="size-4 text-primary" />
-                    3. Locked view snapshot
+                    4. Locked view snapshot
                   </CardTitle>
                   <CardDescription>
                     This is the verified state we&apos;ll pay against. Later view growth does not change the reward.
@@ -333,7 +449,7 @@ export function SubmitView() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>4. Confirm requirements</CardTitle>
+                  <CardTitle>5. Confirm requirements</CardTitle>
                   <CardDescription>Submissions that miss any requirement are rejected during review.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3">

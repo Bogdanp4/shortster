@@ -1,3 +1,5 @@
+import type { Platform } from "./types"
+
 export function formatMoney(value: number, opts?: { compact?: boolean }): string {
   if (opts?.compact && Math.abs(value) >= 1000) {
     return "$" + compactNumber(value)
@@ -112,4 +114,23 @@ export function calcPayout({
 export function percent(part: number, whole: number): number {
   if (whole === 0) return 0
   return Math.min(100, Math.round((part / whole) * 100))
+}
+
+// Detect which platform a pasted video URL belongs to, so we can warn when it
+// doesn't match the account/platform the creator selected. Returns null when
+// the URL is empty or from an unrecognized host.
+export function detectPlatformFromUrl(url: string): Platform | null {
+  const u = url.trim().toLowerCase()
+  if (!u) return null
+  if (u.includes("tiktok.com")) return "tiktok"
+  if (u.includes("instagram.com")) return "instagram"
+  if (u.includes("youtube.com") || u.includes("youtu.be")) return "youtube"
+  return null
+}
+
+// Placeholder URL shapes shown once a platform/account is chosen for submission.
+export const platformUrlPlaceholder: Record<Platform, string> = {
+  tiktok: "https://www.tiktok.com/@username/video/...",
+  instagram: "https://www.instagram.com/reel/...",
+  youtube: "https://youtube.com/shorts/...",
 }

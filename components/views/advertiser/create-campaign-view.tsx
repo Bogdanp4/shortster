@@ -8,7 +8,7 @@ import { useApp } from "@/components/app/app-provider"
 import { formatCurrency } from "@/lib/format"
 import type { Platform } from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
-import { PlatformIcon } from "@/components/shared/platform-icon"
+import { PlatformIcon, platformLabel } from "@/components/shared/platform-icon"
 import { DepositDialog } from "@/components/advertiser/deposit-dialog"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -16,19 +16,19 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Field, FieldGroup, FieldLabel, FieldDescription, FieldSet, FieldLegend } from "@/components/ui/field"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { cn } from "@/lib/utils"
 
-const platforms: { value: Platform; label: string }[] = [
-  { value: "tiktok", label: "TikTok" },
-  { value: "instagram", label: "Instagram" },
-  { value: "youtube", label: "YouTube" },
+const platformOptions: { value: Platform; label: string; description: string }[] = [
+  { value: "tiktok", label: "TikTok", description: "TikTok short-form videos" },
+  { value: "instagram", label: "Instagram Reels", description: "Instagram Reels" },
+  { value: "youtube", label: "YouTube Shorts", description: "YouTube Shorts" },
 ]
 
 export function CreateCampaignView() {
   const { navigate, advertiserWallet, reserveForCampaign } = useApp()
-  const [selected, setSelected] = useState<string[]>(["tiktok", "instagram"])
+  const [selected, setSelected] = useState<Platform[]>(["tiktok", "instagram", "youtube"])
   const [budget, setBudget] = useState("10000")
   const [rate, setRate] = useState("500")
   const [title, setTitle] = useState("")
@@ -39,9 +39,14 @@ export function CreateCampaignView() {
   const estimatedViews = rateNum > 0 ? (budgetNum / rateNum) * 1_000_000 : 0
   const insufficient = budgetNum > advertiserWallet.available
   const shortfall = Math.max(0, budgetNum - advertiserWallet.available)
+  const noPlatform = selected.length === 0
+
+  function togglePlatform(p: Platform) {
+    setSelected((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]))
+  }
 
   function launch() {
-    if (insufficient) return
+    if (insufficient || noPlatform) return
     const name = title.trim() || "Untitled campaign"
     reserveForCampaign(budgetNum, name)
     toast.success("Campaign created", {
@@ -104,26 +109,51 @@ export function CreateCampaignView() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Targeting</CardTitle>
-              <CardDescription>Where creators can post</CardDescription>
+              <CardTitle>Platforms</CardTitle>
+              <CardDescription>
+                Select all platforms where creators can publish content for this campaign.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <FieldSet>
-                <FieldLegend>Platforms</FieldLegend>
-                <ToggleGroup
-                  type="multiple"
-                  variant="outline"
-                  value={selected}
-                  onValueChange={(v) => v.length && setSelected(v)}
-                  className="justify-start"
-                >
-                  {platforms.map((p) => (
-                    <ToggleGroupItem key={p.value} value={p.value} className="gap-2">
-                      <PlatformIcon platform={p.value} className="size-4" />
-                      {p.label}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
+                <FieldLegend className="sr-only">Platforms</FieldLegend>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {platformOptions.map((p) => {
+                    const active = selected.includes(p.value)
+                    return (
+                      <button
+                        key={p.value}
+                        type="button"
+                        role="checkbox"
+                        aria-checked={active}
+                        onClick={() => togglePlatform(p.value)}
+                        className={cn(
+                          "relative flex flex-col items-start gap-2 rounded-lg border p-4 text-left transition-colors",
+                          active
+                            ? "border-primary bg-primary/5 ring-1 ring-primary"
+                            : "border-border hover:border-primary/40 hover:bg-muted/40",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "absolute right-3 top-3 flex size-5 items-center justify-center rounded-full border transition-colors",
+                            active ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/40",
+                          )}
+                        >
+                          {active && <Check className="size-3" />}
+                        </span>
+                        <PlatformIcon platform={p.value} className="size-6" />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{p.label}</span>
+                          <span className="text-xs text-muted-foreground">{p.description}</span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+                {noPlatform && (
+                  <p className="mt-3 text-sm text-destructive">Select at least one platform.</p>
+                )}
               </FieldSet>
             </CardContent>
           </Card>
@@ -184,13 +214,20 @@ export function CreateCampaignView() {
                 <span className="text-muted-foreground">Rate</span>
                 <span className="font-medium">{formatCurrency(rateNum)} / 1M</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-start justify-between gap-3 text-sm">
                 <span className="text-muted-foreground">Platforms</span>
-                <div className="flex gap-1.5">
-                  {selected.map((p) => (
-                    <PlatformIcon key={p} platform={p as Platform} className="size-4" />
-                  ))}
-                </div>
+                {selected.length > 0 ? (
+                  <div className="flex flex-wrap justify-end gap-1.5">
+                    {selected.map((p) => (
+                      <span key={p} className="flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs">
+                        <PlatformIcon platform={p} className="size-3" />
+                        {platformLabel(p)}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-destructive">None selected</span>
+                )}
               </div>
               <Separator />
               <div className="flex items-center justify-between text-sm">
