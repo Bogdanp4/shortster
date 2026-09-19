@@ -55,6 +55,60 @@ export function computeReward(views: number, ratePerMillion: number): number {
   return (views / 1_000_000) * ratePerMillion
 }
 
+// Normalize a platform video ID from a URL so the same video posted under
+// different URL shapes (youtu.be/X, youtube.com/shorts/X, watch?v=X) resolves
+// to a single ID for duplicate detection.
+export function extractVideoId(url: string): string {
+  const clean = url.trim()
+  const patterns = [
+    /(?:youtube\.com\/shorts\/|youtu\.be\/|[?&]v=)([a-zA-Z0-9_-]{4,})/,
+    /tiktok\.com\/@[^/]+\/video\/(\d+)/,
+    /instagram\.com\/(?:reel|p)\/([a-zA-Z0-9_-]+)/,
+  ]
+  for (const p of patterns) {
+    const m = clean.match(p)
+    if (m) return m[1]
+  }
+  // Fall back to the last non-empty path segment.
+  const seg = clean.split(/[/?#]/).filter(Boolean).pop()
+  return seg ?? clean
+}
+
+export interface PayoutInput {
+  views: number
+  ratePerMillion: number
+  maxPayoutPerVideo: number
+  remainingBudget: number
+}
+
+export function calcPayout({
+  views,
+  ratePerMillion,
+  maxPayoutPerVideo,
+  remainingBudget,
+}: PayoutInput) {
+  const rawReward = computeReward(views, ratePerMillion)
+  let finalReward = rawReward
+  let limitReason: "per_video" | "budget" | null = null
+  if (finalReward > maxPayoutPerVideo) {
+    finalReward = maxPayoutPerVideo
+    limitReason = "per_video"
+  }
+  if (finalReward > remainingBudget) {
+    finalReward = remainingBudget
+    limitReason = "budget"
+  }
+  return {
+    views,
+    ratePerMillion,
+    rawReward: Number(rawReward.toFixed(2)),
+    perVideoCap: maxPayoutPerVideo,
+    remainingBudget,
+    finalReward: Number(finalReward.toFixed(2)),
+    limitReason,
+  }
+}
+
 export function percent(part: number, whole: number): number {
   if (whole === 0) return 0
   return Math.min(100, Math.round((part / whole) * 100))

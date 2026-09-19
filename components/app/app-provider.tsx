@@ -15,6 +15,8 @@ interface AppState {
   addSubmission: (s: Submission) => void
   socialAccounts: SocialAccount[]
   addSocialAccount: (s: SocialAccount) => void
+  updateSocialAccount: (id: string, patch: Partial<SocialAccount>) => void
+  removeSocialAccount: (id: string) => void
 }
 
 const AppContext = createContext<AppState | null>(null)
@@ -48,6 +50,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSocialAccounts((prev) => [...prev, s])
   }, [])
 
+  const updateSocialAccount = useCallback((id: string, patch: Partial<SocialAccount>) => {
+    setSocialAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)))
+  }, [])
+
+  const removeSocialAccount = useCallback((id: string) => {
+    setSocialAccounts((prev) => prev.filter((a) => a.id !== id))
+  }, [])
+
   return (
     <AppContext.Provider
       value={{
@@ -60,6 +70,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addSubmission,
         socialAccounts,
         addSocialAccount,
+        updateSocialAccount,
+        removeSocialAccount,
       }}
     >
       {children}

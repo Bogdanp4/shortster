@@ -63,8 +63,39 @@ export interface Campaign {
   creators: number
   submissionsCount: number
   views: number
-  exampleVideos: { id: string; title: string; platform: Platform; views: number; thumb: string }[]
+  exampleVideos: { id: string; title: string; platform: Platform; views: number; duration: number; thumb: string }[]
   assets: { name: string; size: string; type: string }[]
+}
+
+export interface ResolvedVideo {
+  videoId: string
+  platform: Platform
+  authorHandle: string
+  thumb: string
+  views: number
+  likes: number
+  comments: number
+  duration: number
+  publishedAt: string
+  isPublic: boolean
+}
+
+export type VideoCheckOutcome = "valid" | "duplicate" | "wrong_account" | "not_found" | "private"
+
+export interface DuplicateInfo {
+  campaignTitle: string
+  submittedAt: string
+  status: SubmissionStatus
+}
+
+export interface PayoutBreakdown {
+  views: number
+  ratePerMillion: number
+  rawReward: number
+  perVideoCap: number
+  remainingBudget: number
+  finalReward: number
+  limitReason: "per_video" | "budget" | null
 }
 
 export interface Submission {
@@ -90,7 +121,9 @@ export interface Submission {
   status: SubmissionStatus
   submittedAt: string
   moderatorNote?: string
+  rejectionReason?: string
   riskScore: number
+  lockedAt?: string
 }
 
 export interface WalletTransaction {

@@ -1,9 +1,8 @@
 "use client"
 
-import { ExternalLink, Heart, MessageCircle, Clock, Eye } from "lucide-react"
+import { ExternalLink, Heart, MessageCircle, Clock, Eye, Lock } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
-import { creatorSubmissions } from "@/lib/mock-data"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { PageHeader } from "@/components/shared/page-header"
 import { PlatformIcon } from "@/components/shared/platform-icon"
@@ -16,8 +15,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import Image from "next/image"
 
 export function SubmissionDetailView() {
-  const { selectedSubmissionId, navigate } = useApp()
-  const submission = creatorSubmissions.find((s) => s.id === selectedSubmissionId) ?? creatorSubmissions[0]
+  const { params, navigate, submissions } = useApp()
+  const submission = submissions.find((s) => s.id === params.id) ?? submissions[0]
 
   const reward = submission.cappedReward ?? submission.reward
   const capped = submission.cappedReward != null && submission.cappedReward < submission.reward
@@ -53,25 +52,39 @@ export function SubmissionDetailView() {
                 <span className="text-xs font-medium">{submission.accountHandle}</span>
               </div>
             </div>
-            <CardContent className="grid grid-cols-2 gap-4 pt-6 sm:grid-cols-4">
-              {stats.map((s) => (
-                <div key={s.label} className="flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <s.icon className="size-4" />
-                    <span className="text-xs">{s.label}</span>
+            <CardContent className="flex flex-col gap-4 pt-6">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Lock className="size-3.5 text-primary" />
+                <span>
+                  View count locked at submission{submission.lockedAt ? ` · ${submission.lockedAt}` : ""}. Later growth
+                  doesn&apos;t change your reward.
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                {stats.map((s) => (
+                  <div key={s.label} className="flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <s.icon className="size-4" />
+                      <span className="text-xs">{s.label}</span>
+                    </div>
+                    <span className="text-lg font-semibold tabular-nums">{s.value}</span>
                   </div>
-                  <span className="text-lg font-semibold tabular-nums">{s.value}</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </CardContent>
           </Card>
 
-          {submission.status === "rejected" && submission.moderatorNote && (
-            <Alert variant="destructive">
-              <AlertTitle>Submission rejected</AlertTitle>
-              <AlertDescription>{submission.moderatorNote}</AlertDescription>
-            </Alert>
-          )}
+          {(submission.status === "rejected" || submission.status === "fraud") &&
+            (submission.rejectionReason || submission.moderatorNote) && (
+              <Alert variant="destructive">
+                <AlertTitle>
+                  {submission.status === "fraud" ? "Flagged for fraud" : "Submission rejected"}
+                </AlertTitle>
+                <AlertDescription>
+                  {submission.rejectionReason ?? submission.moderatorNote}
+                </AlertDescription>
+              </Alert>
+            )}
 
           <Card>
             <CardHeader>
@@ -144,7 +157,7 @@ export function SubmissionDetailView() {
             <CardContent>
               <button
                 className="flex w-full items-center gap-3 text-left"
-                onClick={() => navigate("campaign", { campaignId: submission.campaignId })}
+                onClick={() => navigate("campaign", { id: submission.campaignId })}
               >
                 <BrandAvatar name={submission.brand} src={submission.cover} className="size-10" />
                 <div className="flex flex-col">

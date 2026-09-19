@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { useApp } from "@/components/app/app-provider"
 import { getCampaign } from "@/lib/mock-data"
-import { formatMoney, formatNumber, compactNumber, percent } from "@/lib/format"
+import { formatMoney, formatNumber, compactNumber, percent, formatRelative } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -11,7 +11,8 @@ import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { CampaignStatusBadge } from "@/components/shared/status-badge"
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
+import { CampaignStatusBadge, SubmissionStatusBadge } from "@/components/shared/status-badge"
 import { PlatformIcon, platformLabel } from "@/components/shared/platform-icon"
 import { BrandAvatar } from "@/components/shared/brand-avatar"
 import {
@@ -39,8 +40,9 @@ const assetIcon: Record<string, typeof FileText> = {
 }
 
 export function CampaignDetailView() {
-  const { params, navigate } = useApp()
+  const { params, navigate, submissions } = useApp()
   const campaign = getCampaign(params.id)
+  const mySubmissions = submissions.filter((s) => s.campaignId === params.id)
 
   if (!campaign) {
     return (
@@ -92,6 +94,9 @@ export function CampaignDetailView() {
               <TabsTrigger value="requirements">Requirements</TabsTrigger>
               <TabsTrigger value="examples">Examples</TabsTrigger>
               <TabsTrigger value="assets">Assets</TabsTrigger>
+              <TabsTrigger value="submissions">
+                My Submissions{mySubmissions.length > 0 ? ` (${mySubmissions.length})` : ""}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="flex flex-col gap-6 pt-2">
@@ -167,6 +172,48 @@ export function CampaignDetailView() {
               </div>
             </TabsContent>
 
+            <TabsContent value="submissions" className="pt-2">
+              {mySubmissions.length === 0 ? (
+                <Empty>
+                  <EmptyHeader>
+                    <Send className="size-8 text-muted-foreground" />
+                    <EmptyTitle>No submissions yet</EmptyTitle>
+                    <EmptyDescription>
+                      Submit your first video for this campaign to start earning per verified view.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {mySubmissions.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => navigate("submission", { id: s.id })}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-border/60 p-3 text-left transition-colors hover:bg-muted/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="flex size-9 items-center justify-center rounded-md bg-muted">
+                          <PlatformIcon platform={s.platform} className="size-4" />
+                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{s.accountHandle}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatNumber(s.viewsAtSubmission)} views · {formatRelative(s.submittedAt)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium tabular-nums">
+                          {formatMoney(s.cappedReward ?? s.reward)}
+                        </span>
+                        <SubmissionStatusBadge status={s.status} />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
             <TabsContent value="assets" className="pt-2">
               <Card>
                 <CardHeader>
@@ -218,10 +265,22 @@ export function CampaignDetailView() {
                 </p>
               </div>
 
-              <Button size="lg" onClick={() => navigate("submit", { id: campaign.id })}>
-                <Send data-icon="inline-start" />
-                Submit a video
-              </Button>
+              {campaign.status === "active" ? (
+                <Button size="lg" onClick={() => navigate("submit", { id: campaign.id })}>
+                  <Send data-icon="inline-start" />
+                  Submit a video
+                </Button>
+              ) : (
+                <Button size="lg" disabled>
+                  <Send data-icon="inline-start" />
+                  {campaign.status === "paused" ? "Campaign paused" : "Not accepting submissions"}
+                </Button>
+              )}
+              {campaign.status === "paused" && (
+                <p className="text-xs text-muted-foreground">
+                  This campaign is temporarily paused. Existing submissions are still being reviewed.
+                </p>
+              )}
             </CardContent>
           </Card>
 

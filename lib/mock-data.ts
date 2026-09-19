@@ -2,13 +2,18 @@ import type {
   AdminUser,
   AuditLog,
   Campaign,
+  DuplicateInfo,
   FraudCase,
   IgVerification,
   Notification,
+  Platform,
+  ResolvedVideo,
   SocialAccount,
   Submission,
+  VideoCheckOutcome,
   WalletTransaction,
 } from "./types"
+import { extractVideoId } from "./format"
 
 export const campaigns: Campaign[] = [
   {
@@ -57,9 +62,9 @@ export const campaigns: Campaign[] = [
     submissionsCount: 84,
     views: 5_100_000,
     exampleVideos: [
-      { id: "ex1", title: "Insane $250k slot win", platform: "tiktok", views: 842_000, thumb: "/campaigns/stake-highlights.png" },
-      { id: "ex2", title: "Tournament final reaction", platform: "youtube", views: 613_000, thumb: "/campaigns/stake-highlights.png" },
-      { id: "ex3", title: "Top 5 wins this week", platform: "instagram", views: 421_000, thumb: "/campaigns/stake-highlights.png" },
+      { id: "ex1", title: "Insane $250k slot win", platform: "tiktok", views: 842_000, duration: 22, thumb: "/campaigns/stake-highlights.png" },
+      { id: "ex2", title: "Tournament final reaction", platform: "youtube", views: 613_000, duration: 34, thumb: "/campaigns/stake-highlights.png" },
+      { id: "ex3", title: "Top 5 wins this week", platform: "instagram", views: 421_000, duration: 28, thumb: "/campaigns/stake-highlights.png" },
     ],
     assets: [
       { name: "logo.png", size: "220 KB", type: "image" },
@@ -111,8 +116,8 @@ export const campaigns: Campaign[] = [
     submissionsCount: 214,
     views: 12_160_000,
     exampleVideos: [
-      { id: "ex1", title: "1v5 clutch ace", platform: "tiktok", views: 1_240_000, thumb: "/campaigns/gaming-clips.png" },
-      { id: "ex2", title: "Funniest fails compilation", platform: "youtube", views: 980_000, thumb: "/campaigns/gaming-clips.png" },
+      { id: "ex1", title: "1v5 clutch ace", platform: "tiktok", views: 1_240_000, duration: 26, thumb: "/campaigns/gaming-clips.png" },
+      { id: "ex2", title: "Funniest fails compilation", platform: "youtube", views: 980_000, duration: 38, thumb: "/campaigns/gaming-clips.png" },
     ],
     assets: [
       { name: "watermark.png", size: "180 KB", type: "image" },
@@ -142,7 +147,7 @@ export const campaigns: Campaign[] = [
     ],
     status: "active",
     budget: 5000,
-    spent: 1340,
+    spent: 4888,
     ratePerMillion: 250,
     minViews: 5000,
     maxPayoutPerAccount: 150,
@@ -162,8 +167,8 @@ export const campaigns: Campaign[] = [
     submissionsCount: 152,
     views: 4_380_000,
     exampleVideos: [
-      { id: "ex1", title: "Neon Skies transition", platform: "instagram", views: 512_000, thumb: "/campaigns/music-promotion.png" },
-      { id: "ex2", title: "Dance challenge", platform: "tiktok", views: 388_000, thumb: "/campaigns/music-promotion.png" },
+      { id: "ex1", title: "Neon Skies transition", platform: "instagram", views: 512_000, duration: 16, thumb: "/campaigns/music-promotion.png" },
+      { id: "ex2", title: "Dance challenge", platform: "tiktok", views: 388_000, duration: 21, thumb: "/campaigns/music-promotion.png" },
     ],
     assets: [
       { name: "neon-skies.mp3", size: "6.2 MB", type: "audio" },
@@ -213,8 +218,8 @@ export const campaigns: Campaign[] = [
     submissionsCount: 118,
     views: 6_940_000,
     exampleVideos: [
-      { id: "ex1", title: "How I plan my week with AI", platform: "tiktok", views: 720_000, thumb: "/campaigns/ai-app-ugc.png" },
-      { id: "ex2", title: "This AI app changed my workflow", platform: "youtube", views: 540_000, thumb: "/campaigns/ai-app-ugc.png" },
+      { id: "ex1", title: "How I plan my week with AI", platform: "tiktok", views: 720_000, duration: 41, thumb: "/campaigns/ai-app-ugc.png" },
+      { id: "ex2", title: "This AI app changed my workflow", platform: "youtube", views: 540_000, duration: 52, thumb: "/campaigns/ai-app-ugc.png" },
     ],
     assets: [
       { name: "app-logo.png", size: "260 KB", type: "image" },
@@ -263,7 +268,7 @@ export const campaigns: Campaign[] = [
     submissionsCount: 97,
     views: 8_200_000,
     exampleVideos: [
-      { id: "ex1", title: "Buzzer beater from half court", platform: "tiktok", views: 1_800_000, thumb: "/campaigns/sports-highlights.png" },
+      { id: "ex1", title: "Buzzer beater from half court", platform: "tiktok", views: 1_800_000, duration: 19, thumb: "/campaigns/sports-highlights.png" },
     ],
     assets: [
       { name: "intro-sting.mov", size: "12 MB", type: "video" },
@@ -665,3 +670,68 @@ export const creatorWallet = {
   pending: 384.1,
   lifetime: 14820.4,
 }
+
+// ── Submit-flow demo fixtures ──────────────────────────────────────────────
+// Video IDs already submitted anywhere on Shortster. Used for the duplicate
+// check (normalized by platform video ID, not raw URL).
+export const submittedVideoIndex: Record<string, DuplicateInfo> = {
+  kD8fH2aQ: { campaignTitle: "Gaming Clips", submittedAt: "Sep 12, 2026", status: "approved" },
+  "7409981233": { campaignTitle: "Music Promotion", submittedAt: "Sep 12, 2026", status: "rejected" },
+  "9Xk2Lm": { campaignTitle: "Stake Highlights", submittedAt: "Sep 8, 2026", status: "credited" },
+}
+
+// Scripted resolution so the demo can show every outcome deterministically:
+//  - a link containing "dup"   → duplicate video
+//  - a link containing "wrong" → published by a different account
+//  - a link containing "short" → passes but too short (fails duration check)
+//  - a link containing "404" or "notfound" → not found
+//  - a link containing "private" → private account
+//  - anything else → a valid, campaign-ready video
+export function resolveMockVideo(
+  url: string,
+  account: { handle: string; platform: Platform },
+): { outcome: VideoCheckOutcome; video?: ResolvedVideo; duplicate?: DuplicateInfo } {
+  const lower = url.toLowerCase()
+  const videoId = extractVideoId(url)
+
+  if (lower.includes("404") || lower.includes("notfound")) {
+    return { outcome: "not_found" }
+  }
+  if (lower.includes("private")) {
+    return { outcome: "private" }
+  }
+
+  const dup = submittedVideoIndex[videoId]
+  if (dup || lower.includes("dup")) {
+    return {
+      outcome: "duplicate",
+      duplicate: dup ?? { campaignTitle: "Gaming Clips", submittedAt: "Sep 12, 2026", status: "approved" },
+    }
+  }
+
+  const author = lower.includes("wrong") ? "@differentcreator" : account.handle
+  // Use a distinct token so it doesn't collide with the legit "/shorts/" path in YouTube URLs.
+  const duration = lower.includes("tooshort") || lower.includes("brief") ? 9 : 23
+
+  const video: ResolvedVideo = {
+    videoId,
+    platform: account.platform,
+    authorHandle: author,
+    thumb: "/campaigns/stake-highlights.png",
+    views: 184293,
+    likes: 12319,
+    comments: 419,
+    duration,
+    publishedAt: "Sep 16, 2026",
+    isPublic: true,
+  }
+
+  if (author !== account.handle) return { outcome: "wrong_account", video }
+  return { outcome: "valid", video }
+}
+
+export const igVerificationRules = [
+  "Your Instagram account must be public.",
+  "Changing your username requires re-verification.",
+  "Only one Shortster account can own a verified Instagram username.",
+]

@@ -4,7 +4,6 @@ import { useMemo, useState } from "react"
 import { ExternalLink } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
-import { creatorSubmissions } from "@/lib/mock-data"
 import { formatCurrency, formatNumber, formatRelative } from "@/lib/format"
 import type { SubmissionStatus } from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
@@ -26,19 +25,19 @@ const tabs: { value: SubmissionStatus | "all"; label: string }[] = [
 ]
 
 export function SubmissionsView() {
-  const { navigate } = useApp()
+  const { navigate, submissions } = useApp()
   const [tab, setTab] = useState<SubmissionStatus | "all">("all")
 
   const filtered = useMemo(
-    () => (tab === "all" ? creatorSubmissions : creatorSubmissions.filter((s) => s.status === tab)),
-    [tab],
+    () => (tab === "all" ? submissions : submissions.filter((s) => s.status === tab)),
+    [tab, submissions],
   )
 
-  const totalEarned = creatorSubmissions
+  const totalEarned = submissions
     .filter((s) => s.status === "credited")
     .reduce((sum, s) => sum + (s.cappedReward ?? s.reward), 0)
-  const totalViews = creatorSubmissions.reduce((sum, s) => sum + s.viewsAtSubmission, 0)
-  const pendingCount = creatorSubmissions.filter((s) => s.status === "pending").length
+  const totalViews = submissions.reduce((sum, s) => sum + s.viewsAtSubmission, 0)
+  const pendingCount = submissions.filter((s) => s.status === "pending").length
 
   return (
     <div className="flex flex-col gap-6">
@@ -79,7 +78,7 @@ export function SubmissionsView() {
                 <TableRow
                   key={s.id}
                   className="cursor-pointer"
-                  onClick={() => navigate("submission", { submissionId: s.id })}
+                  onClick={() => navigate("submission", { id: s.id })}
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
