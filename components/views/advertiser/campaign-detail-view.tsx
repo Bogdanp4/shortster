@@ -7,7 +7,7 @@ import Image from "next/image"
 
 import { useApp } from "@/components/app/app-provider"
 import { campaigns, getCampaign, moderationQueue, advertiserStatsSeries } from "@/lib/mock-data"
-import { formatCurrency, formatNumber } from "@/lib/format"
+import { formatCurrency, formatNumber, categoryLabel } from "@/lib/format"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
 import { CampaignStatusBadge, SubmissionStatusBadge } from "@/components/shared/status-badge"
@@ -35,7 +35,7 @@ export function AdvertiserCampaignDetailView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title={campaign.title}
-        description={`${campaign.category} · ${campaign.brand}`}
+        description={`${categoryLabel[campaign.category]} · ${campaign.brand}`}
         backLabel="Back to campaigns"
         onBack={() => navigate("campaigns")}
       >

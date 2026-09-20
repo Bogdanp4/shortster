@@ -5,7 +5,7 @@ import { PlusCircle, Search } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
 import { campaigns } from "@/lib/mock-data"
-import { formatCurrency, formatNumber } from "@/lib/format"
+import { formatCurrency, formatNumber, categoryLabel } from "@/lib/format"
 import type { CampaignStatus } from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
 import { CampaignStatusBadge } from "@/components/shared/status-badge"
@@ -94,7 +94,7 @@ export function AdvertiserCampaignsView() {
                         <BrandAvatar name={c.brand} src={c.cover} className="size-9" />
                         <div className="flex flex-col">
                           <span className="font-medium">{c.title}</span>
-                          <span className="text-xs text-muted-foreground">{c.category}</span>
+                          <span className="text-xs text-muted-foreground">{categoryLabel[c.category]}</span>
                         </div>
                       </div>
                     </TableCell>

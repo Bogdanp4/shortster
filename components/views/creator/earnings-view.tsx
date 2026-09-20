@@ -2,11 +2,11 @@
 
 import { useState } from "react"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { Banknote, Building2, Wallet, CreditCard, Plus, ChevronRight } from "lucide-react"
+import { Banknote, Wallet, Plus, ChevronRight } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
 import { creatorEarningsSeries } from "@/lib/mock-data"
-import { formatCurrency } from "@/lib/format"
+import { formatCurrency, payoutNetworkLabel, shortenAddress } from "@/lib/format"
 import type { PayoutMethod, WalletTransaction } from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
@@ -23,8 +23,6 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 const chartConfig = {
   earnings: { label: "Earnings", color: "var(--chart-1)" },
 } satisfies ChartConfig
-
-const methodIcon = { bank: Building2, paypal: Wallet, crypto: CreditCard }
 
 export function EarningsView() {
   const { creatorWallet, creatorTransactions, payoutMethods } = useApp()

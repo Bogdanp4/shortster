@@ -1,4 +1,12 @@
-import type { Platform } from "./types"
+import type { Platform, CampaignCategory } from "./types"
+
+// Human labels for campaign categories.
+export const categoryLabel: Record<CampaignCategory, string> = {
+  clipping: "Clipping",
+  logo: "Logo",
+  video_banner: "Video Banner",
+  music: "Music",
+}
 
 export function formatMoney(value: number, opts?: { compact?: boolean }): string {
   if (opts?.compact && Math.abs(value) >= 1000) {
@@ -133,4 +141,23 @@ export const platformUrlPlaceholder: Record<Platform, string> = {
   tiktok: "https://www.tiktok.com/@username/video/...",
   instagram: "https://www.instagram.com/reel/...",
   youtube: "https://youtube.com/shorts/...",
+}
+
+// Human labels for crypto payout networks.
+export const payoutNetworkLabel: Record<string, string> = {
+  ethereum: "Ethereum",
+  polygon: "Polygon",
+  arbitrum: "Arbitrum",
+  optimism: "Optimism",
+  base: "Base",
+  solana: "Solana",
+  tron: "Tron",
+  bsc: "BNB Smart Chain",
+}
+
+// Truncate a wallet address for compact display: 0x1234…abcd
+export function shortenAddress(address: string, lead = 6, tail = 4): string {
+  const a = address.trim()
+  if (a.length <= lead + tail + 1) return a
+  return `${a.slice(0, lead)}…${a.slice(-tail)}`
 }

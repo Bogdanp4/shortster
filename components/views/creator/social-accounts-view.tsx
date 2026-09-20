@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Copy, ShieldCheck, Info, RefreshCw, Trash2, CheckCircle2 } from "lucide-react"
+import { Plus, Copy, ShieldCheck, Info, RefreshCw, Trash2, CheckCircle2, AlertTriangle, Zap, Eye } from "lucide-react"
 import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
@@ -29,6 +29,11 @@ const methodLabels: Record<string, string> = {
   oauth: "OAuth",
   google: "Google Sign-in",
   bio_challenge: "Bio challenge",
+}
+
+const metricsModeLabels: Record<string, string> = {
+  automatic: "Automatic",
+  manual: "Manual review",
 }
 
 function randomChallenge() {
@@ -64,7 +69,12 @@ export function SocialAccountsView() {
       followers: Math.floor(20000 + Math.random() * 80000),
       method,
       status: "verified",
+      ownershipStatus: "verified",
+      metricsMode: "automatic",
+      connectionStatus: "connected",
       connectedAt: "Just now",
+      verifiedAt: "Just now",
+      lastChecked: "Just now",
     })
     setConnectOpen(false)
     toast.success(`${platformLabel(platform)} account connected and verified`)
@@ -83,6 +93,9 @@ export function SocialAccountsView() {
       followers: Math.floor(15000 + Math.random() * 60000),
       method: "bio_challenge",
       status: "challenge_created",
+      ownershipStatus: "pending",
+      metricsMode: "manual",
+      connectionStatus: "connected",
       connectedAt: "Just now",
     })
     setChallengeAccountId(id)
@@ -114,7 +127,11 @@ export function SocialAccountsView() {
     updateSocialAccount(account.id, { status: "pending" })
     toast.info(`Reconnecting ${account.handle}…`)
     setTimeout(() => {
-      updateSocialAccount(account.id, { status: "verified" })
+      updateSocialAccount(account.id, {
+        status: "verified",
+        connectionStatus: "connected",
+        lastChecked: "Just now",
+      })
       toast.success(`${account.handle} reconnected`)
     }, 1400)
   }
@@ -218,9 +235,29 @@ export function SocialAccountsView() {
                 </div>
               </CardHeader>
               <CardContent className="flex flex-col gap-3">
+                {account.connectionStatus === "connection_required" && (
+                  <Alert variant="destructive">
+                    <AlertTriangle />
+                    <AlertTitle>Reconnection needed</AlertTitle>
+                    <AlertDescription>
+                      We lost access to this account&apos;s data. Reconnect to keep earning on active submissions.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Method</span>
                   <Badge variant="secondary">{methodLabels[account.method]}</Badge>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Metrics</span>
+                  <span className="flex items-center gap-1.5">
+                    {account.metricsMode === "automatic" ? (
+                      <Zap className="size-3.5 text-muted-foreground" />
+                    ) : (
+                      <Eye className="size-3.5 text-muted-foreground" />
+                    )}
+                    {metricsModeLabels[account.metricsMode]}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Connected</span>

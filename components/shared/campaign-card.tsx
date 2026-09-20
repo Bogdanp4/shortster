@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import type { Campaign } from "@/lib/types"
-import { formatMoney, formatNumber, percent } from "@/lib/format"
+import { formatMoney, formatNumber, percent, categoryLabel } from "@/lib/format"
 import { useApp } from "@/components/app/app-provider"
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
@@ -46,7 +46,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
           />
           <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
             <Badge variant="secondary" className="backdrop-blur-md">
-              {campaign.category}
+              {categoryLabel[campaign.category]}
             </Badge>
             <CampaignStatusBadge status={campaign.status} />
           </div>

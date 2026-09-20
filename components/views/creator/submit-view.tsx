@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import {
   Upload,
@@ -15,18 +15,30 @@ import {
   Clock,
   AlertTriangle,
   ArrowRight,
+  ImagePlus,
+  X,
+  Zap,
+  PencilLine,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
 import { getCampaign, resolveMockVideo } from "@/lib/mock-data"
 import { formatMoney, formatNumber, calcPayout, detectPlatformFromUrl, platformUrlPlaceholder } from "@/lib/format"
-import type { Platform, ResolvedVideo, VideoCheckOutcome, DuplicateInfo, Submission } from "@/lib/types"
+import type {
+  Platform,
+  ResolvedVideo,
+  VideoCheckOutcome,
+  DuplicateInfo,
+  Submission,
+  MetricsSource,
+} from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
 import { PlatformIcon, platformLabel } from "@/components/shared/platform-icon"
 import { SubmissionStatusBadge } from "@/components/shared/status-badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Field, FieldGroup, FieldLabel, FieldDescription } from "@/components/ui/field"
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
@@ -43,7 +55,29 @@ interface CheckState {
   status: "pending" | "running" | "passed" | "failed"
 }
 
-const CHECK_LABELS = ["Fetching video from platform", "Confirming account ownership", "Scanning for duplicates", "Locking verified view count"]
+// Automatic accounts get a machine-read, locked view count. Manual accounts
+// (e.g. Instagram personal) can't be read via API, so the last step is replaced
+// by a creator declaration + proof upload reviewed by a moderator.
+const AUTO_CHECKS = [
+  "Fetching video from platform",
+  "Confirming account ownership",
+  "Scanning for duplicates",
+  "Locking verified view count",
+]
+const MANUAL_CHECKS = [
+  "Fetching video from platform",
+  "Confirming account ownership",
+  "Scanning for duplicates",
+]
+
+const MAX_PROOF = 3
+
+function metricsSourceFor(platform: Platform, manual: boolean): MetricsSource {
+  if (manual) return "manual_creator_proof"
+  if (platform === "tiktok") return "tiktok_api"
+  if (platform === "youtube") return "youtube_api"
+  return "instagram_api"
+}
 
 export function SubmitView() {
   const { params, navigate, socialAccounts, addSubmission } = useApp()
@@ -62,9 +96,13 @@ export function SubmitView() {
   const [video, setVideo] = useState<ResolvedVideo | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [claimedViews, setClaimedViews] = useState("")
+  const [proofFiles, setProofFiles] = useState<string[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const account = eligibleAccounts.find((a) => a.id === accountId)
   const remaining = campaign.budget - campaign.spent
+  const manualMode = account?.metricsMode === "manual"
 
   // Group the campaign's allowed platforms with the creator's verified accounts
   // on each, so we can show one section per platform (with a connect CTA when
@@ -89,14 +127,25 @@ export function SubmitView() {
   const urlPlatform = detectPlatformFromUrl(url)
   const mismatch = !!(account && urlPlatform && urlPlatform !== account.platform)
 
-  const payout = video ? calcPayout({
-    views: video.views,
-    ratePerMillion: campaign.ratePerMillion,
-    maxPayoutPerVideo: campaign.maxPayoutPerVideo,
-    remainingBudget: remaining,
-  }) : null
+  // Views used for the payout estimate: creator-declared in manual mode,
+  // machine-locked in automatic mode.
+  const claimedViewsNum = Number(claimedViews) || 0
+  const effectiveViews = manualMode ? claimedViewsNum : (video?.views ?? 0)
+  const payout =
+    video && effectiveViews > 0
+      ? calcPayout({
+          views: effectiveViews,
+          ratePerMillion: campaign.ratePerMillion,
+          maxPayoutPerVideo: campaign.maxPayoutPerVideo,
+          remainingBudget: remaining,
+        })
+      : null
 
   const durationOk = video ? video.duration >= campaign.minDuration && video.duration <= campaign.maxDuration : true
+
+  // Manual submissions need a declared view count and at least one proof screenshot.
+  const manualReady = !manualMode || (claimedViewsNum > 0 && proofFiles.length > 0)
+  const canSubmit = stage === "review" && !!video && confirmed && durationOk && manualReady && !submitting
 
   async function runValidation() {
     if (!url.trim()) {
@@ -112,14 +161,16 @@ export function SubmitView() {
     setVideo(null)
     setFailure(null)
     setConfirmed(false)
+    setClaimedViews("")
+    setProofFiles([])
 
-    const initial: CheckState[] = CHECK_LABELS.map((label) => ({ label, status: "pending" }))
-    setChecks(initial)
+    const labels = manualMode ? MANUAL_CHECKS : AUTO_CHECKS
+    setChecks(labels.map((label) => ({ label, status: "pending" })))
 
     const result = resolveMockVideo(url, { handle: account.handle, platform: account.platform })
 
     // Walk the checks one at a time with a short delay so the flow reads as real work.
-    for (let i = 0; i < CHECK_LABELS.length; i++) {
+    for (let i = 0; i < labels.length; i++) {
       setChecks((prev) => prev.map((c, idx) => (idx === i ? { ...c, status: "running" } : c)))
       await wait(620)
 
@@ -145,6 +196,12 @@ export function SubmitView() {
     setStage("review")
   }
 
+  function addProof(files: FileList | null) {
+    if (!files || files.length === 0) return
+    const names = Array.from(files).map((f) => f.name)
+    setProofFiles((prev) => [...prev, ...names].slice(0, MAX_PROOF))
+  }
+
   function finalize() {
     if (!video || !account || !payout) return
     setSubmitting(true)
@@ -162,7 +219,7 @@ export function SubmitView() {
         videoUrl: url,
         videoId: video.videoId,
         thumb: video.thumb,
-        viewsAtSubmission: video.views,
+        viewsAtSubmission: effectiveViews,
         likes: video.likes,
         comments: video.comments,
         duration: video.duration,
@@ -171,12 +228,19 @@ export function SubmitView() {
         cappedReward: payout.limitReason ? payout.finalReward : undefined,
         status: "pending",
         submittedAt: "Just now",
-        lockedAt: "Just now",
-        riskScore: 8,
+        lockedAt: manualMode ? undefined : "Just now",
+        riskScore: manualMode ? 22 : 8,
+        metricsMode: manualMode ? "manual" : "automatic",
+        metricsSource: metricsSourceFor(account.platform, manualMode),
+        claimedViews: manualMode ? claimedViewsNum : undefined,
+        followersAtSubmission: account.followers,
+        proofAssets: manualMode ? proofFiles : undefined,
       }
       addSubmission(submission)
-      toast.success("Submission received", {
-        description: `${campaign.title} — view count locked at ${formatNumber(video.views)}. We'll notify you once reviewed.`,
+      toast.success(manualMode ? "Submission sent for manual review" : "Submission received", {
+        description: manualMode
+          ? `${campaign.title} — a moderator will verify your declared ${formatNumber(claimedViewsNum)} views against your proof.`
+          : `${campaign.title} — view count locked at ${formatNumber(video.views)}. We'll notify you once reviewed.`,
       })
       navigate("submissions")
     }, 900)
@@ -199,8 +263,8 @@ export function SubmitView() {
             </EmptyMedia>
             <EmptyTitle>No verified account for this campaign</EmptyTitle>
             <EmptyDescription>
-              This campaign runs on {campaign.platforms.join(", ")}. Connect and verify an account on one of these
-              platforms before submitting.
+              This campaign runs on {campaign.platforms.map(platformLabel).join(", ")}. Connect and verify an account on
+              one of these platforms before submitting.
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
@@ -277,9 +341,16 @@ export function SubmitView() {
                                 {formatNumber(a.followers)} followers
                               </span>
                             </div>
-                            <Badge variant="secondary" className="gap-1 text-success">
-                              <ShieldCheck className="size-3" />
-                              Verified
+                            <Badge
+                              variant="secondary"
+                              className={cn("gap-1", a.metricsMode === "manual" ? "text-warning" : "text-success")}
+                            >
+                              {a.metricsMode === "manual" ? (
+                                <PencilLine className="size-3" />
+                              ) : (
+                                <Zap className="size-3" />
+                              )}
+                              {a.metricsMode === "manual" ? "Manual" : "Auto"}
                             </Badge>
                           </button>
                         )
@@ -298,6 +369,20 @@ export function SubmitView() {
                   )}
                 </div>
               ))}
+
+              {account && (
+                <Alert variant={manualMode ? "default" : "default"}>
+                  {manualMode ? <PencilLine className="size-4" /> : <Zap className="size-4" />}
+                  <AlertTitle>
+                    {manualMode ? "Manual verification account" : "Automatic verification account"}
+                  </AlertTitle>
+                  <AlertDescription>
+                    {manualMode
+                      ? "We can't read this account's stats via API. You'll declare your view count and upload a screenshot as proof — a moderator confirms it before payout."
+                      : "We read this account's view count directly from the platform and lock it at submission."}
+                  </AlertDescription>
+                </Alert>
+              )}
             </CardContent>
           </Card>
 
@@ -306,8 +391,9 @@ export function SubmitView() {
             <CardHeader>
               <CardTitle>2. Video link</CardTitle>
               <CardDescription>
-                Paste the link to your already-posted public video. We verify the view count directly from the
-                platform — you can&apos;t edit it after submitting.
+                {manualMode
+                  ? "Paste the link to your already-posted public video. We confirm ownership and check for duplicates."
+                  : "Paste the link to your already-posted public video. We verify the view count directly from the platform — you can't edit it after submitting."}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -377,75 +463,223 @@ export function SubmitView() {
             </CardContent>
           </Card>
 
-          {/* Step 2 — validation progress */}
+          {/* Step 3 — validation progress */}
           {(stage === "validating" || stage === "failed" || stage === "review") && (
             <Card>
               <CardHeader>
                 <CardTitle>3. Verification</CardTitle>
-                <CardDescription>Automated checks run before your submission is accepted.</CardDescription>
+                <CardDescription>
+                  {manualMode
+                    ? "We confirm ownership and check for duplicates. Views are declared by you and reviewed manually."
+                    : "Automated checks run before your submission is accepted."}
+                </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-3">
                 {checks.map((c) => (
                   <div key={c.label} className="flex items-center gap-3 text-sm">
                     <CheckIcon status={c.status} />
-                    <span className={c.status === "failed" ? "text-destructive" : c.status === "passed" ? "text-foreground" : "text-muted-foreground"}>
+                    <span
+                      className={
+                        c.status === "failed"
+                          ? "text-destructive"
+                          : c.status === "passed"
+                            ? "text-foreground"
+                            : "text-muted-foreground"
+                      }
+                    >
                       {c.label}
                     </span>
                   </div>
                 ))}
 
                 {stage === "failed" && failure && (
-                  <FailureAlert failure={failure} onRetry={() => setStage("input")} onOpenSubmissions={() => navigate("submissions")} />
+                  <FailureAlert
+                    failure={failure}
+                    onRetry={() => setStage("input")}
+                    onOpenSubmissions={() => navigate("submissions")}
+                  />
                 )}
               </CardContent>
             </Card>
           )}
 
-          {/* Step 3 — locked snapshot + requirements confirmation */}
+          {/* Step 4 — locked snapshot (auto) OR declared views + proof (manual) */}
           {stage === "review" && video && (
             <>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Lock className="size-4 text-primary" />
-                    4. Locked view snapshot
-                  </CardTitle>
-                  <CardDescription>
-                    This is the verified state we&apos;ll pay against. Later view growth does not change the reward.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4">
-                  <div className="flex gap-4">
-                    <div className="relative aspect-[9/16] w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
-                      <Image src={video.thumb || "/placeholder.svg"} alt="Video thumbnail" fill className="object-cover" sizes="96px" />
-                    </div>
-                    <div className="flex flex-1 flex-col gap-3">
-                      <div className="flex items-center gap-2 text-sm">
-                        <PlatformIcon platform={video.platform} className="size-4" />
-                        <span className="font-medium">{video.authorHandle}</span>
-                        <span className="text-muted-foreground">· {video.publishedAt}</span>
+              {manualMode ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <PencilLine className="size-4 text-warning" />
+                      4. Declare views &amp; upload proof
+                    </CardTitle>
+                    <CardDescription>
+                      Enter the view count shown in your app and attach a screenshot. A moderator verifies it before
+                      payout — the payable amount is the lower of your declared and verified views.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-4">
+                    <div className="flex gap-4">
+                      <div className="relative aspect-[9/16] w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
+                        <Image
+                          src={video.thumb || "/placeholder.svg"}
+                          alt="Video thumbnail"
+                          fill
+                          className="object-cover"
+                          sizes="96px"
+                        />
                       </div>
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                        <Snapshot icon={Eye} label="Views" value={formatNumber(video.views)} />
-                        <Snapshot icon={Heart} label="Likes" value={formatNumber(video.likes)} />
-                        <Snapshot icon={MessageCircle} label="Comments" value={formatNumber(video.comments)} />
-                        <Snapshot icon={Clock} label="Duration" value={`${video.duration}s`} tone={durationOk ? "default" : "danger"} />
+                      <div className="flex flex-1 flex-col gap-3">
+                        <div className="flex items-center gap-2 text-sm">
+                          <PlatformIcon platform={video.platform} className="size-4" />
+                          <span className="font-medium">{video.authorHandle}</span>
+                          <span className="text-muted-foreground">· {video.publishedAt}</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <Snapshot icon={Heart} label="Likes" value={formatNumber(video.likes)} />
+                          <Snapshot icon={MessageCircle} label="Comments" value={formatNumber(video.comments)} />
+                          <Snapshot
+                            icon={Clock}
+                            label="Duration"
+                            value={`${video.duration}s`}
+                            tone={durationOk ? "default" : "danger"}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {!durationOk && (
-                    <Alert variant="destructive">
-                      <AlertTriangle />
-                      <AlertTitle>Duration out of range</AlertTitle>
-                      <AlertDescription>
-                        This campaign requires {campaign.minDuration}&ndash;{campaign.maxDuration}s videos. Your video is{" "}
-                        {video.duration}s and will be rejected on review. Post a compliant version before submitting.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </CardContent>
-              </Card>
+                    <Field>
+                      <FieldLabel htmlFor="claimed">Declared views</FieldLabel>
+                      <InputGroup>
+                        <InputGroupAddon>
+                          <Eye className="size-4" />
+                        </InputGroupAddon>
+                        <InputGroupInput
+                          id="claimed"
+                          inputMode="numeric"
+                          placeholder="e.g. 240000"
+                          value={claimedViews}
+                          onChange={(e) => setClaimedViews(e.target.value.replace(/[^0-9]/g, ""))}
+                        />
+                      </InputGroup>
+                      <FieldDescription>
+                        {claimedViewsNum > 0
+                          ? `You're declaring ${formatNumber(claimedViewsNum)} views. Overstating gets your submission rejected.`
+                          : "Enter the exact number shown in your analytics."}
+                      </FieldDescription>
+                    </Field>
+
+                    <div className="flex flex-col gap-2">
+                      <span className="text-sm font-medium">Proof screenshots</span>
+                      <div className="flex flex-wrap gap-2">
+                        {proofFiles.map((name, i) => (
+                          <span
+                            key={`${name}-${i}`}
+                            className="flex items-center gap-2 rounded-md border bg-muted/40 px-2 py-1 text-xs"
+                          >
+                            <ImagePlus className="size-3.5 text-muted-foreground" />
+                            <span className="max-w-32 truncate">{name}</span>
+                            <button
+                              type="button"
+                              aria-label={`Remove ${name}`}
+                              onClick={() => setProofFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                              className="text-muted-foreground hover:text-foreground"
+                            >
+                              <X className="size-3.5" />
+                            </button>
+                          </span>
+                        ))}
+                        {proofFiles.length < MAX_PROOF && (
+                          <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                            <ImagePlus data-icon="inline-start" />
+                            Add screenshot
+                          </Button>
+                        )}
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="sr-only"
+                        onChange={(e) => {
+                          addProof(e.target.files)
+                          e.target.value = ""
+                        }}
+                      />
+                      <FieldDescription>
+                        Up to {MAX_PROOF} images of your views analytics. Required for manual review.
+                      </FieldDescription>
+                    </div>
+
+                    {!durationOk && (
+                      <Alert variant="destructive">
+                        <AlertTriangle />
+                        <AlertTitle>Duration out of range</AlertTitle>
+                        <AlertDescription>
+                          This campaign requires {campaign.minDuration}&ndash;{campaign.maxDuration}s videos. Your video
+                          is {video.duration}s and will be rejected on review.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Lock className="size-4 text-primary" />
+                      4. Locked view snapshot
+                    </CardTitle>
+                    <CardDescription>
+                      This is the verified state we&apos;ll pay against. Later view growth does not change the reward.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-4">
+                    <div className="flex gap-4">
+                      <div className="relative aspect-[9/16] w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
+                        <Image
+                          src={video.thumb || "/placeholder.svg"}
+                          alt="Video thumbnail"
+                          fill
+                          className="object-cover"
+                          sizes="96px"
+                        />
+                      </div>
+                      <div className="flex flex-1 flex-col gap-3">
+                        <div className="flex items-center gap-2 text-sm">
+                          <PlatformIcon platform={video.platform} className="size-4" />
+                          <span className="font-medium">{video.authorHandle}</span>
+                          <span className="text-muted-foreground">· {video.publishedAt}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                          <Snapshot icon={Eye} label="Views" value={formatNumber(video.views)} />
+                          <Snapshot icon={Heart} label="Likes" value={formatNumber(video.likes)} />
+                          <Snapshot icon={MessageCircle} label="Comments" value={formatNumber(video.comments)} />
+                          <Snapshot
+                            icon={Clock}
+                            label="Duration"
+                            value={`${video.duration}s`}
+                            tone={durationOk ? "default" : "danger"}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {!durationOk && (
+                      <Alert variant="destructive">
+                        <AlertTriangle />
+                        <AlertTitle>Duration out of range</AlertTitle>
+                        <AlertDescription>
+                          This campaign requires {campaign.minDuration}&ndash;{campaign.maxDuration}s videos. Your video
+                          is {video.duration}s and will be rejected on review. Post a compliant version before
+                          submitting.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               <Card>
                 <CardHeader>
@@ -465,7 +699,8 @@ export function SubmitView() {
                     <span>
                       I confirm this video meets every requirement above, uses the required CTA
                       {campaign.requiredCta ? ` "${campaign.requiredCta}"` : ""}, and was posted from{" "}
-                      <span className="font-medium text-foreground">{account?.handle}</span>.
+                      <span className="font-medium text-foreground">{account?.handle}</span>
+                      {manualMode ? ", and the declared view count is accurate." : "."}
                     </span>
                   </label>
                 </CardContent>
@@ -480,7 +715,11 @@ export function SubmitView() {
             <CardHeader>
               <CardTitle>Payout estimate</CardTitle>
               <CardDescription>
-                {video ? "Based on your locked view count" : "Based on this campaign's rate"}
+                {payout
+                  ? manualMode
+                    ? "Based on your declared view count (pending review)"
+                    : "Based on your locked view count"
+                  : "Based on this campaign's rate"}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
@@ -492,7 +731,7 @@ export function SubmitView() {
               {payout && video ? (
                 <>
                   <Separator />
-                  <Row label={`Raw (${formatNumber(video.views)} views)`}>{formatMoney(payout.rawReward)}</Row>
+                  <Row label={`Raw (${formatNumber(effectiveViews)} views)`}>{formatMoney(payout.rawReward)}</Row>
                   {payout.limitReason === "per_video" && (
                     <Row label="Per-video cap applied" tone="warning">
                       &minus;{formatMoney(payout.rawReward - payout.finalReward)}
@@ -505,10 +744,19 @@ export function SubmitView() {
                   )}
                   <Separator />
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">You&apos;ll earn</span>
-                    <span className="text-2xl font-bold text-primary tabular-nums">{formatMoney(payout.finalReward)}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {manualMode ? "Estimated (pending review)" : "You'll earn"}
+                    </span>
+                    <span className="text-2xl font-bold text-primary tabular-nums">
+                      {formatMoney(payout.finalReward)}
+                    </span>
                   </div>
-                  {payout.limitReason && (
+                  {manualMode && (
+                    <p className="text-xs text-muted-foreground">
+                      Final payout uses the lower of your declared views and the moderator-verified count.
+                    </p>
+                  )}
+                  {!manualMode && payout.limitReason && (
                     <p className="text-xs text-muted-foreground">
                       {payout.limitReason === "per_video"
                         ? `Capped at ${formatMoney(campaign.maxPayoutPerVideo)} per video.`
@@ -520,10 +768,14 @@ export function SubmitView() {
                 <>
                   <Separator />
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Example at 500K views</span>
-                    <span className="text-lg font-semibold text-primary tabular-nums">
-                      {formatMoney((500000 / 1_000_000) * campaign.ratePerMillion)}
+                    <span className="text-sm text-muted-foreground">
+                      {manualMode && stage === "review" ? "Enter your views to estimate" : "Example at 500K views"}
                     </span>
+                    {!(manualMode && stage === "review") && (
+                      <span className="text-lg font-semibold text-primary tabular-nums">
+                        {formatMoney((500000 / 1_000_000) * campaign.ratePerMillion)}
+                      </span>
+                    )}
                   </div>
                 </>
               )}
@@ -531,17 +783,23 @@ export function SubmitView() {
           </Card>
 
           {stage === "review" && video && (
-            <Button size="lg" disabled={!confirmed || !durationOk || submitting} onClick={finalize}>
-              {submitting ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Upload data-icon="inline-start" />}
-              {submitting ? "Submitting…" : "Submit for review"}
+            <Button size="lg" disabled={!canSubmit} onClick={finalize}>
+              {submitting ? (
+                <Loader2 className="animate-spin" data-icon="inline-start" />
+              ) : (
+                <Upload data-icon="inline-start" />
+              )}
+              {submitting ? "Submitting…" : manualMode ? "Submit for manual review" : "Submit for review"}
             </Button>
           )}
 
           <Alert>
             <ShieldCheck />
-            <AlertTitle>Views are locked at submission</AlertTitle>
+            <AlertTitle>{manualMode ? "Declared views are reviewed" : "Views are locked at submission"}</AlertTitle>
             <AlertDescription>
-              We snapshot and verify view counts at submit time. Fake or purchased views are flagged and rejected.
+              {manualMode
+                ? "A moderator checks your screenshot against the declared count. Inflated or fake proof is rejected and can flag your account."
+                : "We snapshot and verify view counts at submit time. Fake or purchased views are flagged and rejected."}
             </AlertDescription>
           </Alert>
         </div>
@@ -578,12 +836,22 @@ function Snapshot({
         <Icon className="size-3.5" />
         <span className="text-xs">{label}</span>
       </div>
-      <span className={`text-base font-semibold tabular-nums ${tone === "danger" ? "text-destructive" : ""}`}>{value}</span>
+      <span className={`text-base font-semibold tabular-nums ${tone === "danger" ? "text-destructive" : ""}`}>
+        {value}
+      </span>
     </div>
   )
 }
 
-function Row({ label, children, tone = "default" }: { label: string; children: React.ReactNode; tone?: "default" | "warning" }) {
+function Row({
+  label,
+  children,
+  tone = "default",
+}: {
+  label: string
+  children: React.ReactNode
+  tone?: "default" | "warning"
+}) {
   return (
     <div className="flex items-center justify-between text-sm">
       <span className="text-muted-foreground">{label}</span>
@@ -620,8 +888,8 @@ function FailureAlert({
       body: failure.duplicate ? (
         <span className="flex flex-col gap-2">
           <span>
-            This video was already submitted to <span className="font-medium">{failure.duplicate.campaignTitle}</span> on{" "}
-            {failure.duplicate.submittedAt}. Each video can only be submitted once.
+            This video was already submitted to <span className="font-medium">{failure.duplicate.campaignTitle}</span>{" "}
+            on {failure.duplicate.submittedAt}. Each video can only be submitted once.
           </span>
           <span className="flex items-center gap-2">
             <span className="text-xs">Existing status:</span>
