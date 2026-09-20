@@ -2,11 +2,10 @@ import type { en } from "./en"
 
 // Deep-widen the literal string types from `en` so `ru` only has to match the
 // key structure, not the exact English text of every value.
-type Dictionary = {
-  [K in keyof typeof en]: {
-    [P in keyof (typeof en)[K]]: string
-  }
+type DeepWiden<T> = {
+  [K in keyof T]: T[K] extends string ? string : DeepWiden<T[K]>
 }
+type Dictionary = DeepWiden<typeof en>
 
 // Russian UI strings. Must mirror the exact key structure of `en`.
 // Dynamic user data (campaign titles, brand names, emails, social handles,
@@ -202,6 +201,22 @@ export const ru: Dictionary = {
     catMusic: "Музыка",
     emptyTitle: "Кампании не найдены",
     emptyBody: "Попробуйте другой запрос или категорию.",
+  },
+  card: {
+    viewAria: "Открыть кампанию {title}",
+    category: {
+      clipping: "Клипы",
+      logo: "Логотип",
+      video_banner: "Видеобаннер",
+      music: "Музыка",
+    },
+    per1M: "за 1 млн просмотров",
+    by: "от {brand}",
+    budgetLeft: "Остаток бюджета",
+    almostClaimed: "Почти разобрано — отправляйте скорее",
+    pausedNote: "На паузе — заявки не принимаются",
+    max: "до {amount}",
+    min: "мин. {count}",
   },
   creator: {
     discoverTitle: "Обзор кампаний",

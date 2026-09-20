@@ -27,7 +27,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
       type="button"
       onClick={() => navigate("campaign", { id: campaign.id })}
       className="group text-left"
-      aria-label={`View ${campaign.title} campaign`}
+      aria-label={t("card.viewAria", { title: campaign.title })}
     >
       <Card
         className={cn(
@@ -48,7 +48,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
           />
           <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
             <Badge variant="secondary" className="backdrop-blur-md">
-              {categoryLabel[campaign.category]}
+              {t(`card.category.${campaign.category}`)}
             </Badge>
             <CampaignStatusBadge status={campaign.status} />
           </div>
@@ -58,7 +58,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
               <span className="text-lg font-bold leading-none text-white">
                 {formatMoney(campaign.ratePerMillion)}
               </span>
-              <span className="text-[11px] text-white/70">per 1M views</span>
+              <span className="text-[11px] text-white/70">{t("card.per1M")}</span>
             </div>
             <PlatformIcons platforms={campaign.platforms} />
           </div>
@@ -67,14 +67,14 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
         <CardContent className="flex flex-col gap-3">
           <div className="flex flex-col gap-0.5">
             <h3 className="font-semibold leading-tight">{campaign.title}</h3>
-            <p className="text-xs text-muted-foreground">by {campaign.brand}</p>
+            <p className="text-xs text-muted-foreground">{t("card.by", { brand: campaign.brand })}</p>
           </div>
 
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1 text-muted-foreground">
                 <Wallet className="size-3.5" />
-                Budget left
+                {t("card.budgetLeft")}
               </span>
               <span className={cn("font-semibold tabular-nums", lowBudget ? "text-warning" : "text-foreground")}>
                 {formatMoney(remaining, { compact: true })}
@@ -82,21 +82,21 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
             </div>
             <Progress value={spentPct} className={cn(lowBudget && "[&>div]:bg-warning")} />
             {lowBudget && (
-              <span className="text-[11px] text-warning">Almost fully claimed — submit soon</span>
+              <span className="text-[11px] text-warning">{t("card.almostClaimed")}</span>
             )}
             {isPaused && (
-              <span className="text-[11px] text-muted-foreground">Paused — not accepting submissions</span>
+              <span className="text-[11px] text-muted-foreground">{t("card.pausedNote")}</span>
             )}
           </div>
 
           <div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <TrendingUp className="size-3.5" />
-              {formatMoney(campaign.maxPayoutPerAccount, { compact: true })} max
+              {t("card.max", { amount: formatMoney(campaign.maxPayoutPerAccount, { compact: true }) })}
             </span>
             <span className="flex items-center gap-1">
               <Eye className="size-3.5" />
-              {formatNumber(campaign.minViews)} min
+              {t("card.min", { count: formatNumber(campaign.minViews) })}
             </span>
           </div>
         </CardContent>

@@ -192,6 +192,22 @@ export const en = {
     emptyTitle: "No campaigns found",
     emptyBody: "Try a different search term or category filter.",
   },
+  card: {
+    viewAria: "View {title} campaign",
+    category: {
+      clipping: "Clipping",
+      logo: "Logo",
+      video_banner: "Video Banner",
+      music: "Music",
+    },
+    per1M: "per 1M views",
+    by: "by {brand}",
+    budgetLeft: "Budget left",
+    almostClaimed: "Almost fully claimed — submit soon",
+    pausedNote: "Paused — not accepting submissions",
+    max: "{amount} max",
+    min: "{count} min",
+  },
   creator: {
     discoverTitle: "Discover Campaigns",
     discoverDescription:
