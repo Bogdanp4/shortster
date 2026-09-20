@@ -53,10 +53,16 @@ export function SocialAccountsView() {
   const [removeTarget, setRemoveTarget] = useState<SocialAccount | null>(null)
 
   function copyChallenge() {
-    navigator.clipboard?.writeText(challenge)
-    setCopied(true)
-    toast.success("Challenge code copied")
-    setTimeout(() => setCopied(false), 1500)
+    navigator.clipboard
+      ?.writeText(challenge)
+      .then(() => {
+        setCopied(true)
+        toast.success("Challenge code copied")
+        setTimeout(() => setCopied(false), 1500)
+      })
+      .catch(() => {
+        toast.error("Couldn't copy automatically", { description: challenge })
+      })
   }
 
   function connectOauth(platform: Platform, method: "oauth" | "google") {
