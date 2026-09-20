@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useApp } from "./app-provider"
 import { useAuth } from "@/components/auth/auth-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { Logo } from "./logo"
 import { SidebarNav } from "./sidebar-nav"
 import { RoleSwitcher } from "./role-switcher"
@@ -35,6 +36,7 @@ function initials(name: string) {
 export function TopHeader() {
   const { role, creatorWallet, advertiserWallet, navigate } = useApp()
   const { currentUser, signOut, switchWorkspace } = useAuth()
+  const t = useT()
   const [mobileOpen, setMobileOpen] = useState(false)
   const workspaces = currentUser?.roles.filter((r) => r === "creator" || r === "advertiser") ?? []
 
@@ -62,7 +64,7 @@ export function TopHeader() {
 
       <div className="hidden max-w-md flex-1 lg:block">
         <InputGroup>
-          <InputGroupInput placeholder={`Search ${roleLabels[role].toLowerCase()} workspace...`} />
+          <InputGroupInput placeholder={t("shell.searchWorkspace", { role: t(`roles.${role}`) })} />
           <InputGroupAddon>
             <Search className="size-4 text-muted-foreground" />
           </InputGroupAddon>
@@ -78,7 +80,7 @@ export function TopHeader() {
             aria-label="View earnings"
           >
             <div className="flex flex-col leading-tight">
-              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Balance</span>
+              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{t("shell.balance")}</span>
               <span className="text-sm font-semibold tabular-nums">{formatCurrency(creatorWallet.available)}</span>
             </div>
           </button>
@@ -91,7 +93,7 @@ export function TopHeader() {
             aria-label="View wallet"
           >
             <div className="flex flex-col leading-tight">
-              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Available</span>
+              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{t("shell.available")}</span>
               <span className="text-sm font-semibold tabular-nums">{formatCurrency(advertiserWallet.available)}</span>
             </div>
           </button>
@@ -120,11 +122,11 @@ export function TopHeader() {
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Switch workspace</div>
+                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">{t("profile.switchWorkspace")}</div>
                   {workspaces.map((r) => (
                     <DropdownMenuItem key={r} onClick={() => switchWorkspace(r)} className="gap-2">
                       <ArrowLeftRight className="size-4 text-muted-foreground" />
-                      <span className="flex-1">{roleLabels[r]}</span>
+                      <span className="flex-1">{t(`roles.${r}`)}</span>
                       {r === currentUser?.activeWorkspace && <Check className="size-4 text-primary" />}
                     </DropdownMenuItem>
                   ))}
@@ -134,7 +136,7 @@ export function TopHeader() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut} className="gap-2 text-destructive focus:text-destructive">
               <LogOut className="size-4" />
-              Sign out
+              {t("common.signOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

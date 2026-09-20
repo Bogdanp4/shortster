@@ -3,35 +3,36 @@
 import { useState } from "react"
 import { AuthShell } from "./auth-shell"
 import { useAuth } from "./auth-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel } from "@/components/ui/field"
-import { Eye, EyeOff, CheckCircle2 } from "lucide-react"
+import { Eye, EyeOff, CheckCircle2, Check, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Check, X } from "lucide-react"
-
-const passwordRules = [
-  { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
-  { label: "One uppercase letter", test: (p: string) => /[A-Z]/.test(p) },
-  { label: "One number", test: (p: string) => /[0-9]/.test(p) },
-]
 
 export function ResetPasswordView() {
   const { screen, resetPassword, navigateAuth } = useAuth()
+  const t = useT()
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [touched, setTouched] = useState(false)
 
+  const passwordRules = [
+    { label: t("auth.pwRuleLength"), test: (p: string) => p.length >= 8 },
+    { label: t("auth.pwRuleUpper"), test: (p: string) => /[A-Z]/.test(p) },
+    { label: t("auth.pwRuleNumber"), test: (p: string) => /[0-9]/.test(p) },
+  ]
+
   if (screen === "reset-password-success") {
     return (
-      <AuthShell title="Password updated" description="You can now sign in with your new password">
+      <AuthShell title={t("auth.resetDoneTitle")} description={t("auth.resetDoneSubtitle")}>
         <div className="flex flex-col items-center gap-5 text-center">
           <span className="flex size-12 items-center justify-center rounded-full bg-emerald-500/12 text-emerald-500">
             <CheckCircle2 className="size-6" />
           </span>
           <Button className="w-full" onClick={() => navigateAuth("login")}>
-            Sign In
+            {t("common.signIn")}
           </Button>
         </div>
       </AuthShell>
@@ -39,11 +40,11 @@ export function ResetPasswordView() {
   }
 
   const passwordFailures = passwordRules.filter((r) => !r.test(password))
-  const confirmError = touched && confirmPassword !== password ? "Passwords do not match." : null
+  const confirmError = touched && confirmPassword !== password ? t("auth.errPwMismatch") : null
   const canSubmit = passwordFailures.length === 0 && confirmPassword === password
 
   return (
-    <AuthShell title="Set a new password" description="Choose a strong password for your account">
+    <AuthShell title={t("auth.resetTitle")} description={t("auth.resetSubtitle")}>
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -54,7 +55,7 @@ export function ResetPasswordView() {
         className="flex flex-col gap-5"
       >
         <Field>
-          <FieldLabel htmlFor="reset-password">New password</FieldLabel>
+          <FieldLabel htmlFor="reset-password">{t("auth.newPassword")}</FieldLabel>
           <div className="relative">
             <Input
               id="reset-password"
@@ -94,7 +95,7 @@ export function ResetPasswordView() {
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="reset-confirm">Confirm new password</FieldLabel>
+          <FieldLabel htmlFor="reset-confirm">{t("auth.confirmNewPassword")}</FieldLabel>
           <Input
             id="reset-confirm"
             type={showPassword ? "text" : "password"}
@@ -108,7 +109,7 @@ export function ResetPasswordView() {
         </Field>
 
         <Button type="submit" disabled={!canSubmit} className="w-full">
-          Update Password
+          {t("auth.updatePassword")}
         </Button>
       </form>
     </AuthShell>

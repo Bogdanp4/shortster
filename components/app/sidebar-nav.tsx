@@ -1,11 +1,13 @@
 "use client"
 
 import { useApp } from "./app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { navConfig } from "@/lib/nav"
 import { cn } from "@/lib/utils"
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const { role, view, navigate } = useApp()
+  const t = useT()
   const items = navConfig[role]
 
   // The active nav key may differ from the view for detail pages.
@@ -33,7 +35,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
             )}
           >
             <Icon className={cn("size-4.5 transition-colors", active ? "text-primary" : "")} />
-            <span className="truncate">{item.label}</span>
+            <span className="truncate">{t(`nav.${item.key}`)}</span>
           </button>
         )
       })}

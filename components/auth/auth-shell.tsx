@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 import { Logo } from "@/components/app/logo"
+import { LanguageSelector } from "@/components/i18n/language-selector"
 import { cn } from "@/lib/utils"
 
 export function AuthShell({
@@ -14,17 +15,22 @@ export function AuthShell({
   className?: string
 }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-10">
-      <div className={cn("flex w-full max-w-sm flex-col gap-6", className)}>
-        <div className="flex justify-center">
-          <Logo />
-        </div>
-        <div className="rounded-xl border border-border/60 bg-card/40 p-6 shadow-sm sm:p-7">
-          <div className="mb-6 flex flex-col gap-1.5 text-center">
-            <h1 className="text-lg font-semibold tracking-tight">{title}</h1>
-            {description && <p className="text-sm text-muted-foreground">{description}</p>}
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="flex h-16 items-center justify-end px-4 lg:px-8">
+        <LanguageSelector />
+      </header>
+      <div className="flex flex-1 items-start justify-center px-4 pb-10">
+        <div className={cn("flex w-full max-w-sm flex-col gap-6", className)}>
+          <div className="flex justify-center">
+            <Logo />
           </div>
-          {children}
+          <div className="rounded-xl border border-border/60 bg-card/40 p-6 shadow-sm sm:p-7">
+            <div className="mb-6 flex flex-col gap-1.5 text-center">
+              <h1 className="text-lg font-semibold tracking-tight">{title}</h1>
+              {description && <p className="text-sm text-muted-foreground">{description}</p>}
+            </div>
+            {children}
+          </div>
         </div>
       </div>
     </div>

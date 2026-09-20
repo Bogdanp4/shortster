@@ -2,8 +2,9 @@
 
 import Image from "next/image"
 import type { Campaign } from "@/lib/types"
-import { formatMoney, formatNumber, percent, categoryLabel } from "@/lib/format"
+import { formatMoney, formatNumber, percent } from "@/lib/format"
 import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -14,6 +15,7 @@ import { Eye, Wallet, TrendingUp } from "lucide-react"
 
 export function CampaignCard({ campaign }: { campaign: Campaign }) {
   const { navigate } = useApp()
+  const t = useT()
   const spentPct = percent(campaign.spent, campaign.budget)
   const remaining = campaign.budget - campaign.spent
   const remainingPct = 100 - spentPct

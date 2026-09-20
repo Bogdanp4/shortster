@@ -2,53 +2,41 @@
 
 import { Logo } from "@/components/app/logo"
 import { Button } from "@/components/ui/button"
+import { LanguageSelector } from "@/components/i18n/language-selector"
 import { useAuth } from "./auth-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { Sparkles, Megaphone, ShieldCheck } from "lucide-react"
-
-const benefits = [
-  {
-    icon: Sparkles,
-    title: "Earn from performance",
-    description: "Creators get paid based on verified views, not promises.",
-  },
-  {
-    icon: Megaphone,
-    title: "Verified distribution",
-    description: "Advertisers reach real audiences through checked accounts.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Fraud-checked payouts",
-    description: "Every submission is reviewed before a reward is released.",
-  },
-]
 
 export function LandingView() {
   const { navigateAuth } = useAuth()
+  const t = useT()
+
+  const benefits = [
+    { icon: Sparkles, title: t("landing.card1Title"), description: t("landing.card1Body") },
+    { icon: Megaphone, title: t("landing.card2Title"), description: t("landing.card2Body") },
+    { icon: ShieldCheck, title: t("landing.card3Title"), description: t("landing.card3Body") },
+  ]
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="flex h-16 items-center px-4 lg:px-8">
+      <header className="flex h-16 items-center justify-between px-4 lg:px-8">
         <Logo />
+        <LanguageSelector />
       </header>
 
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-10">
         <div className="flex w-full max-w-2xl flex-col items-center gap-8 text-center">
           <div className="flex flex-col gap-4">
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              Turn short-form content into measurable growth.
-            </h1>
-            <p className="mx-auto max-w-lg text-base text-muted-foreground">
-              Creators earn from campaign performance. Advertisers get verified short-form distribution.
-            </p>
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("landing.headline")}</h1>
+            <p className="mx-auto max-w-lg text-base text-muted-foreground">{t("landing.subtitle")}</p>
           </div>
 
           <div className="flex w-full max-w-xs flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
             <Button size="lg" className="w-full sm:w-auto" onClick={() => navigateAuth("signup")}>
-              Create Account
+              {t("landing.createAccount")}
             </Button>
             <Button size="lg" variant="outline" className="w-full sm:w-auto" onClick={() => navigateAuth("login")}>
-              Sign In
+              {t("landing.signIn")}
             </Button>
           </div>
 
@@ -69,8 +57,18 @@ export function LandingView() {
         </div>
       </main>
 
-      <footer className="px-4 py-6 text-center text-xs text-muted-foreground">
-        &copy; {new Date().getFullYear()} Shortster. All rights reserved.
+      <footer className="flex flex-col items-center gap-2 px-4 py-6 text-center text-xs text-muted-foreground">
+        <div className="flex items-center gap-4">
+          <button type="button" className="hover:text-foreground hover:underline">
+            {t("footer.terms")}
+          </button>
+          <button type="button" className="hover:text-foreground hover:underline">
+            {t("footer.privacy")}
+          </button>
+        </div>
+        <p>
+          &copy; {new Date().getFullYear()} {t("brand.name")}. {t("footer.rights")}
+        </p>
       </footer>
     </div>
   )

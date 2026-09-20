@@ -2,27 +2,36 @@
 
 import { useMemo, useState } from "react"
 import { campaigns } from "@/lib/mock-data"
-import type { Platform } from "@/lib/types"
+import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { PageHeader } from "@/components/shared/page-header"
 import { CampaignCard } from "@/components/shared/campaign-card"
 import { StatCard } from "@/components/shared/stat-card"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
-import { Search, Megaphone, DollarSign, Eye, SearchX } from "lucide-react"
+import { Search, Megaphone, DollarSign, Eye, SearchX, Link2, ArrowRight } from "lucide-react"
 import { compactNumber, formatMoney } from "@/lib/format"
 
-const categories: { value: string; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "clipping", label: "Clipping" },
-  { value: "logo", label: "Logo" },
-  { value: "video_banner", label: "Video Banner" },
-  { value: "music", label: "Music" },
+const categories: { value: string; labelKey: string }[] = [
+  { value: "all", labelKey: "discover.catAll" },
+  { value: "clipping", labelKey: "discover.catClipping" },
+  { value: "logo", labelKey: "discover.catLogo" },
+  { value: "video_banner", labelKey: "discover.catVideoBanner" },
+  { value: "music", labelKey: "discover.catMusic" },
 ]
 
 export function DiscoverView() {
+  const t = useT()
+  const { socialAccounts, navigate } = useApp()
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("all")
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+
+  const hasVerifiedAccount = socialAccounts.some((a) => a.status === "verified")
+  const showConnectBanner = !hasVerifiedAccount && !bannerDismissed
 
   const filtered = useMemo(() => {
     return campaigns.filter((c) => {
@@ -41,21 +50,37 @@ export function DiscoverView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Discover Campaigns"
-        description="Create short-form content and earn based on the views locked in at submission. New drops added weekly."
-      />
+      <PageHeader title={t("creator.discoverTitle")} description={t("creator.discoverDescription")} />
+
+      {showConnectBanner && (
+        <Alert>
+          <Link2 className="size-4" />
+          <AlertTitle>{t("creator.connectBannerTitle")}</AlertTitle>
+          <AlertDescription className="flex flex-col gap-3">
+            <span>{t("creator.connectBannerBody")}</span>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" onClick={() => navigate("social")}>
+                {t("creator.addAccount")}
+                <ArrowRight data-icon="inline-end" />
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setBannerDismissed(true)}>
+                {t("creator.dismiss")}
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Active campaigns" value={String(activeCampaigns.length)} icon={Megaphone} accent="brand" hint="Accepting submissions now" />
-        <StatCard label="Active budget remaining" value={formatMoney(activeBudgetRemaining, { compact: true })} icon={DollarSign} accent="success" hint="Across active campaigns" />
-        <StatCard label="Total views driven" value={compactNumber(totalViews)} icon={Eye} hint="By all creators" />
+        <StatCard label={t("discover.statActive")} value={String(activeCampaigns.length)} icon={Megaphone} accent="brand" hint={t("discover.statActiveHint")} />
+        <StatCard label={t("discover.statBudget")} value={formatMoney(activeBudgetRemaining, { compact: true })} icon={DollarSign} accent="success" hint={t("discover.statBudgetHint")} />
+        <StatCard label={t("discover.statViews")} value={compactNumber(totalViews)} icon={Eye} hint={t("discover.statViewsHint")} />
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <InputGroup className="sm:max-w-xs">
           <InputGroupInput
-            placeholder="Search campaigns or brands"
+            placeholder={t("discover.searchPlaceholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -74,7 +99,7 @@ export function DiscoverView() {
         >
           {categories.map((c) => (
             <ToggleGroupItem key={c.value} value={c.value}>
-              {c.label}
+              {t(c.labelKey)}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
@@ -84,8 +109,8 @@ export function DiscoverView() {
         <Empty>
           <EmptyHeader>
             <SearchX className="size-8 text-muted-foreground" />
-            <EmptyTitle>No campaigns found</EmptyTitle>
-            <EmptyDescription>Try a different search term or category filter.</EmptyDescription>
+            <EmptyTitle>{t("discover.emptyTitle")}</EmptyTitle>
+            <EmptyDescription>{t("discover.emptyBody")}</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : (

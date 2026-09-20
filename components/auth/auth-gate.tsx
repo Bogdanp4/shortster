@@ -11,7 +11,6 @@ import { VerifyEmailSuccessView } from "./verify-email-success-view"
 import { ForgotPasswordView } from "./forgot-password-view"
 import { ResetPasswordView } from "./reset-password-view"
 import { RoleSelectionView } from "./role-selection-view"
-import { CreatorOnboardingView } from "./creator-onboarding-view"
 import { AdvertiserOnboardingView } from "./advertiser-onboarding-view"
 
 export function AuthGate() {
@@ -50,7 +49,8 @@ export function AuthGate() {
   }
 
   if (currentUser.status === "onboarding") {
-    return currentUser.activeWorkspace === "advertiser" ? <AdvertiserOnboardingView /> : <CreatorOnboardingView />
+    // Only advertisers have a (single, skippable) setup step now.
+    return <AdvertiserOnboardingView />
   }
 
   // status === "active" — suspended/banned users never reach here since signIn blocks them earlier.

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { AuthShell } from "./auth-shell"
 import { useAuth } from "./auth-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -18,6 +19,7 @@ function isValidEmail(email: string) {
 
 export function LoginView() {
   const { signIn, signInDemo, navigateAuth, demoMode, resendVerification } = useAuth()
+  const t = useT()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -41,7 +43,7 @@ export function LoginView() {
       setError(result)
       return
     }
-    toast.success("Welcome back")
+    toast.success(t("auth.welcomeBack"))
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -51,41 +53,41 @@ export function LoginView() {
   }
 
   return (
-    <AuthShell title="Welcome back" description="Sign in to your Shortster account">
+    <AuthShell title={t("auth.loginTitle")} description={t("auth.loginSubtitle")}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <FieldGroup>
           {error === "form" && (
             <Alert variant="destructive">
               <AlertTriangle className="size-4" />
-              <AlertDescription>Enter a valid email and password.</AlertDescription>
+              <AlertDescription>{t("auth.errFormInvalid")}</AlertDescription>
             </Alert>
           )}
           {error === "invalid_credentials" && (
             <Alert variant="destructive">
               <AlertTriangle className="size-4" />
-              <AlertDescription>Invalid email or password.</AlertDescription>
+              <AlertDescription>{t("auth.errInvalidCredentials")}</AlertDescription>
             </Alert>
           )}
           {error === "account_suspended" && (
             <Alert variant="destructive">
               <AlertTriangle className="size-4" />
-              <AlertTitle>Account suspended</AlertTitle>
-              <AlertDescription>Your Shortster account has been temporarily suspended.</AlertDescription>
+              <AlertTitle>{t("auth.errSuspendedTitle")}</AlertTitle>
+              <AlertDescription>{t("auth.errSuspendedBody")}</AlertDescription>
             </Alert>
           )}
           {error === "account_banned" && (
             <Alert variant="destructive">
               <Ban className="size-4" />
-              <AlertTitle>Account restricted</AlertTitle>
-              <AlertDescription>This account no longer has access to Shortster.</AlertDescription>
+              <AlertTitle>{t("auth.errBannedTitle")}</AlertTitle>
+              <AlertDescription>{t("auth.errBannedBody")}</AlertDescription>
             </Alert>
           )}
           {error === "email_not_verified" && (
             <Alert>
               <MailWarning className="size-4" />
-              <AlertTitle>Email not verified</AlertTitle>
+              <AlertTitle>{t("auth.errUnverifiedTitle")}</AlertTitle>
               <AlertDescription className="flex flex-col gap-2">
-                <span>Verify your email before signing in.</span>
+                <span>{t("auth.errUnverifiedBody")}</span>
                 <Button
                   type="button"
                   size="sm"
@@ -93,22 +95,22 @@ export function LoginView() {
                   className="w-fit"
                   onClick={() => {
                     resendVerification()
-                    toast.success("Verification email resent")
+                    toast.success(t("auth.verificationResent"))
                   }}
                 >
-                  Resend Verification Email
+                  {t("auth.resendVerification")}
                 </Button>
               </AlertDescription>
             </Alert>
           )}
 
           <Field>
-            <FieldLabel htmlFor="login-email">Email</FieldLabel>
+            <FieldLabel htmlFor="login-email">{t("common.email")}</FieldLabel>
             <Input
               id="login-email"
               type="email"
               autoComplete="email"
-              placeholder="you@example.com"
+              placeholder={t("auth.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -117,13 +119,13 @@ export function LoginView() {
 
           <Field>
             <div className="flex items-center justify-between">
-              <FieldLabel htmlFor="login-password">Password</FieldLabel>
+              <FieldLabel htmlFor="login-password">{t("common.password")}</FieldLabel>
               <button
                 type="button"
                 onClick={() => navigateAuth("forgot-password")}
                 className="text-xs font-medium text-primary hover:underline"
               >
-                Forgot password?
+                {t("auth.forgotPassword")}
               </button>
             </div>
             <div className="relative">
@@ -151,27 +153,27 @@ export function LoginView() {
           <Field orientation="horizontal">
             <Checkbox id="remember" checked={remember} onCheckedChange={(v) => setRemember(v === true)} />
             <FieldLabel htmlFor="remember" className="font-normal">
-              Remember me
+              {t("auth.rememberMe")}
             </FieldLabel>
           </Field>
 
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Signing in…" : "Sign In"}
+            {loading ? t("auth.signingIn") : t("common.signIn")}
           </Button>
         </FieldGroup>
       </form>
 
       <p className="mt-5 text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
+        {t("auth.noAccount")}{" "}
         <button type="button" onClick={() => navigateAuth("signup")} className="font-medium text-primary hover:underline">
-          Create Account
+          {t("common.signUp")}
         </button>
       </p>
 
       {demoMode && (
         <div className="mt-6 border-t border-border/60 pt-5">
           <p className="mb-2.5 text-center text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-            Demo only — development preview
+            {t("auth.demoOnly")}
           </p>
           <div className="grid grid-cols-2 gap-2">
             {demoUsers
@@ -184,7 +186,7 @@ export function LoginView() {
                   size="sm"
                   onClick={() => {
                     signInDemo(u.id)
-                    toast.success(`Signed in as ${u.name}`)
+                    toast.success(t("auth.signedInAs", { name: u.name }))
                   }}
                 >
                   {u.name}
@@ -197,7 +199,7 @@ export function LoginView() {
               className="col-span-2"
               onClick={() => {
                 signInDemo("demo-multi")
-                toast.success("Signed in as Jordan Blake (multi-role)")
+                toast.success(t("auth.signedInAs", { name: "Jordan Blake" }))
               }}
             >
               Jordan Blake — Creator + Advertiser

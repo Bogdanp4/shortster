@@ -2,37 +2,39 @@
 
 import { AuthShell } from "./auth-shell"
 import { useAuth } from "./auth-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import type { PublicRole } from "@/lib/types"
 import { Sparkles, Megaphone, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const options: {
-  role: PublicRole
-  title: string
-  description: string
-  icon: typeof Sparkles
-}[] = [
-  {
-    role: "creator",
-    title: "I'm a Creator",
-    description: "Post short-form content and get paid for verified views.",
-    icon: Sparkles,
-  },
-  {
-    role: "advertiser",
-    title: "I'm an Advertiser",
-    description: "Launch campaigns and pay for verified distribution.",
-    icon: Megaphone,
-  },
-]
-
 export function RoleSelectionView() {
   const { selectRole, currentUser } = useAuth()
+  const t = useT()
+
+  const options: {
+    role: PublicRole
+    title: string
+    description: string
+    icon: typeof Sparkles
+  }[] = [
+    {
+      role: "creator",
+      title: t("role.creatorTitle"),
+      description: t("role.creatorBody"),
+      icon: Sparkles,
+    },
+    {
+      role: "advertiser",
+      title: t("role.advertiserTitle"),
+      description: t("role.advertiserBody"),
+      icon: Megaphone,
+    },
+  ]
 
   return (
     <AuthShell
-      title={`Welcome, ${currentUser?.name ?? "there"}`}
-      description="How do you want to use Shortster?"
+      title={t("role.welcomeName", { name: currentUser?.name ?? t("role.there") })}
+      description={t("role.howUse")}
       className="max-w-md"
     >
       <div className="flex flex-col gap-3">
@@ -56,9 +58,7 @@ export function RoleSelectionView() {
           </button>
         ))}
       </div>
-      <p className="mt-5 text-center text-xs text-muted-foreground">
-        You can add the other role from your profile menu later.
-      </p>
+      <p className="mt-5 text-center text-xs text-muted-foreground">{t("role.addLater")}</p>
     </AuthShell>
   )
 }

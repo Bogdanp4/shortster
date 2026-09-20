@@ -329,7 +329,7 @@ export interface CreatorOnboardingProfile {
 export interface AdvertiserOnboardingProfile {
   companyName: string
   website?: string
-  country: string
+  country?: string
   industry?: string
   logo?: string
   primaryCategory?: CampaignCategory | "any"

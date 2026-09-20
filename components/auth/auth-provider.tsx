@@ -151,13 +151,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const selectRole = useCallback((role: PublicRole) => {
     if (!currentUser) return
-    const next: AuthUser = {
-      ...currentUser,
-      roles: currentUser.roles.includes(role) ? currentUser.roles : [...currentUser.roles, role],
-      activeWorkspace: role,
-      status: "onboarding",
-      onboardingStep: 0,
-    }
+    const roles = currentUser.roles.includes(role) ? currentUser.roles : [...currentUser.roles, role]
+    // Creators go straight into the product — no multi-step onboarding.
+    // Advertisers get a single lightweight brand-setup screen (skippable).
+    const next: AuthUser =
+      role === "creator"
+        ? {
+            ...currentUser,
+            roles,
+            activeWorkspace: role,
+            status: "active",
+            onboardingCompleted: true,
+            onboardingStep: 0,
+          }
+        : {
+            ...currentUser,
+            roles,
+            activeWorkspace: role,
+            status: "onboarding",
+            onboardingStep: 0,
+          }
     setCurrentUser(next)
     persist(next)
   }, [currentUser, persist])
