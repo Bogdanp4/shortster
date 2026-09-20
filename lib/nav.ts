@@ -78,3 +78,35 @@ export const defaultView: Record<Role, string> = {
   moderator: "queue",
   admin: "dashboard",
 }
+
+// Every view key reachable from within a given role's workspace, including
+// detail/sub-views not shown in the sidebar itself. Used to guard against a
+// view key that doesn't belong to the current role (e.g. after a workspace
+// switch) — the router falls back to that role's default view instead.
+export const viewsByRole: Record<Role, string[]> = {
+  creator: ["discover", "campaign", "submit", "submissions", "submission", "earnings", "social"],
+  advertiser: [
+    "overview",
+    "campaigns",
+    "adv-campaign",
+    "create",
+    "adv-submissions",
+    "analytics",
+    "wallet",
+    "team",
+    "adv-settings",
+  ],
+  moderator: ["queue", "review", "ig-verify", "fraud", "history"],
+  admin: [
+    "dashboard",
+    "users",
+    "advertisers",
+    "admin-campaigns",
+    "admin-submissions",
+    "moderators",
+    "transactions",
+    "withdrawals",
+    "admin-fraud",
+    "audit",
+  ],
+}

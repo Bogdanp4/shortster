@@ -7,6 +7,7 @@ import { RoleSwitcher } from "./role-switcher"
 import { TopHeader } from "./top-header"
 import { ViewRouter } from "./view-router"
 import { roleLabels } from "@/lib/nav"
+import { DEMO_ROLE_OVERRIDE_ENABLED } from "@/lib/dev-config"
 
 export function DashboardShell() {
   const { role } = useApp()
@@ -18,9 +19,11 @@ export function DashboardShell() {
         <div className="flex h-16 items-center border-b border-border/60 px-5">
           <Logo />
         </div>
-        <div className="px-3 py-4">
-          <RoleSwitcher />
-        </div>
+        {DEMO_ROLE_OVERRIDE_ENABLED && (
+          <div className="px-3 py-4">
+            <RoleSwitcher />
+          </div>
+        )}
         <div className="flex-1 overflow-y-auto px-3 pb-4">
           <SidebarNav />
         </div>

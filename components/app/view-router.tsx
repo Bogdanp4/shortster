@@ -1,6 +1,7 @@
 "use client"
 
 import { useApp } from "./app-provider"
+import { defaultView, viewsByRole } from "@/lib/nav"
 
 import { DiscoverView } from "@/components/views/creator/discover-view"
 import { CampaignDetailView } from "@/components/views/creator/campaign-detail-view"
@@ -76,7 +77,11 @@ const registry: Record<string, () => React.JSX.Element> = {
 }
 
 export function ViewRouter() {
-  const { view } = useApp()
-  const Component = registry[view] ?? DiscoverView
+  const { role, view } = useApp()
+  // Guard: a view key that doesn't belong to the active role's workspace
+  // (e.g. stale state after a workspace switch) falls back to that role's
+  // default view instead of rendering another role's screen.
+  const key = viewsByRole[role].includes(view) ? view : defaultView[role]
+  const Component = registry[key] ?? DiscoverView
   return <Component />
 }

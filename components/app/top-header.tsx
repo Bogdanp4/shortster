@@ -24,6 +24,7 @@ import {
 import { Menu, Search, LogOut, ArrowLeftRight, Check } from "lucide-react"
 import { roleLabels } from "@/lib/nav"
 import { formatCurrency } from "@/lib/format"
+import { DEMO_ROLE_OVERRIDE_ENABLED } from "@/lib/dev-config"
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/)
@@ -54,7 +55,7 @@ export function TopHeader() {
               </SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-4 p-4">
-              <RoleSwitcher />
+              {DEMO_ROLE_OVERRIDE_ENABLED && <RoleSwitcher />}
               <SidebarNav onNavigate={() => setMobileOpen(false)} />
             </div>
           </SheetContent>

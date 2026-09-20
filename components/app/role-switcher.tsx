@@ -21,6 +21,9 @@ const roleMeta: Record<Role, { icon: typeof Sparkles; descKey: string }> = {
   admin: { icon: Crown, descKey: "profile.adminDesc" },
 }
 
+// Developer-only "view as" control — see lib/dev-config.ts. It bypasses auth
+// entirely and must never render in a normal authenticated session; callers
+// gate it behind DEMO_ROLE_OVERRIDE_ENABLED.
 export function RoleSwitcher() {
   const { role, setRole } = useApp()
   const t = useT()
@@ -30,7 +33,7 @@ export function RoleSwitcher() {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="outline" className="h-auto w-full justify-between gap-2 py-2" />
+          <Button variant="outline" className="h-auto w-full justify-between gap-2 border-amber-500/40 py-2" />
         }
       >
         <span className="flex items-center gap-2.5">
@@ -38,14 +41,22 @@ export function RoleSwitcher() {
             <Icon className="size-4" />
           </span>
           <span className="flex flex-col items-start">
-            <span className="text-xs text-muted-foreground">{t("profile.viewingAs")}</span>
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              {t("profile.viewingAs")}
+              <span className="rounded-sm bg-amber-500/15 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                Demo
+              </span>
+            </span>
             <span className="text-sm font-medium leading-none">{t(`roles.${role}`)}</span>
           </span>
         </span>
         <ChevronsUpDown className="size-4 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-[--anchor-width] min-w-56" align="start">
-        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">{t("profile.switchRole")}</div>
+        <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+          Demo mode only
+        </div>
+        <div className="px-2 pb-1.5 text-xs font-medium text-muted-foreground">{t("profile.switchRole")}</div>
         <DropdownMenuGroup>
           {(Object.keys(roleMeta) as Role[]).map((r) => {
             const RIcon = roleMeta[r].icon
