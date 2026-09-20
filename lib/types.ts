@@ -2,6 +2,21 @@ export type Role = "creator" | "advertiser" | "moderator" | "admin"
 
 export type Platform = "tiktok" | "instagram" | "youtube"
 
+// Internal campaign categories (spec: source of truth).
+export type CampaignCategory = "clipping" | "logo" | "video_banner" | "music"
+
+// How a submission's view metrics are obtained.
+export type MetricsMode = "automatic" | "manual"
+
+export type MetricsSource =
+  | "tiktok_api"
+  | "youtube_api"
+  | "instagram_api"
+  | "manual_creator_proof"
+  | "manual_moderator"
+
+export type VideoLanguage = "any" | "ru" | "en" | "uk"
+
 export type SubmissionStatus =
   | "pending"
   | "approved"
@@ -22,6 +37,12 @@ export type VerificationStatus =
   | "expired"
   | "revoked"
 
+// Ownership of the social account (who controls it).
+export type OwnershipStatus = "verified" | "pending" | "unverified"
+
+// Live API/authorization connection health for the account.
+export type ConnectionStatus = "connected" | "connection_required" | "not_connected"
+
 export interface SocialAccount {
   id: string
   platform: Platform
@@ -30,19 +51,32 @@ export interface SocialAccount {
   followers: number
   method: VerificationMethod
   status: VerificationStatus
+  // Ownership verification (BIO challenge / oauth / google).
+  ownershipStatus: OwnershipStatus
+  // Whether Shortster reads metrics automatically (API) or the creator declares them.
+  metricsMode: MetricsMode
+  // Live connection health — only "connection_required" surfaces a Reconnect action.
+  connectionStatus: ConnectionStatus
+  // Instagram: professional (creator/business) accounts can add an API connection.
+  isProfessional?: boolean
+  // Instagram: whether an automatic metrics API connection is active.
+  apiConnected?: boolean
   connectedAt: string
   verifiedAt?: string
   lastChecked?: string
 }
 
-export type PayoutMethodType = "bank" | "paypal" | "crypto"
+export type CryptoAsset = "USDT" | "USDC"
+
+// Networks are configurable from Admin later — not hardcoded to one blockchain.
+export type CryptoNetwork = "ethereum" | "tron" | "bsc" | "polygon" | "solana"
 
 export interface PayoutMethod {
   id: string
-  type: PayoutMethodType
+  asset: CryptoAsset
+  network: CryptoNetwork
+  walletAddress: string
   label: string
-  last4: string
-  detail?: string
   verified: boolean
 }
 
@@ -69,18 +103,33 @@ export interface AdvertiserWallet {
   totalSpent: number
 }
 
+// Structured, moderator-checkable campaign requirements.
+export interface CampaignRequirements {
+  minDuration: number // seconds; 0 = no minimum
+  minViews: number // 0 = no minimum
+  minFollowers: number // 0 = no minimum
+  language: VideoLanguage
+  specificAudience: boolean
+  audienceDescription?: string
+  requiredHashtag?: string // normalized with leading "#"
+}
+
 export interface Campaign {
   id: string
   title: string
   brand: string
-  category: string
+  category: CampaignCategory
   cover: string
   description: string
   instructions: string[]
   requirements: string[]
+  // Structured requirements used by the create flow and moderator checklist.
+  req: CampaignRequirements
   status: CampaignStatus
   budget: number
   spent: number
+  // Shortster fee is paid by the advertiser (default 10%), never deducted from creators.
+  feePercent: number
   ratePerMillion: number
   minViews: number
   maxPayoutPerAccount: number
@@ -96,6 +145,8 @@ export interface Campaign {
   requiredCta: string
   requiredAudio?: string
   hashtags: string[]
+  // External link (Google Drive / Dropbox / URL) to promo materials.
+  promoMaterialsUrl?: string
   creators: number
   submissionsCount: number
   views: number
@@ -160,6 +211,20 @@ export interface Submission {
   rejectionReason?: string
   riskScore: number
   lockedAt?: string
+  // ── Verification snapshot ────────────────────────────────────────────────
+  metricsMode: MetricsMode
+  metricsSource: MetricsSource
+  // Automatic mode: locked API views. Also mirrored into viewsAtSubmission.
+  // Manual mode: creator-declared views, immutable after submission.
+  claimedViews?: number
+  // Manual mode: moderator-confirmed views. Never exceeds claimedViews.
+  moderatorVerifiedViews?: number
+  // Final payable = MIN(claimedViews, moderatorVerifiedViews) for manual.
+  approvedPayableViews?: number
+  followersAtSubmission?: number
+  requiredHashtagPresent?: boolean
+  // Manual mode proof: uploaded screenshot references (up to 3).
+  proofAssets?: string[]
 }
 
 export interface WalletTransaction {

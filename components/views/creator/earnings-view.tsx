@@ -95,15 +95,16 @@ export function EarningsView() {
             ) : (
               <>
                 {payoutMethods.map((m: PayoutMethod) => {
-                  const Icon = methodIcon[m.type]
                   return (
                     <div key={m.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
                       <div className="flex size-9 items-center justify-center rounded-md bg-muted">
-                        <Icon className="size-4" />
+                        <Wallet className="size-4" />
                       </div>
-                      <div className="flex flex-col">
+                      <div className="flex min-w-0 flex-col">
                         <span className="text-sm font-medium">{m.label}</span>
-                        <span className="text-xs text-muted-foreground">•••• {m.last4}</span>
+                        <span className="truncate text-xs text-muted-foreground">
+                          {m.asset} · {payoutNetworkLabel[m.network] ?? m.network} · {shortenAddress(m.walletAddress)}
+                        </span>
                       </div>
                       {m.verified && (
                         <Badge variant="secondary" className="ml-auto">

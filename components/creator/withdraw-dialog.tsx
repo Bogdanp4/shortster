@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { CheckCircle2, CreditCard, Building2, Wallet, ArrowRight, Plus, Loader2 } from "lucide-react"
+import { CheckCircle2, Wallet, ArrowRight, Plus, Loader2 } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
 import { creatorMinWithdrawal } from "@/lib/mock-data"
@@ -23,7 +23,17 @@ import { Separator } from "@/components/ui/separator"
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
 import { AddPayoutMethodDialog } from "./add-payout-method-dialog"
 
-const methodIcon = { bank: Building2, paypal: Wallet, crypto: CreditCard }
+const networkLabel: Record<string, string> = {
+  ethereum: "Ethereum (ERC-20)",
+  tron: "Tron (TRC-20)",
+  bsc: "BNB Smart Chain (BEP-20)",
+  polygon: "Polygon",
+  solana: "Solana",
+}
+
+function shortenAddress(address: string) {
+  return address.length > 12 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address
+}
 
 type Step = "form" | "review" | "success"
 
@@ -171,7 +181,6 @@ export function WithdrawDialog({
                   ) : (
                     <div className="flex flex-col gap-2">
                       {payoutMethods.map((m) => {
-                        const Icon = methodIcon[m.type]
                         const selected = method?.id === m.id
                         return (
                           <button
@@ -183,13 +192,15 @@ export function WithdrawDialog({
                             }`}
                           >
                             <div className="flex size-9 items-center justify-center rounded-md bg-muted">
-                              <Icon className="size-4" />
+                              <Wallet className="size-4" />
                             </div>
-                            <div className="flex flex-col">
+                            <div className="flex min-w-0 flex-col">
                               <span className="text-sm font-medium">{m.label}</span>
-                              <span className="text-xs text-muted-foreground">•••• {m.last4}</span>
+                              <span className="truncate text-xs text-muted-foreground">
+                                {m.asset} · {networkLabel[m.network] ?? m.network} · {shortenAddress(m.walletAddress)}
+                              </span>
                             </div>
-                            {selected && <CheckCircle2 className="ml-auto size-4 text-primary" />}
+                            {selected && <CheckCircle2 className="ml-auto size-4 shrink-0 text-primary" />}
                           </button>
                         )
                       })}
@@ -227,8 +238,9 @@ export function WithdrawDialog({
                 <Row label="Amount" value={formatCurrency(numeric)} />
                 <Row label="Fee" value={formatCurrency(0)} />
                 <Separator />
-                <Row label="You receive" value={formatCurrency(numeric)} strong />
-                <Row label="Payout method" value={`${method.label} •••• ${method.last4}`} />
+                <Row label="You receive" value={`${formatCurrency(numeric)} in ${method.asset}`} strong />
+                <Row label="Payout wallet" value={`${method.label} · ${networkLabel[method.network] ?? method.network}`} />
+                <Row label="Address" value={shortenAddress(method.walletAddress)} />
                 <Row label="Balance after withdrawal" value={formatCurrency(available - numeric)} />
               </div>
 
