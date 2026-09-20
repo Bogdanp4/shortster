@@ -289,3 +289,66 @@ export interface AuditLog {
   time: string
   category: "financial" | "moderation" | "account" | "campaign"
 }
+
+// ── Auth / onboarding ───────────────────────────────────────────────────────
+
+// Roles selectable through public sign-up. Moderator/admin are assigned internally.
+export type PublicRole = "creator" | "advertiser"
+
+export type AuthStatus =
+  | "registered"
+  | "email_verification_required"
+  | "onboarding"
+  | "active"
+  | "suspended"
+  | "banned"
+
+// Pre-auth / onboarding screens. Post-auth navigation uses AppProvider's `view`.
+export type AuthScreen =
+  | "landing"
+  | "login"
+  | "signup"
+  | "verify-email"
+  | "verify-email-success"
+  | "forgot-password"
+  | "forgot-password-sent"
+  | "reset-password"
+  | "reset-password-success"
+
+export interface CreatorOnboardingProfile {
+  displayName: string
+  username: string
+  country: string
+  language: string
+  avatar?: string
+  socialConnected: boolean
+  socialPlatform?: Platform
+  socialHandle?: string
+}
+
+export interface AdvertiserOnboardingProfile {
+  companyName: string
+  website?: string
+  country: string
+  industry?: string
+  logo?: string
+  primaryCategory?: CampaignCategory | "any"
+  primaryMarket?: string
+}
+
+export interface AuthUser {
+  id: string
+  email: string
+  passwordHash: string
+  name: string
+  status: AuthStatus
+  roles: Role[]
+  activeWorkspace: Role
+  emailVerified: boolean
+  onboardingCompleted: boolean
+  onboardingStep: number
+  createdAt: string
+  updatedAt: string
+  creatorProfile?: CreatorOnboardingProfile
+  advertiserProfile?: AdvertiserOnboardingProfile
+}

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useApp } from "./app-provider"
+import { useAuth } from "@/components/auth/auth-provider"
 import { Logo } from "./logo"
 import { SidebarNav } from "./sidebar-nav"
 import { RoleSwitcher } from "./role-switcher"
@@ -10,13 +11,32 @@ import { Button } from "@/components/ui/button"
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Search } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Menu, Search, LogOut, ArrowLeftRight, Check } from "lucide-react"
 import { roleLabels } from "@/lib/nav"
 import { formatCurrency } from "@/lib/format"
 
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/)
+  return parts
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("")
+}
+
 export function TopHeader() {
   const { role, creatorWallet, advertiserWallet, navigate } = useApp()
+  const { currentUser, signOut, switchWorkspace } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const workspaces = currentUser?.roles.filter((r) => r === "creator" || r === "advertiser") ?? []
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl lg:px-6">
@@ -77,9 +97,47 @@ export function TopHeader() {
           </button>
         )}
         <NotificationsMenu />
-        <Avatar className="size-9 border border-border/60">
-          <AvatarFallback className="bg-primary/12 text-sm font-semibold text-primary">AR</AvatarFallback>
-        </Avatar>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="ghost" size="icon" className="rounded-full" aria-label="Account menu" />}
+          >
+            <Avatar className="size-9 border border-border/60">
+              <AvatarFallback className="bg-primary/12 text-sm font-semibold text-primary">
+                {currentUser ? initials(currentUser.name) : "SH"}
+              </AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            {currentUser && (
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium leading-none">{currentUser.name}</span>
+                  <span className="text-xs font-normal text-muted-foreground">{currentUser.email}</span>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
+            )}
+            {workspaces.length > 1 && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Switch workspace</div>
+                  {workspaces.map((r) => (
+                    <DropdownMenuItem key={r} onClick={() => switchWorkspace(r)} className="gap-2">
+                      <ArrowLeftRight className="size-4 text-muted-foreground" />
+                      <span className="flex-1">{roleLabels[r]}</span>
+                      {r === currentUser?.activeWorkspace && <Check className="size-4 text-primary" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+              </>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={signOut} className="gap-2 text-destructive focus:text-destructive">
+              <LogOut className="size-4" />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )

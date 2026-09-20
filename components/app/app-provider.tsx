@@ -64,9 +64,9 @@ function ref(prefix: string) {
   return `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`
 }
 
-export function AppProvider({ children }: { children: ReactNode }) {
-  const [role, setRoleState] = useState<Role>("creator")
-  const [view, setView] = useState<string>(defaultView.creator)
+export function AppProvider({ children, initialRole = "creator" }: { children: ReactNode; initialRole?: Role }) {
+  const [role, setRoleState] = useState<Role>(initialRole)
+  const [view, setView] = useState<string>(defaultView[initialRole])
   const [params, setParams] = useState<Record<string, string>>({})
   const [submissions, setSubmissions] = useState<Submission[]>(creatorSubmissions)
   const [socialAccounts, setSocialAccounts] = useState<SocialAccount[]>(creatorSocialAccounts)

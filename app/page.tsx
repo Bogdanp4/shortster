@@ -1,10 +1,10 @@
-import { AppProvider } from "@/components/app/app-provider"
-import { DashboardShell } from "@/components/app/dashboard-shell"
+import { AuthProvider } from "@/components/auth/auth-provider"
+import { AuthGate } from "@/components/auth/auth-gate"
 
 export default function Page() {
   return (
-    <AppProvider>
-      <DashboardShell />
-    </AppProvider>
+    <AuthProvider>
+      <AuthGate />
+    </AuthProvider>
   )
 }
