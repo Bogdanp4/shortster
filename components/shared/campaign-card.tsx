@@ -96,7 +96,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
             </span>
             <span className="flex items-center gap-1">
               <Eye className="size-3.5" />
-              {t("card.min", { count: formatNumber(campaign.minViews) })}
+              {t("card.min", { count: formatNumber(campaign.req.minViews) })}
             </span>
           </div>
         </CardContent>

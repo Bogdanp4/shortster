@@ -193,12 +193,12 @@ export function AdvertiserCampaignDetailView() {
               </CardHeader>
               <CardContent className="flex flex-col gap-3 text-sm">
                 <Row label={t("advCampaignDetail.rate")} value={`${formatCurrency(campaign.ratePerMillionMinor)} / 1M`} />
-                <Row label={t("advCampaignDetail.minViews")} value={formatNumber(campaign.minViews)} />
+                <Row label={t("advCampaignDetail.minViews")} value={formatNumber(campaign.req.minViews)} />
                 <Row label={t("advCampaignDetail.maxPerVideo")} value={formatCurrency(campaign.maxPayoutPerVideoMinor)} />
                 <Row label={t("advCampaignDetail.maxPerAccount")} value={formatCurrency(campaign.maxPayoutPerAccountMinor)} />
                 <Row
                   label={t("advCampaignDetail.duration")}
-                  value={`${campaign.minDuration}–${campaign.maxDuration}s`}
+                  value={`${campaign.req.minDuration}–${campaign.req.maxDuration}s`}
                 />
               </CardContent>
             </Card>

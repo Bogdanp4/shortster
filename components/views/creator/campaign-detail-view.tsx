@@ -3,7 +3,8 @@
 import Image from "next/image"
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
-import { getCampaign } from "@/lib/mock-data"
+ import { getCampaign } from "@/lib/mock-data"
+ import type { VideoLanguage } from "@/lib/types"
 import { formatMoney, formatNumber, compactNumber, percent, formatRelative, categoryLabel } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -45,6 +46,12 @@ export function CampaignDetailView() {
   const t = useT()
   const campaign = getCampaign(params.id)
   const mySubmissions = submissions.filter((s) => s.campaignId === params.id)
+  const languageLabels: Record<VideoLanguage, string> = {
+    any: t("enums.videoLanguage.any"),
+    en: t("enums.videoLanguage.en"),
+    ru: t("enums.videoLanguage.ru"),
+    uk: t("enums.videoLanguage.uk"),
+  }
 
   if (!campaign) {
     return (
@@ -143,7 +150,7 @@ export function CampaignDetailView() {
                     rate: formatMoney(campaign.ratePerMillionMinor),
                     maxVideo: formatMoney(campaign.maxPayoutPerVideoMinor),
                     maxAccount: formatMoney(campaign.maxPayoutPerAccountMinor),
-                    minViews: formatNumber(campaign.minViews),
+                    minViews: formatNumber(campaign.req.minViews),
                   })}
                 </AlertDescription>
               </Alert>
@@ -324,16 +331,16 @@ export function CampaignDetailView() {
               <Detail label={t("campaignDetail.minViewsToCredit")}>
                 <span className="flex items-center gap-1">
                   <Eye className="size-3.5" />
-                  {formatNumber(campaign.minViews)}
+                  {formatNumber(campaign.req.minViews)}
                 </span>
               </Detail>
               <Detail label={t("campaignDetail.duration")}>
                 <span className="flex items-center gap-1">
                   <Clock className="size-3.5" />
-                  {campaign.minDuration}&ndash;{campaign.maxDuration}s
+                  {campaign.req.minDuration}&ndash;{campaign.req.maxDuration}s
                 </span>
               </Detail>
-              <Detail label={t("campaignDetail.languages")}>{campaign.languages.join(", ")}</Detail>
+              <Detail label={t("campaignDetail.languages")}>{languageLabels[campaign.req.language]}</Detail>
               <Detail label={t("campaignDetail.countries")}>
                 <span className="flex items-center gap-1">
                   <Globe className="size-3.5" />

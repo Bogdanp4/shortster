@@ -146,7 +146,7 @@ export function SubmitView() {
         })()
       : null
 
-  const durationOk = video ? video.duration >= campaign.minDuration && video.duration <= campaign.maxDuration : true
+  const durationOk = video ? video.duration >= campaign.req.minDuration && video.duration <= campaign.req.maxDuration : true
 
   // Manual submissions need a declared view count and at least one proof screenshot.
   const manualReady = !manualMode || (claimedViewsNum > 0 && proofFiles.length > 0)
@@ -612,8 +612,8 @@ export function SubmitView() {
                         <AlertTitle>{t("submit.durationOutOfRangeTitle")}</AlertTitle>
                         <AlertDescription>
                           {t("submit.durationOutOfRangeBodyManual", {
-                            min: campaign.minDuration,
-                            max: campaign.maxDuration,
+                            min: campaign.req.minDuration,
+                            max: campaign.req.maxDuration,
                             duration: video.duration,
                           })}
                         </AlertDescription>
@@ -667,8 +667,8 @@ export function SubmitView() {
                         <AlertTitle>{t("submit.durationOutOfRangeTitle")}</AlertTitle>
                         <AlertDescription>
                           {t("submit.durationOutOfRangeBodyAuto", {
-                            min: campaign.minDuration,
-                            max: campaign.maxDuration,
+                            min: campaign.req.minDuration,
+                            max: campaign.req.maxDuration,
                             duration: video.duration,
                           })}
                         </AlertDescription>
@@ -720,7 +720,7 @@ export function SubmitView() {
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               <Row label={t("submit.rowRate")}>{formatMoney(campaign.ratePerMillionMinor)} {t("submit.ratePerMillionSuffix")}</Row>
-              <Row label={t("submit.rowMinViews")}>{formatNumber(campaign.minViews)}</Row>
+              <Row label={t("submit.rowMinViews")}>{formatNumber(campaign.req.minViews)}</Row>
               <Row label={t("submit.rowMaxPerVideo")}>{formatMoney(campaign.maxPayoutPerVideoMinor)}</Row>
               <Row label={t("submit.rowBudgetRemaining")}>{formatMoney(remaining, { compact: true })}</Row>
 

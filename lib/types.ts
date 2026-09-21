@@ -110,6 +110,7 @@ export interface AdvertiserWallet {
 // Structured, moderator-checkable campaign requirements.
 export interface CampaignRequirements {
   minDuration: number // seconds; 0 = no minimum
+  maxDuration: number // seconds; 0 = no maximum
   minViews: number // 0 = no minimum
   minFollowers: number // 0 = no minimum
   language: VideoLanguage
@@ -135,14 +136,10 @@ export interface Campaign {
   // Shortster fee is paid by the advertiser (default 10%), never deducted from creators.
   platformFeePercent: number
   ratePerMillionMinor: number
-  minViews: number
   maxPayoutPerAccountMinor: number
   maxPayoutPerVideoMinor: number
   maxSubmissionsPerAccount: number
   platforms: Platform[]
-  minDuration: number
-  maxDuration: number
-  languages: string[]
   countries: string[]
   startDate: string
   endDate: string
