@@ -52,7 +52,7 @@ export function AdminModeratorsView() {
       <PageHeader
         title={t("adminModerators.title")}
         description={t("adminModerators.description")}
-        action={
+        actions={
           <Button onClick={() => toast.success(t("adminModerators.inviteSentToast"))}>
             <Plus data-icon="inline-start" />
             {t("adminModerators.inviteModerator")}

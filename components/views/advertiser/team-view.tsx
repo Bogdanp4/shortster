@@ -52,12 +52,14 @@ export function AdvertiserTeamView() {
     <div className="flex flex-col gap-6">
       <PageHeader title={t("advTeam.title")} description={t("advTeam.description")}>
         <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus data-icon="inline-start" />
-              {t("advTeam.inviteMember")}
-            </Button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <Button>
+                <UserPlus data-icon="inline-start" />
+                {t("advTeam.inviteMember")}
+              </Button>
+            }
+          />
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t("advTeam.inviteDialogTitle")}</DialogTitle>
@@ -85,15 +87,15 @@ export function AdvertiserTeamView() {
               </Field>
             </FieldGroup>
             <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">{t("advTeam.cancel")}</Button>
-              </DialogClose>
-              <DialogClose asChild>
-                <Button onClick={() => toast.success(t("advTeam.invitationSent"))}>
-                  <Mail data-icon="inline-start" />
-                  {t("advTeam.sendInvite")}
-                </Button>
-              </DialogClose>
+              <DialogClose render={<Button variant="outline">{t("advTeam.cancel")}</Button>} />
+              <DialogClose
+                render={
+                  <Button onClick={() => toast.success(t("advTeam.invitationSent"))}>
+                    <Mail data-icon="inline-start" />
+                    {t("advTeam.sendInvite")}
+                  </Button>
+                }
+              />
             </DialogFooter>
           </DialogContent>
         </Dialog>
