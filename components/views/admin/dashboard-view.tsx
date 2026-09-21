@@ -4,7 +4,7 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { DollarSign, Users, Megaphone, ShieldAlert } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
-import { adminStatsSeries, adminUsers, campaigns, fraudCases, auditLogs } from "@/lib/mock-data"
+import { adminStatsSeries, adminUsers, fraudCases, auditLogs } from "@/lib/mock-data"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
@@ -14,7 +14,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { useT } from "@/components/i18n/locale-provider"
 
 export function AdminDashboardView() {
-  const { navigate } = useApp()
+  const { navigate, campaigns } = useApp()
   const t = useT()
   const chartConfig = {
     gmvMinor: { label: "GMV", color: "var(--chart-1)" },

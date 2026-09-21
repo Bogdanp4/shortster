@@ -132,7 +132,7 @@ export function CreateCampaignView() {
     if (!canLaunch || submitting) return
     setSubmitting(true)
     try {
-      await createCampaign(buildInput())
+      await createCampaign(buildInput(), { launch: true })
       toast.success(t("createCampaign.createdToast"), {
         description: t("createCampaign.createdToastDesc", {
           amount: formatCurrency(totalReserveMinor),
@@ -151,7 +151,7 @@ export function CreateCampaignView() {
     if (noPlatform || audienceInvalid || budgetNum <= 0 || submitting) return
     setSubmitting(true)
     try {
-      await createCampaign(buildInput())
+      await createCampaign(buildInput(), { launch: false })
       toast.success(t("createCampaign.draftSavedToast"), {
         description: t("createCampaign.draftSavedToastDesc"),
       })

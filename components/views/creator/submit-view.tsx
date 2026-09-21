@@ -15,6 +15,7 @@ import {
   Clock,
   AlertTriangle,
   ArrowRight,
+  ArrowLeft,
   ImagePlus,
   X,
   Zap,
@@ -24,7 +25,7 @@ import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
-import { getCampaign, resolveMockVideo } from "@/lib/mock-data"
+import { resolveMockVideo } from "@/lib/mock-data"
 import { formatMoney, formatNumber, detectPlatformFromUrl, platformUrlPlaceholder } from "@/lib/format"
 import { calculateReward, calculateFinalReward } from "@/lib/domain/money"
 import { buildRequirementsChecklist } from "@/lib/domain/requirements"
@@ -80,18 +81,18 @@ function metricsSourceFor(platform: Platform, manual: boolean): MetricsSource {
 }
 
 export function SubmitView() {
-  const { params, navigate, socialAccounts, addSubmission } = useApp()
+  const { params, navigate, socialAccounts, addSubmission, getCampaignById } = useApp()
   const t = useT()
-  const campaign = getCampaign(params.id ?? "stake-highlights") ?? getCampaign("stake-highlights")!
+  const campaign = getCampaignById(params.campaignId)
 
   const eligibleAccounts = useMemo(
-    () => socialAccounts.filter((a) => campaign.platforms.includes(a.platform) && a.status === "verified"),
+    () => (campaign ? socialAccounts.filter((a) => campaign.platforms.includes(a.platform) && a.status === "verified") : []),
     [socialAccounts, campaign],
   )
 
   const requirementsChecklist = useMemo(
-    () => buildRequirementsChecklist(campaign.requirements, t),
-    [campaign.requirements, t],
+    () => (campaign ? buildRequirementsChecklist(campaign.requirements, t) : []),
+    [campaign, t],
   )
 
   const [accountId, setAccountId] = useState(eligibleAccounts[0]?.id ?? "")
@@ -107,7 +108,7 @@ export function SubmitView() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const account = eligibleAccounts.find((a) => a.id === accountId)
-  const remaining = campaign.creatorBudgetMinor - campaign.creatorBudgetSpentMinor
+  const remaining = campaign ? campaign.creatorBudgetMinor - campaign.creatorBudgetSpentMinor : 0
   const manualMode = account?.metricsMode === "manual"
 
   // Group the campaign's allowed platforms with the creator's verified accounts
@@ -115,11 +116,11 @@ export function SubmitView() {
   // the creator has no verified account there).
   const platformGroups = useMemo(
     () =>
-      campaign.platforms.map((platform) => ({
+      (campaign?.platforms ?? []).map((platform) => ({
         platform,
         accounts: eligibleAccounts.filter((a) => a.platform === platform),
       })),
-    [campaign.platforms, eligibleAccounts],
+    [campaign?.platforms, eligibleAccounts],
   )
 
   const connectLabel: Record<Platform, string> = {
@@ -138,7 +139,7 @@ export function SubmitView() {
   const claimedViewsNum = Number(claimedViews) || 0
   const effectiveViews = manualMode ? claimedViewsNum : (video?.views ?? 0)
   const payout =
-    video && effectiveViews > 0
+    campaign && video && effectiveViews > 0
       ? (() => {
           const rawRewardMinor = calculateReward({
             views: effectiveViews,
@@ -153,10 +154,11 @@ export function SubmitView() {
         })()
       : null
 
-  const durationOk = video
-    ? video.duration >= campaign.requirements.minVideoDurationSeconds &&
-      video.duration <= campaign.requirements.maxVideoDurationSeconds
-    : true
+  const durationOk =
+    video && campaign
+      ? video.duration >= campaign.requirements.minVideoDurationSeconds &&
+        video.duration <= campaign.requirements.maxVideoDurationSeconds
+      : true
 
   // Manual submissions need a declared view count and at least one proof screenshot.
   const manualReady = !manualMode || (claimedViewsNum > 0 && proofFiles.length > 0)
@@ -218,7 +220,7 @@ export function SubmitView() {
   }
 
   function finalize() {
-    if (!video || !account || !payout) return
+    if (!campaign || !video || !account || !payout) return
     setSubmitting(true)
     setTimeout(() => {
       const submission: Submission = {
@@ -268,14 +270,14 @@ export function SubmitView() {
   }
 
   // No eligible accounts — guide the creator to connect one.
-  if (eligibleAccounts.length === 0) {
+  if (campaign && eligibleAccounts.length === 0) {
     return (
       <div className="flex flex-col gap-6">
         <PageHeader
           title={t("submit.title")}
           description={t("submit.description", { campaign: campaign.title, brand: campaign.brand })}
           backLabel={t("submit.backLabel")}
-          onBack={() => navigate("campaign", { id: campaign.id })}
+          onBack={() => navigate("campaign", { campaignId: campaign.id })}
         />
         <Empty className="rounded-xl border border-dashed">
           <EmptyHeader>
@@ -298,13 +300,32 @@ export function SubmitView() {
     )
   }
 
+  if (!campaign) {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader title={t("submit.title")} description="" />
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{t("createCampaign.notFound")}</EmptyTitle>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button variant="outline" onClick={() => navigate("discover")}>
+              <ArrowLeft data-icon="inline-start" />
+              {t("discover.title")}
+            </Button>
+          </EmptyContent>
+        </Empty>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={t("submit.title")}
         description={t("submit.description", { campaign: campaign.title, brand: campaign.brand })}
         backLabel={t("submit.backLabel")}
-        onBack={() => navigate("campaign", { id: campaign.id })}
+        onBack={() => navigate("campaign", { campaignId: campaign.id })}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">

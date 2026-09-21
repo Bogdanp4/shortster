@@ -25,6 +25,7 @@ import {
   advertiserPaymentMethods as initialPaymentMethods,
   moderationQueue as initialModerationQueue,
   fraudCases as initialFraudCases,
+  campaigns as initialCampaigns,
 } from "@/lib/mock-data"
 import * as submissionService from "@/services/submission-service"
 import * as withdrawalService from "@/services/withdrawal-service"
@@ -70,7 +71,12 @@ interface AppState {
     platformFeePercent: number,
     campaignTitle: string,
   ) => Promise<WalletTransaction>
-  createCampaign: (input: CreateCampaignInput) => Promise<Campaign>
+
+  // Campaigns — live list backed by the service store so newly created
+  // campaigns appear everywhere campaigns are shown.
+  campaigns: Campaign[]
+  getCampaignById: (id: string | undefined) => Campaign | undefined
+  createCampaign: (input: CreateCampaignInput, opts?: { launch?: boolean }) => Promise<Campaign>
 
   // Moderation & fraud
   moderationQueue: Submission[]
@@ -112,6 +118,12 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
 
   const [moderationQueue, setModerationQueue] = useState<Submission[]>(initialModerationQueue)
   const [fraudCases, setFraudCases] = useState<FraudCase[]>(initialFraudCases)
+  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns)
+
+  const getCampaignById = useCallback(
+    (id: string | undefined) => (id ? campaigns.find((c) => c.id === id) : undefined),
+    [campaigns],
+  )
 
   const setRole = useCallback((next: Role) => {
     setRoleState(next)
@@ -162,7 +174,7 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
   }, [])
 
   const addPaymentMethod = useCallback((m: PaymentMethod) => {
-    setPaymentMethods((prev) => [...prev, m])
+    setPaymentMethods([...accountService.addPaymentMethod(m)])
   }, [])
 
   const deposit = useCallback(async (amountMinor: number, method: PaymentMethod) => {
@@ -233,13 +245,15 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
     [syncCreatorSubmission],
   )
 
-  const createCampaign = useCallback(async (input: CreateCampaignInput) => {
-    const result = await campaignService.createCampaign(input)
+  const createCampaign = useCallback(async (input: CreateCampaignInput, opts?: { launch?: boolean }) => {
+    const result = await campaignService.createCampaign(input, opts)
     if (!result.ok) throw new AppErrorException(result.error)
     setAdvertiserWallet(result.data.wallet)
     if (result.data.transaction) {
       setAdvertiserTransactions((prev) => [result.data.transaction!, ...prev])
     }
+    // Mirror the store so the new campaign shows up in every campaigns list.
+    setCampaigns([...store.campaigns])
     return result.data.campaign
   }, [])
 
@@ -274,6 +288,8 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
         addPaymentMethod,
         deposit,
         reserveForCampaign,
+        campaigns,
+        getCampaignById,
         createCampaign,
         moderationQueue,
         approveSubmission,

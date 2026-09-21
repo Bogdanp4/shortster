@@ -27,14 +27,32 @@ export interface CreateCampaignResult {
   transaction?: WalletTransaction
 }
 
+export interface CreateCampaignOptions {
+  /**
+   * `true` launches the campaign: it requires sufficient wallet balance and
+   * reserves budget + platform fee. `false` (default) saves a draft and never
+   * touches the wallet, even when the balance would cover it.
+   */
+  launch?: boolean
+}
+
 /**
- * Builds a full Campaign from the create-campaign form. If the advertiser
- * wallet can cover budget + platform fee the campaign launches `active` and
- * the reserve is taken; otherwise it is saved as a `draft` with no reserve so
- * the advertiser can top up and launch it later. Either way the campaign is
- * added to the store so it shows up in the advertiser's campaigns list.
+ * Builds a full Campaign from the create-campaign form. Launch vs. draft is an
+ * explicit caller intent, never inferred from the balance:
+ *
+ * - `launch: false` (default) → status `draft`, no reserve is ever taken.
+ * - `launch: true` → status `active`, budget + platform fee are reserved. If
+ *   the wallet cannot cover the reserve the call fails with
+ *   `insufficient_budget` and nothing is created, so the advertiser can top up
+ *   or save a draft instead.
+ *
+ * Either successful path adds the campaign to the store so it shows up
+ * everywhere campaigns are listed.
  */
-export async function createCampaign(input: CreateCampaignInput): Promise<Result<CreateCampaignResult>> {
+export async function createCampaign(
+  input: CreateCampaignInput,
+  opts: CreateCampaignOptions = {},
+): Promise<Result<CreateCampaignResult>> {
   await mockDelay()
 
   if (input.creatorBudgetMinor <= 0) {
@@ -44,9 +62,18 @@ export async function createCampaign(input: CreateCampaignInput): Promise<Result
     return { ok: false, error: toAppError("validation_error", "Select at least one platform.") }
   }
 
+  const launch = opts.launch ?? false
   const totalReserveMinor = calculateCampaignReserve(input.creatorBudgetMinor, input.platformFeePercent)
   const platformFeeMinor = calculatePlatformFee(input.creatorBudgetMinor, input.platformFeePercent)
-  const canFund = totalReserveMinor <= store.advertiserWallet.availableMinor
+
+  // Launching requires funding up front — reject before creating anything so a
+  // launch attempt never silently downgrades to a draft.
+  if (launch && totalReserveMinor > store.advertiserWallet.availableMinor) {
+    return {
+      ok: false,
+      error: toAppError("insufficient_budget", "Insufficient wallet balance to launch this campaign."),
+    }
+  }
 
   const now = new Date()
   const end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
@@ -61,7 +88,7 @@ export async function createCampaign(input: CreateCampaignInput): Promise<Result
     description: input.description,
     instructions: input.instructions,
     requirements: input.requirements,
-    status: canFund ? "active" : "draft",
+    status: launch ? "active" : "draft",
     creatorBudgetMinor: input.creatorBudgetMinor,
     creatorBudgetSpentMinor: 0,
     platformFeePercent: input.platformFeePercent,
@@ -85,7 +112,8 @@ export async function createCampaign(input: CreateCampaignInput): Promise<Result
 
   store.campaigns = [campaign, ...store.campaigns]
 
-  if (!canFund) {
+  // Draft: campaign is saved but the wallet is never touched.
+  if (!launch) {
     return { ok: true, data: { campaign, wallet: store.advertiserWallet } }
   }
 

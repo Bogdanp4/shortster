@@ -3,7 +3,7 @@
 import { Megaphone } from "lucide-react"
 import { toast } from "sonner"
 
-import { campaigns } from "@/lib/mock-data"
+import { useApp } from "@/components/app/app-provider"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
@@ -25,6 +25,7 @@ import { useT } from "@/components/i18n/locale-provider"
 
 export function AdminCampaignsView() {
   const t = useT()
+  const { campaigns } = useApp()
   const totalBudget = campaigns.reduce((s, c) => s + c.creatorBudgetMinor, 0)
   const totalViews = campaigns.reduce((s, c) => s + c.views, 0)
 

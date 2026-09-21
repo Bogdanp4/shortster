@@ -25,7 +25,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
   return (
     <button
       type="button"
-      onClick={() => navigate("campaign", { id: campaign.id })}
+      onClick={() => navigate("campaign", { campaignId: campaign.id })}
       className="group text-left"
       aria-label={t("card.viewAria", { title: campaign.title })}
     >

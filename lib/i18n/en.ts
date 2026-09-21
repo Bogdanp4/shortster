@@ -810,6 +810,7 @@ export const en = {
     title: "Create Campaign",
     description: "Set up a new campaign for creators to clip and promote.",
     backToCampaigns: "Back to campaigns",
+    notFound: "Campaign not found.",
     // Platform options
     platformTiktokDesc: "TikTok short-form videos",
     platformInstagramLabel: "Instagram Reels",

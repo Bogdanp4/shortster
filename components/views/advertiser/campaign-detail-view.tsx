@@ -1,12 +1,12 @@
 "use client"
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { Pause, Eye, DollarSign, FileVideo, Users, Pencil } from "lucide-react"
+import { Pause, Eye, DollarSign, FileVideo, Users, Pencil, ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 import Image from "next/image"
 
 import { useApp } from "@/components/app/app-provider"
-import { campaigns, getCampaign, advertiserStatsSeries } from "@/lib/mock-data"
+import { advertiserStatsSeries } from "@/lib/mock-data"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { buildRequirementsChecklist } from "@/lib/domain/requirements"
 import { PageHeader } from "@/components/shared/page-header"
@@ -23,9 +23,22 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { useT } from "@/components/i18n/locale-provider"
 
 export function AdvertiserCampaignDetailView() {
-  const { params, navigate, moderationQueue } = useApp()
+  const { params, navigate, moderationQueue, getCampaignById } = useApp()
   const t = useT()
-  const campaign = getCampaign(params.id) ?? campaigns[0]
+  const campaign = getCampaignById(params.campaignId)
+
+  if (!campaign) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Button variant="ghost" onClick={() => navigate("campaigns")} className="w-fit">
+          <ArrowLeft data-icon="inline-start" />
+          {t("advCampaignDetail.backToCampaigns")}
+        </Button>
+        <p className="text-muted-foreground">{t("advCampaignDetail.notFound")}</p>
+      </div>
+    )
+  }
+
   const requirementsChecklist = buildRequirementsChecklist(campaign.requirements, t)
   const pct = Math.round((campaign.creatorBudgetSpentMinor / campaign.creatorBudgetMinor) * 100)
   const submissions = moderationQueue.filter((s) => s.campaignId === campaign.id)

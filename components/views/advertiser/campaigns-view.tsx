@@ -4,7 +4,6 @@ import { useMemo, useState } from "react"
 import { PlusCircle, Search } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
-import { campaigns } from "@/lib/mock-data"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import type { CampaignStatus } from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
@@ -22,7 +21,7 @@ import { useT } from "@/components/i18n/locale-provider"
 const tabValues: (CampaignStatus | "all")[] = ["all", "active", "paused", "completed"]
 
 export function AdvertiserCampaignsView() {
-  const { navigate } = useApp()
+  const { navigate, campaigns } = useApp()
   const t = useT()
   const [tab, setTab] = useState<CampaignStatus | "all">("all")
   const [query, setQuery] = useState("")
@@ -43,7 +42,7 @@ export function AdvertiserCampaignsView() {
         const matchQuery = c.title.toLowerCase().includes(query.toLowerCase())
         return matchTab && matchQuery
       }),
-    [tab, query],
+    [tab, query, campaigns],
   )
 
   return (
