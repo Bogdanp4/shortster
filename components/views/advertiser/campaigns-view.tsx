@@ -33,6 +33,7 @@ export function AdvertiserCampaignsView() {
     paused: t("campaignsList.paused"),
     completed: t("campaignsList.completed"),
     draft: t("status.draft"),
+    cancelled: t("status.campaign.cancelled"),
   }
 
   const filtered = useMemo(

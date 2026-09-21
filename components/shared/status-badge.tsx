@@ -56,6 +56,7 @@ const campaignTone: Record<CampaignStatus, Tone> = {
   draft: "neutral",
   paused: "warning",
   completed: "info",
+  cancelled: "danger",
 }
 
 export function CampaignStatusBadge({ status }: { status: CampaignStatus }) {

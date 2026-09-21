@@ -23,9 +23,9 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { useT } from "@/components/i18n/locale-provider"
 
 export function AdvertiserCampaignDetailView() {
-  const { selectedCampaignId, navigate } = useApp()
+  const { params, navigate } = useApp()
   const t = useT()
-  const campaign = getCampaign(selectedCampaignId ?? "stake-highlights") ?? campaigns[0]
+  const campaign = getCampaign(params.id) ?? campaigns[0]
   const requirementsChecklist = buildRequirementsChecklist(campaign.requirements, t)
   const pct = Math.round((campaign.creatorBudgetSpentMinor / campaign.creatorBudgetMinor) * 100)
   const submissions = moderationQueue.filter((s) => s.campaignId === campaign.id)
@@ -63,8 +63,12 @@ export function AdvertiserCampaignDetailView() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label={t("advCampaignDetail.views")} value={formatNumber(campaign.views)} icon={Eye} />
         <StatCard label={t("advCampaignDetail.spent")} value={formatCurrency(campaign.creatorBudgetSpentMinor)} icon={DollarSign} />
-        <StatCard label={t("advCampaignDetail.submissions")} value={campaign.submissionsCount} icon={FileVideo} />
-        <StatCard label={t("advCampaignDetail.creators")} value={campaign.creators} icon={Users} />
+        <StatCard
+          label={t("advCampaignDetail.submissions")}
+          value={formatNumber(campaign.submissionsCount)}
+          icon={FileVideo}
+        />
+        <StatCard label={t("advCampaignDetail.creators")} value={formatNumber(campaign.creators)} icon={Users} />
       </div>
 
       <Card>
