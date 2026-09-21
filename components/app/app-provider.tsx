@@ -70,7 +70,10 @@ interface AppState {
 
   // Moderation & fraud
   moderationQueue: Submission[]
-  approveSubmission: (submissionId: string, moderatorNote?: string) => Promise<Submission>
+  approveSubmission: (
+    submissionId: string,
+    opts?: { moderatorNote?: string; finalRewardMinor?: number; verifiedViews?: number },
+  ) => Promise<Submission>
   rejectSubmission: (submissionId: string, rejectionReason: string, moderatorNote?: string) => Promise<Submission>
   flagSubmissionForAdmin: (submissionId: string, reason: string) => Promise<Submission>
   fraudCases: FraudCase[]
@@ -174,29 +177,51 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
     [],
   )
 
-  const approveSubmission = useCallback(async (submissionId: string, moderatorNote?: string) => {
-    const result = await moderationService.approve({ submissionId, moderatorNote })
-    if (!result.ok) throw new AppErrorException(result.error)
-    setModerationQueue((prev) => prev.filter((s) => s.id !== submissionId))
-    return result.data
+  // Mirrors a moderated submission back into the creator's cached list so
+  // "My Submissions" and the submission detail reflect the decision.
+  const syncCreatorSubmission = useCallback((updated: Submission) => {
+    setSubmissions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
   }, [])
+
+  const approveSubmission = useCallback(
+    async (
+      submissionId: string,
+      opts?: { moderatorNote?: string; finalRewardMinor?: number; verifiedViews?: number },
+    ) => {
+      const result = await moderationService.approve({ submissionId, ...opts })
+      if (!result.ok) throw new AppErrorException(result.error)
+      setModerationQueue((prev) => prev.filter((s) => s.id !== submissionId))
+      syncCreatorSubmission(result.data.submission)
+      if (result.data.creatorWallet) setCreatorWallet(result.data.creatorWallet)
+      if (result.data.creatorTransaction) {
+        setCreatorTransactions((prev) => [result.data.creatorTransaction!, ...prev])
+      }
+      return result.data.submission
+    },
+    [syncCreatorSubmission],
+  )
 
   const rejectSubmission = useCallback(
     async (submissionId: string, rejectionReason: string, moderatorNote?: string) => {
       const result = await moderationService.reject({ submissionId, rejectionReason, moderatorNote })
       if (!result.ok) throw new AppErrorException(result.error)
       setModerationQueue((prev) => prev.filter((s) => s.id !== submissionId))
-      return result.data
+      syncCreatorSubmission(result.data.submission)
+      return result.data.submission
     },
-    [],
+    [syncCreatorSubmission],
   )
 
-  const flagSubmissionForAdmin = useCallback(async (submissionId: string, reason: string) => {
-    const result = await moderationService.flagForAdmin({ submissionId, reason })
-    if (!result.ok) throw new AppErrorException(result.error)
-    setModerationQueue((prev) => prev.filter((s) => s.id !== submissionId))
-    return result.data
-  }, [])
+  const flagSubmissionForAdmin = useCallback(
+    async (submissionId: string, reason: string) => {
+      const result = await moderationService.flagForAdmin({ submissionId, reason })
+      if (!result.ok) throw new AppErrorException(result.error)
+      setModerationQueue((prev) => prev.filter((s) => s.id !== submissionId))
+      syncCreatorSubmission(result.data.submission)
+      return result.data.submission
+    },
+    [syncCreatorSubmission],
+  )
 
   const resolveFraudCase = useCallback(async (caseId: string, action: FraudCaseAction, note?: string) => {
     const result = await fraudService.resolveCase({ caseId, action, note })

@@ -23,6 +23,33 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useT } from "@/components/i18n/locale-provider"
 
+type CheckStatus = "passed" | "failed" | "needs_review"
+
+function CheckStatusBadge({ status, t }: { status: CheckStatus; t: (key: string) => string }) {
+  if (status === "passed") {
+    return (
+      <Badge variant="secondary" className="gap-1 text-success">
+        <Check className="size-3" />
+        {t("reviewDetail.statusPassed")}
+      </Badge>
+    )
+  }
+  if (status === "failed") {
+    return (
+      <Badge variant="secondary" className="gap-1 text-destructive">
+        <X className="size-3" />
+        {t("reviewDetail.statusFailed")}
+      </Badge>
+    )
+  }
+  return (
+    <Badge variant="secondary" className="gap-1 text-warning">
+      <Clock className="size-3" />
+      {t("reviewDetail.statusNeedsReview")}
+    </Badge>
+  )
+}
+
 export function ReviewDetailView() {
   const t = useT()
   const { params, navigate, moderationQueue, approveSubmission, rejectSubmission, flagSubmissionForAdmin } = useApp()
@@ -35,9 +62,12 @@ export function ReviewDetailView() {
     [campaign, t],
   )
 
-  // Controlled requirement checklist — every item must be ticked to approve.
+  // Requirements split by how they're verified. Automatic checks are read from
+  // the video/account snapshot and shown as read-only statuses; manual checks
+  // are ticked by the moderator.
+  const autoItems = useMemo(() => requirements.filter((r) => r.kind === "automatic"), [requirements])
+  const manualItems = useMemo(() => requirements.filter((r) => r.kind === "manual"), [requirements])
   const [checked, setChecked] = useState<Record<string, boolean>>({})
-  const allChecked = requirements.length > 0 && requirements.every((r) => checked[r.key])
 
   // Manual submissions: moderator confirms the real view count. Payout is
   // capped at the lower of declared and verified, so overstating never pays.
@@ -52,6 +82,44 @@ export function ReviewDetailView() {
     const cap = campaign?.maxPayoutPerVideoMinor ?? Number.POSITIVE_INFINITY
     return Math.min(raw, cap)
   }, [manual, payableViews, submission, campaign])
+
+  // Automatic checks are graded from the submission snapshot. Missing data
+  // yields "needs_review" (not a hard fail) so seed items aren't blocked.
+  const req = campaign?.requirements
+  function autoStatus(key: string): CheckStatus {
+    if (!req) return "needs_review"
+    switch (key) {
+      case "duration": {
+        const okMin = req.minVideoDurationSeconds > 0 ? submission.duration >= req.minVideoDurationSeconds : true
+        const okMax = req.maxVideoDurationSeconds > 0 ? submission.duration <= req.maxVideoDurationSeconds : true
+        return okMin && okMax ? "passed" : "failed"
+      }
+      case "minViews":
+        return payableViews >= req.minViews ? "passed" : "failed"
+      case "minFollowers":
+        if (submission.followersAtSubmission === undefined) return "needs_review"
+        return submission.followersAtSubmission >= req.minFollowers ? "passed" : "failed"
+      case "hashtag":
+        if (submission.requiredHashtagPresent === undefined) return "needs_review"
+        return submission.requiredHashtagPresent ? "passed" : "failed"
+      default:
+        return "needs_review"
+    }
+  }
+
+  const autoFailed = autoItems.some((r) => autoStatus(r.key) === "failed")
+  const allManualChecked = manualItems.every((r) => checked[r.key])
+  // Approve is unlocked when the moderator has confirmed every manual check and
+  // no automatic check hard-failed. "Mark All Manual Checks as Passed" ticks
+  // manual items in one click but never overrides automatic failures.
+  const canApprove = allManualChecked && !autoFailed
+  function markAllManualPassed() {
+    setChecked((prev) => {
+      const next = { ...prev }
+      for (const r of manualItems) next[r.key] = true
+      return next
+    })
+  }
 
   const stats = manual
     ? [
@@ -71,13 +139,17 @@ export function ReviewDetailView() {
   const [pending, setPending] = useState(false)
 
   async function approve() {
-    if (!allChecked) {
+    if (!canApprove) {
       toast.error(t("reviewDetail.completeChecklistError"), { description: t("reviewDetail.completeChecklistDesc") })
       return
     }
     setPending(true)
     try {
-      await approveSubmission(submission.id, note.trim() || undefined)
+      await approveSubmission(submission.id, {
+        moderatorNote: note.trim() || undefined,
+        finalRewardMinor: payableRewardMinor,
+        verifiedViews: manual ? payableViews : undefined,
+      })
       toast.success(t("reviewDetail.approvedToast", { id: submission.id.toUpperCase() }), {
         description: manual
           ? t("reviewDetail.approvedManualDesc", {
@@ -268,35 +340,55 @@ export function ReviewDetailView() {
               <CardTitle>{t("reviewDetail.checklistTitle")}</CardTitle>
               <CardDescription>{t("reviewDetail.checklistDesc")}</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-3">
+            <CardContent className="flex flex-col gap-5">
               {requirements.length === 0 && (
                 <p className="text-sm text-muted-foreground">{t("reviewDetail.noRequirements")}</p>
               )}
-              {requirements.map((r) => (
-                <label key={r.key} className="flex items-center gap-3 text-sm">
-                  <Checkbox
-                    checked={!!checked[r.key]}
-                    onCheckedChange={(v) => setChecked((prev) => ({ ...prev, [r.key]: v === true }))}
-                  />
-                  <span className={checked[r.key] ? "text-foreground" : "text-muted-foreground"}>{r.label}</span>
-                </label>
-              ))}
-              {submission.requiredHashtagPresent !== undefined && (
-                <>
-                  <Separator />
-                  <div className="flex items-center gap-2 text-sm">
-                    {submission.requiredHashtagPresent ? (
-                      <Check className="size-4 text-success" />
-                    ) : (
-                      <X className="size-4 text-destructive" />
-                    )}
-                    <span className="text-muted-foreground">
-                      {submission.requiredHashtagPresent
-                        ? t("reviewDetail.hashtagDetected")
-                        : t("reviewDetail.hashtagMissing")}
+
+              {autoItems.length > 0 && (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <Zap className="size-3.5 text-muted-foreground" />
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {t("reviewDetail.automaticChecks")}
                     </span>
                   </div>
-                </>
+                  {autoItems.map((r) => (
+                    <div key={r.key} className="flex items-center justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">{r.label}</span>
+                      <CheckStatusBadge status={autoStatus(r.key)} t={t} />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {manualItems.length > 0 && (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <PencilLine className="size-3.5 text-muted-foreground" />
+                      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        {t("reviewDetail.manualChecks")}
+                      </span>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={markAllManualPassed} disabled={allManualChecked}>
+                      <Check data-icon="inline-start" />
+                      {t("reviewDetail.markAllManualPassed")}
+                    </Button>
+                  </div>
+                  {manualItems.map((r) => (
+                    <label key={r.key} className="flex items-center justify-between gap-3 text-sm">
+                      <span className="flex items-center gap-3">
+                        <Checkbox
+                          checked={!!checked[r.key]}
+                          onCheckedChange={(v) => setChecked((prev) => ({ ...prev, [r.key]: v === true }))}
+                        />
+                        <span className={checked[r.key] ? "text-foreground" : "text-muted-foreground"}>{r.label}</span>
+                      </span>
+                      <CheckStatusBadge status={checked[r.key] ? "passed" : "needs_review"} t={t} />
+                    </label>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -367,13 +459,15 @@ export function ReviewDetailView() {
 
           <Card>
             <CardContent className="flex flex-col gap-3 pt-6">
-              <Button size="lg" onClick={approve} disabled={!allChecked || pending}>
+              <Button size="lg" onClick={approve} disabled={!canApprove || pending}>
                 <Check data-icon="inline-start" />
                 {t("reviewDetail.approveSubmission")}
               </Button>
-              {!allChecked && requirements.length > 0 && (
+              {!canApprove && (
                 <p className="text-center text-xs text-muted-foreground">
-                  {t("reviewDetail.tickAllRequirements", { count: requirements.length })}
+                  {autoFailed
+                    ? t("reviewDetail.autoCheckFailedHint")
+                    : t("reviewDetail.completeManualChecksHint", { count: manualItems.length })}
                 </p>
               )}
               <Button size="lg" variant="outline" onClick={reject} disabled={pending}>
