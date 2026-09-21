@@ -1,4 +1,19 @@
 import type { Platform, CampaignCategory } from "./types"
+import type { Locale } from "./i18n/dictionary"
+
+// Active locale for locale-aware number/date formatting. The LocaleProvider
+// keeps this in sync with the UI locale via setFormatLocale, so formatter
+// helpers stay call-site compatible (no locale argument required everywhere).
+let activeLocale: Locale = "en"
+
+export function setFormatLocale(locale: Locale) {
+  activeLocale = locale
+}
+
+// Map our app locale to a BCP-47 tag for Intl APIs.
+function intlLocale(): string {
+  return activeLocale === "ru" ? "ru-RU" : "en-US"
+}
 
 // Human labels for campaign categories.
 export const categoryLabel: Record<CampaignCategory, string> = {
@@ -12,7 +27,9 @@ export function formatMoney(value: number, opts?: { compact?: boolean }): string
   if (opts?.compact && Math.abs(value) >= 1000) {
     return "$" + compactNumber(value)
   }
-  return value.toLocaleString("en-US", {
+  // Keep USD currency formatting consistent across locales (the platform pays
+  // in USD); only the grouping/decimal separators follow the active locale.
+  return value.toLocaleString(intlLocale(), {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
@@ -26,7 +43,7 @@ export function formatMoneySigned(value: number): string {
 }
 
 export function formatNumber(value: number): string {
-  return value.toLocaleString("en-US")
+  return value.toLocaleString(intlLocale())
 }
 
 // Alias kept for view components that import `formatCurrency`.
@@ -43,11 +60,20 @@ export function formatRelative(input: string | number | Date): string {
   const minutes = Math.round(abs / 60000)
   const hours = Math.round(abs / 3_600_000)
   const days = Math.round(abs / 86_400_000)
-  const rtf = new Intl.RelativeTimeFormat("en-US", { numeric: "auto" })
+  const rtf = new Intl.RelativeTimeFormat(intlLocale(), { numeric: "auto" })
   const sign = diffMs >= 0 ? 1 : -1
   if (minutes < 60) return rtf.format(sign * minutes, "minute")
   if (hours < 24) return rtf.format(sign * hours, "hour")
   return rtf.format(sign * days, "day")
+}
+
+// Absolute date, formatted for the active locale (e.g. "Sep 21, 2026" /
+// "21 сент. 2026 г."). Falls back to the raw string when unparseable.
+export function formatDate(input: string | number | Date): string {
+  const date = input instanceof Date ? input : new Date(input)
+  const time = date.getTime()
+  if (!Number.isFinite(time)) return typeof input === "string" ? input : "—"
+  return date.toLocaleDateString(intlLocale(), { year: "numeric", month: "short", day: "numeric" })
 }
 
 export function compactNumber(value: number): string {

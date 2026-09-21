@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { getCampaign } from "@/lib/mock-data"
 import { formatMoney, formatNumber, compactNumber, percent, formatRelative, categoryLabel } from "@/lib/format"
 import { Button } from "@/components/ui/button"
@@ -41,6 +42,7 @@ const assetIcon: Record<string, typeof FileText> = {
 
 export function CampaignDetailView() {
   const { params, navigate, submissions } = useApp()
+  const t = useT()
   const campaign = getCampaign(params.id)
   const mySubmissions = submissions.filter((s) => s.campaignId === params.id)
 
@@ -49,9 +51,9 @@ export function CampaignDetailView() {
       <div className="flex flex-col gap-4">
         <Button variant="ghost" onClick={() => navigate("discover")} className="w-fit">
           <ArrowLeft data-icon="inline-start" />
-          Back to Discover
+          {t("campaignDetail.backToDiscover")}
         </Button>
-        <p className="text-muted-foreground">Campaign not found.</p>
+        <p className="text-muted-foreground">{t("campaignDetail.notFound")}</p>
       </div>
     )
   }
@@ -80,10 +82,10 @@ export function CampaignDetailView() {
             <h1 className="text-3xl font-semibold tracking-tight lg:text-4xl">{campaign.title}</h1>
             <div className="flex items-center gap-2 text-muted-foreground">
               <BrandAvatar name={campaign.brand} className="size-6" />
-              <span className="text-sm">by {campaign.brand}</span>
+              <span className="text-sm">{t("campaignDetail.by", { brand: campaign.brand })}</span>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs text-muted-foreground">Available on</span>
+              <span className="text-xs text-muted-foreground">{t("campaignDetail.availableOn")}</span>
               {campaign.platforms.map((p) => (
                 <span
                   key={p}
@@ -102,25 +104,25 @@ export function CampaignDetailView() {
         <div className="flex flex-col gap-6">
           <Tabs defaultValue="overview">
             <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="requirements">Requirements</TabsTrigger>
-              <TabsTrigger value="examples">Examples</TabsTrigger>
-              <TabsTrigger value="assets">Assets</TabsTrigger>
+              <TabsTrigger value="overview">{t("campaignDetail.tabOverview")}</TabsTrigger>
+              <TabsTrigger value="requirements">{t("campaignDetail.tabRequirements")}</TabsTrigger>
+              <TabsTrigger value="examples">{t("campaignDetail.tabExamples")}</TabsTrigger>
+              <TabsTrigger value="assets">{t("campaignDetail.tabAssets")}</TabsTrigger>
               <TabsTrigger value="submissions">
-                My Submissions{mySubmissions.length > 0 ? ` (${mySubmissions.length})` : ""}
+                {t("campaignDetail.tabSubmissions")}{mySubmissions.length > 0 ? ` (${mySubmissions.length})` : ""}
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="flex flex-col gap-6 pt-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>About this campaign</CardTitle>
+                  <CardTitle>{t("campaignDetail.about")}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
                   <p className="text-sm leading-relaxed text-muted-foreground">{campaign.description}</p>
                   <Separator />
                   <div>
-                    <h4 className="mb-3 text-sm font-medium">Instructions</h4>
+                    <h4 className="mb-3 text-sm font-medium">{t("campaignDetail.instructions")}</h4>
                     <ul className="flex flex-col gap-2.5">
                       {campaign.instructions.map((ins, i) => (
                         <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
@@ -135,11 +137,14 @@ export function CampaignDetailView() {
 
               <Alert>
                 <Info />
-                <AlertTitle>How you get paid</AlertTitle>
+                <AlertTitle>{t("campaignDetail.howPaidTitle")}</AlertTitle>
                 <AlertDescription>
-                  You earn {formatMoney(campaign.ratePerMillion)} per 1,000,000 verified views. Payouts are capped at{" "}
-                  {formatMoney(campaign.maxPayoutPerVideo)} per video and {formatMoney(campaign.maxPayoutPerAccount)} per account.
-                  Views are verified {campaign.minViews.toLocaleString()}+ before crediting.
+                  {t("campaignDetail.howPaidBody", {
+                    rate: formatMoney(campaign.ratePerMillion),
+                    maxVideo: formatMoney(campaign.maxPayoutPerVideo),
+                    maxAccount: formatMoney(campaign.maxPayoutPerAccount),
+                    minViews: formatNumber(campaign.minViews),
+                  })}
                 </AlertDescription>
               </Alert>
             </TabsContent>
@@ -147,8 +152,8 @@ export function CampaignDetailView() {
             <TabsContent value="requirements" className="pt-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Content requirements</CardTitle>
-                  <CardDescription>Submissions that don&apos;t meet these will be rejected.</CardDescription>
+                  <CardTitle>{t("campaignDetail.requirementsTitle")}</CardTitle>
+                  <CardDescription>{t("campaignDetail.requirementsDescription")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="grid gap-2.5 sm:grid-cols-2">
@@ -189,9 +194,9 @@ export function CampaignDetailView() {
                 <Empty>
                   <EmptyHeader>
                     <Send className="size-8 text-muted-foreground" />
-                    <EmptyTitle>No submissions yet</EmptyTitle>
+                    <EmptyTitle>{t("campaignDetail.noSubmissionsTitle")}</EmptyTitle>
                     <EmptyDescription>
-                      Submit your first video for this campaign to start earning per verified view.
+                      {t("campaignDetail.noSubmissionsBody")}
                     </EmptyDescription>
                   </EmptyHeader>
                 </Empty>
@@ -210,7 +215,7 @@ export function CampaignDetailView() {
                         <div className="flex flex-col">
                           <span className="text-sm font-medium">{s.accountHandle}</span>
                           <span className="text-xs text-muted-foreground">
-                            {formatNumber(s.viewsAtSubmission)} views · {formatRelative(s.submittedAt)}
+                            {formatNumber(s.viewsAtSubmission)} {t("campaignDetail.views")} · {formatRelative(s.submittedAt)}
                           </span>
                         </div>
                       </div>
@@ -229,8 +234,8 @@ export function CampaignDetailView() {
             <TabsContent value="assets" className="pt-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Brand assets</CardTitle>
-                  <CardDescription>Download approved footage, logos, and guidelines.</CardDescription>
+                  <CardTitle>{t("campaignDetail.assetsTitle")}</CardTitle>
+                  <CardDescription>{t("campaignDetail.assetsDescription")}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
                   {campaign.assets.map((a) => {
@@ -263,34 +268,37 @@ export function CampaignDetailView() {
             <CardContent className="flex flex-col gap-4 p-5">
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-semibold text-primary">{formatMoney(campaign.ratePerMillion)}</span>
-                <span className="text-sm text-muted-foreground">/ million views</span>
+                <span className="text-sm text-muted-foreground">{t("campaignDetail.perMillionViews")}</span>
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Budget spent</span>
+                  <span className="text-muted-foreground">{t("campaignDetail.budgetSpent")}</span>
                   <span className="font-medium">{spentPct}%</span>
                 </div>
                 <Progress value={spentPct} />
                 <p className="text-xs text-muted-foreground">
-                  {formatMoney(remaining, { compact: true })} of {formatMoney(campaign.budget, { compact: true })} remaining
+                  {t("campaignDetail.remaining", {
+                    remaining: formatMoney(remaining, { compact: true }),
+                    budget: formatMoney(campaign.budget, { compact: true }),
+                  })}
                 </p>
               </div>
 
               {campaign.status === "active" ? (
                 <Button size="lg" onClick={() => navigate("submit", { id: campaign.id })}>
                   <Send data-icon="inline-start" />
-                  Submit a video
+                  {t("campaignDetail.submitVideo")}
                 </Button>
               ) : (
                 <Button size="lg" disabled>
                   <Send data-icon="inline-start" />
-                  {campaign.status === "paused" ? "Campaign paused" : "Not accepting submissions"}
+                  {campaign.status === "paused" ? t("campaignDetail.campaignPaused") : t("campaignDetail.notAccepting")}
                 </Button>
               )}
               {campaign.status === "paused" && (
                 <p className="text-xs text-muted-foreground">
-                  This campaign is temporarily paused. Existing submissions are still being reviewed.
+                  {t("campaignDetail.pausedNote")}
                 </p>
               )}
             </CardContent>
@@ -298,7 +306,7 @@ export function CampaignDetailView() {
 
           <Card>
             <CardContent className="flex flex-col gap-3 p-5 text-sm">
-              <Detail label="Platforms">
+              <Detail label={t("campaignDetail.platforms")}>
                 <div className="flex items-center gap-1.5">
                   {campaign.platforms.map((p) => (
                     <span key={p} className="flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs">
@@ -309,34 +317,34 @@ export function CampaignDetailView() {
                 </div>
               </Detail>
               <Separator />
-              <Detail label="Max per video">{formatMoney(campaign.maxPayoutPerVideo)}</Detail>
-              <Detail label="Max per account">{formatMoney(campaign.maxPayoutPerAccount)}</Detail>
-              <Detail label="Max submissions">{campaign.maxSubmissionsPerAccount} per account</Detail>
+              <Detail label={t("campaignDetail.maxPerVideo")}>{formatMoney(campaign.maxPayoutPerVideo)}</Detail>
+              <Detail label={t("campaignDetail.maxPerAccount")}>{formatMoney(campaign.maxPayoutPerAccount)}</Detail>
+              <Detail label={t("campaignDetail.maxSubmissions")}>{t("campaignDetail.perAccount", { count: campaign.maxSubmissionsPerAccount })}</Detail>
               <Separator />
-              <Detail label="Min views to credit">
+              <Detail label={t("campaignDetail.minViewsToCredit")}>
                 <span className="flex items-center gap-1">
                   <Eye className="size-3.5" />
                   {formatNumber(campaign.minViews)}
                 </span>
               </Detail>
-              <Detail label="Duration">
+              <Detail label={t("campaignDetail.duration")}>
                 <span className="flex items-center gap-1">
                   <Clock className="size-3.5" />
                   {campaign.minDuration}&ndash;{campaign.maxDuration}s
                 </span>
               </Detail>
-              <Detail label="Languages">{campaign.languages.join(", ")}</Detail>
-              <Detail label="Countries">
+              <Detail label={t("campaignDetail.languages")}>{campaign.languages.join(", ")}</Detail>
+              <Detail label={t("campaignDetail.countries")}>
                 <span className="flex items-center gap-1">
                   <Globe className="size-3.5" />
-                  {campaign.countries.length > 2 ? `${campaign.countries.length} regions` : campaign.countries.join(", ")}
+                  {campaign.countries.length > 2 ? t("campaignDetail.regions", { count: campaign.countries.length }) : campaign.countries.join(", ")}
                 </span>
               </Detail>
               <Separator />
-              <Detail label="Required CTA">
+              <Detail label={t("campaignDetail.requiredCta")}>
                 <Badge variant="secondary">{campaign.requiredCta}</Badge>
               </Detail>
-              {campaign.requiredAudio && <Detail label="Audio">{campaign.requiredAudio}</Detail>}
+              {campaign.requiredAudio && <Detail label={t("campaignDetail.audio")}>{campaign.requiredAudio}</Detail>}
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {campaign.hashtags.map((h) => (
                   <span key={h} className="text-xs text-primary">{h}</span>

@@ -3,6 +3,7 @@
 import { ExternalLink, Heart, MessageCircle, Clock, Eye, Lock } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { PageHeader } from "@/components/shared/page-header"
 import { PlatformIcon } from "@/components/shared/platform-icon"
@@ -16,29 +17,30 @@ import Image from "next/image"
 
 export function SubmissionDetailView() {
   const { params, navigate, submissions } = useApp()
+  const t = useT()
   const submission = submissions.find((s) => s.id === params.id) ?? submissions[0]
 
   const reward = submission.cappedReward ?? submission.reward
   const capped = submission.cappedReward != null && submission.cappedReward < submission.reward
 
   const stats = [
-    { icon: Eye, label: "Views", value: formatNumber(submission.viewsAtSubmission) },
-    { icon: Heart, label: "Likes", value: formatNumber(submission.likes) },
-    { icon: MessageCircle, label: "Comments", value: formatNumber(submission.comments) },
-    { icon: Clock, label: "Duration", value: `${submission.duration}s` },
+    { icon: Eye, label: t("submissionDetail.views"), value: formatNumber(submission.viewsAtSubmission) },
+    { icon: Heart, label: t("submissionDetail.likes"), value: formatNumber(submission.likes) },
+    { icon: MessageCircle, label: t("submissionDetail.comments"), value: formatNumber(submission.comments) },
+    { icon: Clock, label: t("submissionDetail.duration"), value: `${submission.duration}s` },
   ]
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={submission.campaignTitle}
-        description={`Submission ${submission.id.toUpperCase()}`}
-        backLabel="Back to submissions"
+        description={t("submissionDetail.submissionId", { id: submission.id.toUpperCase() })}
+        backLabel={t("submissionDetail.backToSubmissions")}
         onBack={() => navigate("submissions")}
       >
         <Button variant="outline" onClick={() => window.open(submission.videoUrl, "_blank")}>
           <ExternalLink data-icon="inline-start" />
-          View video
+          {t("submissionDetail.viewVideo")}
         </Button>
       </PageHeader>
 
@@ -56,8 +58,7 @@ export function SubmissionDetailView() {
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Lock className="size-3.5 text-primary" />
                 <span>
-                  View count locked at submission{submission.lockedAt ? ` · ${submission.lockedAt}` : ""}. Later growth
-                  doesn&apos;t change your reward.
+                  {t("submissionDetail.viewsLocked", { when: submission.lockedAt ? ` · ${submission.lockedAt}` : "" })}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -78,7 +79,7 @@ export function SubmissionDetailView() {
             (submission.rejectionReason || submission.moderatorNote) && (
               <Alert variant="destructive">
                 <AlertTitle>
-                  {submission.status === "fraud" ? "Flagged for fraud" : "Submission rejected"}
+                  {submission.status === "fraud" ? t("submissionDetail.flaggedFraud") : t("submissionDetail.submissionRejected")}
                 </AlertTitle>
                 <AlertDescription>
                   {submission.rejectionReason ?? submission.moderatorNote}
@@ -88,20 +89,20 @@ export function SubmissionDetailView() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Timeline</CardTitle>
+              <CardTitle>{t("submissionDetail.timeline")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               {[
-                { label: "Submitted", detail: submission.submittedAt, done: true },
-                { label: "Views verified", detail: "Automated check passed", done: submission.status !== "pending" },
+                { label: t("submissionDetail.submitted"), detail: submission.submittedAt, done: true },
+                { label: t("submissionDetail.viewsVerified"), detail: t("submissionDetail.automatedCheckPassed"), done: submission.status !== "pending" },
                 {
-                  label: "Moderation review",
-                  detail: submission.status === "pending" ? "In progress" : "Complete",
+                  label: t("submissionDetail.moderationReview"),
+                  detail: submission.status === "pending" ? t("submissionDetail.inProgress") : t("submissionDetail.complete"),
                   done: submission.status !== "pending",
                 },
                 {
-                  label: "Reward credited",
-                  detail: submission.status === "credited" ? formatCurrency(reward) : "Awaiting approval",
+                  label: t("submissionDetail.rewardCredited"),
+                  detail: submission.status === "credited" ? formatCurrency(reward) : t("submissionDetail.awaitingApproval"),
                   done: submission.status === "credited",
                 },
               ].map((step, i) => (
@@ -122,29 +123,29 @@ export function SubmissionDetailView() {
         <div className="flex flex-col gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Status</CardTitle>
-              <CardDescription>Current review state</CardDescription>
+              <CardTitle>{t("submissionDetail.status")}</CardTitle>
+              <CardDescription>{t("submissionDetail.currentReviewState")}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <SubmissionStatusBadge status={submission.status} />
               <Separator />
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Rate</span>
+                <span className="text-muted-foreground">{t("submissionDetail.rate")}</span>
                 <span className="font-medium">{formatCurrency(submission.ratePerMillion)} / 1M</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Raw reward</span>
+                <span className="text-muted-foreground">{t("submissionDetail.rawReward")}</span>
                 <span className="font-medium tabular-nums">{formatCurrency(submission.reward)}</span>
               </div>
               {capped && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Per-video cap</span>
+                  <span className="text-muted-foreground">{t("submissionDetail.perVideoCap")}</span>
                   <span className="font-medium tabular-nums">{formatCurrency(submission.cappedReward!)}</span>
                 </div>
               )}
               <Separator />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Payout</span>
+                <span className="text-sm text-muted-foreground">{t("submissionDetail.payout")}</span>
                 <span className="text-xl font-semibold text-primary tabular-nums">{formatCurrency(reward)}</span>
               </div>
             </CardContent>
@@ -152,7 +153,7 @@ export function SubmissionDetailView() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Campaign</CardTitle>
+              <CardTitle>{t("submissionDetail.campaign")}</CardTitle>
             </CardHeader>
             <CardContent>
               <button

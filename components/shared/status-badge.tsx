@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import { useT } from "@/components/i18n/locale-provider"
 import type { SubmissionStatus, CampaignStatus, VerificationStatus } from "@/lib/types"
 
 type Tone = "success" | "warning" | "danger" | "info" | "neutral" | "brand"
@@ -37,62 +38,63 @@ export function StatusPill({
   )
 }
 
-const submissionMap: Record<SubmissionStatus, { tone: Tone; label: string }> = {
-  pending: { tone: "warning", label: "Pending Review" },
-  approved: { tone: "info", label: "Approved" },
-  credited: { tone: "success", label: "Credited" },
-  rejected: { tone: "danger", label: "Rejected" },
-  fraud: { tone: "danger", label: "Fraud Review" },
+const submissionTone: Record<SubmissionStatus, Tone> = {
+  pending: "warning",
+  approved: "info",
+  credited: "success",
+  rejected: "danger",
+  fraud: "danger",
 }
 
 export function SubmissionStatusBadge({ status }: { status: SubmissionStatus }) {
-  const { tone, label } = submissionMap[status]
-  return <StatusPill tone={tone}>{label}</StatusPill>
+  const t = useT()
+  return <StatusPill tone={submissionTone[status]}>{t(`status.submission.${status}`)}</StatusPill>
 }
 
-const campaignMap: Record<CampaignStatus, { tone: Tone; label: string }> = {
-  active: { tone: "success", label: "Active" },
-  draft: { tone: "neutral", label: "Draft" },
-  paused: { tone: "warning", label: "Paused" },
-  completed: { tone: "info", label: "Completed" },
+const campaignTone: Record<CampaignStatus, Tone> = {
+  active: "success",
+  draft: "neutral",
+  paused: "warning",
+  completed: "info",
 }
 
 export function CampaignStatusBadge({ status }: { status: CampaignStatus }) {
-  const { tone, label } = campaignMap[status]
-  return <StatusPill tone={tone}>{label}</StatusPill>
+  const t = useT()
+  return <StatusPill tone={campaignTone[status]}>{t(`status.campaign.${status}`)}</StatusPill>
 }
 
-const verificationMap: Record<VerificationStatus, { tone: Tone; label: string }> = {
-  unverified: { tone: "neutral", label: "Unverified" },
-  challenge_created: { tone: "info", label: "Challenge Created" },
-  pending: { tone: "warning", label: "Pending Verification" },
-  verified: { tone: "success", label: "Verified" },
-  failed: { tone: "danger", label: "Failed" },
-  expired: { tone: "neutral", label: "Expired" },
-  revoked: { tone: "danger", label: "Revoked" },
+const verificationTone: Record<VerificationStatus, Tone> = {
+  unverified: "neutral",
+  challenge_created: "info",
+  pending: "warning",
+  verified: "success",
+  failed: "danger",
+  expired: "neutral",
+  revoked: "danger",
 }
 
 export function VerificationStatusBadge({ status }: { status: VerificationStatus }) {
-  const { tone, label } = verificationMap[status]
-  return <StatusPill tone={tone}>{label}</StatusPill>
+  const t = useT()
+  return <StatusPill tone={verificationTone[status]}>{t(`status.verification.${status}`)}</StatusPill>
 }
 
 type TransactionStatus = "completed" | "pending" | "failed"
 
-const transactionMap: Record<TransactionStatus, { tone: Tone; label: string }> = {
-  completed: { tone: "success", label: "Completed" },
-  pending: { tone: "warning", label: "Pending" },
-  failed: { tone: "danger", label: "Failed" },
+const transactionTone: Record<TransactionStatus, Tone> = {
+  completed: "success",
+  pending: "warning",
+  failed: "danger",
 }
 
 export function TransactionStatusBadge({ status }: { status: TransactionStatus }) {
-  const { tone, label } = transactionMap[status]
-  return <StatusPill tone={tone}>{label}</StatusPill>
+  const t = useT()
+  return <StatusPill tone={transactionTone[status]}>{t(`status.transaction.${status}`)}</StatusPill>
 }
 
 export function RiskBadge({ score }: { score: number }) {
+  const t = useT()
   const tone: Tone = score >= 60 ? "danger" : score >= 30 ? "warning" : "success"
-  const label = score >= 60 ? "High Risk" : score >= 30 ? "Medium Risk" : "Low Risk"
+  const label = score >= 60 ? t("status.risk.high") : score >= 30 ? t("status.risk.medium") : t("status.risk.low")
   return (
     <StatusPill tone={tone}>
       {score}/100 · {label}

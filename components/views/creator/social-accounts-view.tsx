@@ -5,6 +5,7 @@ import { Plus, Copy, ShieldCheck, Info, RefreshCw, Trash2, CheckCircle2, AlertTr
 import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { formatNumber } from "@/lib/format"
 import type { Platform, SocialAccount } from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
@@ -25,24 +26,25 @@ import {
 } from "@/components/ui/dialog"
 import { InputGroup, InputGroupInput, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group"
 
-const methodLabels: Record<string, string> = {
-  oauth: "OAuth",
-  google: "Google Sign-in",
-  bio_challenge: "Bio challenge",
-}
-
-const metricsModeLabels: Record<string, string> = {
-  automatic: "Automatic",
-  manual: "Manual review",
-}
-
 function randomChallenge() {
   const rand = Math.random().toString(36).slice(2, 8).toUpperCase()
   return `shortster-${rand}`
 }
 
 export function SocialAccountsView() {
+  const t = useT()
   const { socialAccounts, addSocialAccount, updateSocialAccount, removeSocialAccount } = useApp()
+
+  const methodLabels: Record<string, string> = {
+    oauth: t("social.methodOauth"),
+    google: t("social.methodGoogle"),
+    bio_challenge: t("social.methodBioChallenge"),
+  }
+
+  const metricsModeLabels: Record<string, string> = {
+    automatic: t("social.metricsAutomatic"),
+    manual: t("social.metricsManual"),
+  }
 
   const [connectOpen, setConnectOpen] = useState(false)
   const [challengeOpen, setChallengeOpen] = useState(false)
@@ -57,11 +59,11 @@ export function SocialAccountsView() {
       ?.writeText(challenge)
       .then(() => {
         setCopied(true)
-        toast.success("Challenge code copied")
+        toast.success(t("social.toastCopied"))
         setTimeout(() => setCopied(false), 1500)
       })
       .catch(() => {
-        toast.error("Couldn't copy automatically", { description: challenge })
+        toast.error(t("social.toastCopyFailed"), { description: challenge })
       })
   }
 
@@ -83,7 +85,7 @@ export function SocialAccountsView() {
       lastChecked: "Just now",
     })
     setConnectOpen(false)
-    toast.success(`${platformLabel(platform)} account connected and verified`)
+    toast.success(t("social.toastConnected", { platform: platformLabel(platform) }))
   }
 
   function startIgChallenge() {
@@ -107,17 +109,17 @@ export function SocialAccountsView() {
     setChallengeAccountId(id)
     setConnectOpen(false)
     setChallengeOpen(true)
-    toast.info("Bio challenge created. Add the code to your Instagram bio.")
+    toast.info(t("social.toastChallengeCreated"))
   }
 
   function verifyChallenge() {
     if (!challengeAccountId) return
     updateSocialAccount(challengeAccountId, { status: "pending" })
     setChallengeOpen(false)
-    toast.info("Checking your bio…")
+    toast.info(t("social.toastCheckingBio"))
     setTimeout(() => {
       updateSocialAccount(challengeAccountId, { status: "verified" })
-      toast.success("Instagram account verified")
+      toast.success(t("social.toastIgVerified"))
     }, 1600)
   }
 
@@ -131,21 +133,21 @@ export function SocialAccountsView() {
       return
     }
     updateSocialAccount(account.id, { status: "pending" })
-    toast.info(`Reconnecting ${account.handle}…`)
+    toast.info(t("social.toastReconnecting", { handle: account.handle }))
     setTimeout(() => {
       updateSocialAccount(account.id, {
         status: "verified",
         connectionStatus: "connected",
         lastChecked: "Just now",
       })
-      toast.success(`${account.handle} reconnected`)
+      toast.success(t("social.toastReconnected", { handle: account.handle }))
     }, 1400)
   }
 
   function confirmRemove() {
     if (!removeTarget) return
     removeSocialAccount(removeTarget.id)
-    toast.success(`${removeTarget.handle} removed`)
+    toast.success(t("social.toastRemoved", { handle: removeTarget.handle }))
     setRemoveTarget(null)
   }
 
@@ -156,37 +158,37 @@ export function SocialAccountsView() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Social Accounts"
-        description="Connect and verify the accounts you post from. Only verified accounts can submit videos."
+        title={t("social.title")}
+        description={t("social.description")}
       >
         <Dialog open={connectOpen} onOpenChange={setConnectOpen}>
           <Button onClick={() => setConnectOpen(true)}>
             <Plus data-icon="inline-start" />
-            Connect account
+            {t("social.connect")}
           </Button>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Connect a social account</DialogTitle>
-              <DialogDescription>Choose how you want to verify ownership of this account.</DialogDescription>
+              <DialogTitle>{t("social.connectDialogTitle")}</DialogTitle>
+              <DialogDescription>{t("social.connectDialogDescription")}</DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-3">
               <Button variant="outline" className="justify-start" onClick={() => connectOauth("tiktok", "oauth")}>
                 <PlatformIcon platform="tiktok" className="size-4" />
-                Connect TikTok with OAuth
+                {t("social.connectTiktok")}
               </Button>
               <Button variant="outline" className="justify-start" onClick={() => connectOauth("youtube", "google")}>
                 <PlatformIcon platform="youtube" className="size-4" />
-                Connect YouTube with Google
+                {t("social.connectYoutube")}
               </Button>
               <Separator />
               <div className="flex flex-col gap-2">
-                <p className="text-sm font-medium">Verify Instagram with a bio challenge</p>
+                <p className="text-sm font-medium">{t("social.verifyIgTitle")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Instagram has no OAuth for this, so we verify by having you paste a one-time code into your bio.
+                  {t("social.verifyIgHint")}
                 </p>
                 <InputGroup>
                   <InputGroupInput
-                    placeholder="@your_instagram"
+                    placeholder={t("social.igHandlePlaceholder")}
                     value={igHandle}
                     onChange={(e) => setIgHandle(e.target.value)}
                   />
@@ -195,7 +197,7 @@ export function SocialAccountsView() {
                   </InputGroupAddon>
                 </InputGroup>
                 <Button variant="secondary" onClick={startIgChallenge}>
-                  Create bio challenge
+                  {t("social.createChallenge")}
                 </Button>
               </div>
             </div>
@@ -205,10 +207,9 @@ export function SocialAccountsView() {
 
       <Alert>
         <ShieldCheck />
-        <AlertTitle>Why verification matters</AlertTitle>
+        <AlertTitle>{t("social.whyTitle")}</AlertTitle>
         <AlertDescription>
-          Verifying ownership prevents others from claiming your videos and lets us pay you accurately based on real
-          view counts.
+          {t("social.whyBody")}
         </AlertDescription>
       </Alert>
 
@@ -216,9 +217,9 @@ export function SocialAccountsView() {
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <ShieldCheck className="size-8 text-muted-foreground" />
-            <p className="text-sm font-medium">No accounts connected</p>
+            <p className="text-sm font-medium">{t("social.noneTitle")}</p>
             <p className="max-w-sm text-sm text-muted-foreground">
-              Connect at least one verified account before you can submit videos to campaigns.
+              {t("social.noneBody")}
             </p>
           </CardContent>
         </Card>
@@ -234,7 +235,7 @@ export function SocialAccountsView() {
                     </div>
                     <div className="flex flex-col">
                       <CardTitle className="text-base">{account.handle}</CardTitle>
-                      <CardDescription>{formatNumber(account.followers)} followers</CardDescription>
+                      <CardDescription>{formatNumber(account.followers)} {t("social.followers")}</CardDescription>
                     </div>
                   </div>
                   <VerificationStatusBadge status={account.status} />
@@ -244,18 +245,18 @@ export function SocialAccountsView() {
                 {account.connectionStatus === "connection_required" && (
                   <Alert variant="destructive">
                     <AlertTriangle />
-                    <AlertTitle>Reconnection needed</AlertTitle>
+                    <AlertTitle>{t("social.reconnectNeededTitle")}</AlertTitle>
                     <AlertDescription>
-                      We lost access to this account&apos;s data. Reconnect to keep earning on active submissions.
+                      {t("social.reconnectNeededBody")}
                     </AlertDescription>
                   </Alert>
                 )}
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Method</span>
+                  <span className="text-muted-foreground">{t("social.method")}</span>
                   <Badge variant="secondary">{methodLabels[account.method]}</Badge>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Metrics</span>
+                  <span className="text-muted-foreground">{t("social.metrics")}</span>
                   <span className="flex items-center gap-1.5">
                     {account.metricsMode === "automatic" ? (
                       <Zap className="size-3.5 text-muted-foreground" />
@@ -266,27 +267,27 @@ export function SocialAccountsView() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Connected</span>
+                  <span className="text-muted-foreground">{t("social.connected")}</span>
                   <span>{account.connectedAt}</span>
                 </div>
                 {account.status === "challenge_created" && (
                   <Button size="sm" variant="secondary" onClick={() => reconnect(account)}>
                     <CheckCircle2 data-icon="inline-start" />
-                    Complete verification
+                    {t("social.completeVerification")}
                   </Button>
                 )}
                 <Separator />
                 <div className="flex items-center gap-2">
                   <Button size="sm" variant="outline" className="flex-1" onClick={() => reconnect(account)}>
                     <RefreshCw data-icon="inline-start" />
-                    Reconnect
+                    {t("social.reconnect")}
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="text-destructive hover:text-destructive"
                     onClick={() => setRemoveTarget(account)}
-                    aria-label={`Remove ${account.handle}`}
+                    aria-label={t("social.removeAria", { handle: account.handle })}
                   >
                     <Trash2 />
                   </Button>
@@ -300,9 +301,9 @@ export function SocialAccountsView() {
       {pendingChallenge && (
         <Alert>
           <Info />
-          <AlertTitle>Bio challenge pending</AlertTitle>
+          <AlertTitle>{t("social.challengePendingTitle")}</AlertTitle>
           <AlertDescription>
-            A verification can take up to 30 minutes after you update your bio. We&apos;ll notify you when it completes.
+            {t("social.challengePendingBody")}
           </AlertDescription>
         </Alert>
       )}
@@ -311,9 +312,9 @@ export function SocialAccountsView() {
       <Dialog open={challengeOpen} onOpenChange={setChallengeOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Verify with a bio challenge</DialogTitle>
+            <DialogTitle>{t("social.challengeDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Add this code anywhere in your Instagram bio, then verify. You can remove it once verification completes.
+              {t("social.challengeDialogDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3">
@@ -322,21 +323,21 @@ export function SocialAccountsView() {
               <InputGroupAddon align="inline-end">
                 <InputGroupButton onClick={copyChallenge}>
                   <Copy data-icon="inline-start" />
-                  {copied ? "Copied" : "Copy"}
+                  {copied ? t("social.copied") : t("social.copy")}
                 </InputGroupButton>
               </InputGroupAddon>
             </InputGroup>
             <p className="text-xs text-muted-foreground">
-              Tip: paste it at the end of your bio. Our checker scans for the exact code.
+              {t("social.challengeTip")}
             </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setChallengeOpen(false)}>
-              Later
+              {t("social.later")}
             </Button>
             <Button onClick={verifyChallenge}>
               <CheckCircle2 data-icon="inline-start" />
-              I&apos;ve added it — verify
+              {t("social.addedVerify")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -346,19 +347,18 @@ export function SocialAccountsView() {
       <Dialog open={!!removeTarget} onOpenChange={(open) => !open && setRemoveTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Remove {removeTarget?.handle}?</DialogTitle>
+            <DialogTitle>{t("social.removeTitle", { handle: removeTarget?.handle ?? "" })}</DialogTitle>
             <DialogDescription>
-              You won&apos;t be able to submit videos from this account until you reconnect and verify it again. Existing
-              submissions are unaffected.
+              {t("social.removeBody")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemoveTarget(null)}>
-              Cancel
+              {t("social.cancel")}
             </Button>
             <Button variant="destructive" onClick={confirmRemove}>
               <Trash2 data-icon="inline-start" />
-              Remove account
+              {t("social.removeAccount")}
             </Button>
           </DialogFooter>
         </DialogContent>

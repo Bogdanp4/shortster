@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { translate, type Locale } from "@/lib/i18n/dictionary"
+import { setFormatLocale } from "@/lib/format"
 
 const STORAGE_KEY = "shortster_locale"
 
@@ -35,11 +36,13 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const next = readStoredLocale() ?? detectBrowserLocale()
     setLocaleState(next)
+    setFormatLocale(next)
     document.documentElement.lang = next
   }, [])
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next)
+    setFormatLocale(next)
     document.documentElement.lang = next
     try {
       window.localStorage.setItem(STORAGE_KEY, next)

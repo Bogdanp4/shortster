@@ -5,6 +5,7 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { Banknote, Wallet, Plus, ChevronRight } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { creatorEarningsSeries } from "@/lib/mock-data"
 import { formatCurrency, payoutNetworkLabel, shortenAddress } from "@/lib/format"
 import type { PayoutMethod, WalletTransaction } from "@/lib/types"
@@ -20,36 +21,36 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 
-const chartConfig = {
-  earnings: { label: "Earnings", color: "var(--chart-1)" },
-} satisfies ChartConfig
-
 export function EarningsView() {
+  const t = useT()
   const { creatorWallet, creatorTransactions, payoutMethods } = useApp()
+  const chartConfig = {
+    earnings: { label: t("earn.chartSeries"), color: "var(--chart-1)" },
+  } satisfies ChartConfig
   const [withdrawOpen, setWithdrawOpen] = useState(false)
   const [addMethodOpen, setAddMethodOpen] = useState(false)
   const [detail, setDetail] = useState<WalletTransaction | null>(null)
 
   return (
     <div className="flex flex-col gap-6 pb-20 lg:pb-0">
-      <PageHeader title="Earnings" description="Your rewards, payout history and available balance.">
+      <PageHeader title={t("earn.title")} description={t("earn.description")}>
         <Button onClick={() => setWithdrawOpen(true)}>
           <Banknote data-icon="inline-start" />
-          Withdraw funds
+          {t("earn.withdraw")}
         </Button>
       </PageHeader>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Available balance" value={formatCurrency(creatorWallet.available)} hint="Ready to withdraw" />
-        <StatCard label="Pending" value={formatCurrency(creatorWallet.pending)} hint="Awaiting approval" />
-        <StatCard label="Lifetime earned" value={formatCurrency(creatorWallet.lifetime)} hint="All time" />
+        <StatCard label={t("earn.availableBalance")} value={formatCurrency(creatorWallet.available)} hint={t("earn.availableHint")} />
+        <StatCard label={t("earn.pending")} value={formatCurrency(creatorWallet.pending)} hint={t("earn.pendingHint")} />
+        <StatCard label={t("earn.lifetime")} value={formatCurrency(creatorWallet.lifetime)} hint={t("earn.lifetimeHint")} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Earnings over time</CardTitle>
-            <CardDescription>Monthly credited rewards</CardDescription>
+            <CardTitle>{t("earn.chartTitle")}</CardTitle>
+            <CardDescription>{t("earn.chartDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="aspect-[3/1] w-full">
@@ -78,16 +79,16 @@ export function EarningsView() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Payout method</CardTitle>
-            <CardDescription>Where we send your withdrawals</CardDescription>
+            <CardTitle>{t("earn.payoutMethodTitle")}</CardTitle>
+            <CardDescription>{t("earn.payoutMethodDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {payoutMethods.length === 0 ? (
               <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-border p-4">
-                <p className="text-sm text-muted-foreground">No payout method added</p>
+                <p className="text-sm text-muted-foreground">{t("earn.noMethod")}</p>
                 <Button variant="secondary" size="sm" onClick={() => setAddMethodOpen(true)}>
                   <Plus data-icon="inline-start" />
-                  Add payout method
+                  {t("earn.addMethod")}
                 </Button>
               </div>
             ) : (
@@ -106,7 +107,7 @@ export function EarningsView() {
                       </div>
                       {m.verified && (
                         <Badge variant="secondary" className="ml-auto">
-                          Verified
+                          {t("earn.verified")}
                         </Badge>
                       )}
                     </div>
@@ -114,7 +115,7 @@ export function EarningsView() {
                 })}
                 <Button variant="ghost" size="sm" className="self-start" onClick={() => setAddMethodOpen(true)}>
                   <Plus data-icon="inline-start" />
-                  Add another method
+                  {t("earn.addAnother")}
                 </Button>
               </>
             )}
@@ -124,18 +125,18 @@ export function EarningsView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Transaction history</CardTitle>
-          <CardDescription>Rewards, adjustments and withdrawals</CardDescription>
+          <CardTitle>{t("earn.historyTitle")}</CardTitle>
+          <CardDescription>{t("earn.historyDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>{t("earn.colDate")}</TableHead>
+                <TableHead>{t("earn.colType")}</TableHead>
+                <TableHead>{t("earn.colDescription")}</TableHead>
+                <TableHead>{t("earn.colStatus")}</TableHead>
+                <TableHead className="text-right">{t("earn.colAmount")}</TableHead>
                 <TableHead className="w-8" />
               </TableRow>
             </TableHeader>

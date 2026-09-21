@@ -5,6 +5,7 @@ import { Check, Rocket, AlertTriangle, Plus, LinkIcon, Info } from "lucide-react
 import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { formatCurrency } from "@/lib/format"
 import type { Platform, CampaignCategory, VideoLanguage } from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
@@ -22,30 +23,31 @@ import { Switch } from "@/components/ui/switch"
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
 import { cn } from "@/lib/utils"
 
-const platformOptions: { value: Platform; label: string; description: string }[] = [
-  { value: "tiktok", label: "TikTok", description: "TikTok short-form videos" },
-  { value: "instagram", label: "Instagram Reels", description: "Instagram Reels" },
-  { value: "youtube", label: "YouTube Shorts", description: "YouTube Shorts" },
+const platformOptions: { value: Platform; label: string; descKey: string }[] = [
+  { value: "tiktok", label: "TikTok", descKey: "createCampaign.platformTiktokDesc" },
+  { value: "instagram", label: "Instagram Reels", descKey: "createCampaign.platformInstagramDesc" },
+  { value: "youtube", label: "YouTube Shorts", descKey: "createCampaign.platformYoutubeDesc" },
 ]
 
-const categoryOptions: { value: CampaignCategory; label: string }[] = [
-  { value: "clipping", label: "Clipping" },
-  { value: "logo", label: "Logo" },
-  { value: "video_banner", label: "Video Banner" },
-  { value: "music", label: "Music" },
+const categoryOptions: { value: CampaignCategory; labelKey: string }[] = [
+  { value: "clipping", labelKey: "createCampaign.catClipping" },
+  { value: "logo", labelKey: "createCampaign.catLogo" },
+  { value: "video_banner", labelKey: "createCampaign.catVideoBanner" },
+  { value: "music", labelKey: "createCampaign.catMusic" },
 ]
 
-const languageOptions: { value: VideoLanguage; label: string }[] = [
-  { value: "any", label: "Any language" },
-  { value: "en", label: "English" },
-  { value: "ru", label: "Russian" },
-  { value: "uk", label: "Ukrainian" },
+const languageOptions: { value: VideoLanguage; labelKey: string }[] = [
+  { value: "any", labelKey: "createCampaign.langAny" },
+  { value: "en", labelKey: "createCampaign.langEn" },
+  { value: "ru", labelKey: "createCampaign.langRu" },
+  { value: "uk", labelKey: "createCampaign.langUk" },
 ]
 
 const FEE_PERCENT = 10
 
 export function CreateCampaignView() {
   const { navigate, advertiserWallet, reserveForCampaign } = useApp()
+  const t = useT()
 
   // Basics
   const [title, setTitle] = useState("")
@@ -90,10 +92,13 @@ export function CreateCampaignView() {
 
   function launch() {
     if (!canLaunch) return
-    const name = title.trim() || "Untitled campaign"
+    const name = title.trim() || t("createCampaign.untitledCampaign")
     reserveForCampaign(totalReserve, name)
-    toast.success("Campaign created", {
-      description: `${formatCurrency(totalReserve)} reserved (incl. ${formatCurrency(fee)} platform fee). Your campaign is now live and discoverable by creators.`,
+    toast.success(t("createCampaign.createdToast"), {
+      description: t("createCampaign.createdToastDesc", {
+        amount: formatCurrency(totalReserve),
+        fee: formatCurrency(fee),
+      }),
     })
     navigate("campaigns")
   }

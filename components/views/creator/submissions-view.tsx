@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import { ExternalLink } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { formatCurrency, formatNumber, formatRelative } from "@/lib/format"
 import type { SubmissionStatus } from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
@@ -16,17 +17,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 
-const tabs: { value: SubmissionStatus | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "pending", label: "Pending" },
-  { value: "approved", label: "Approved" },
-  { value: "credited", label: "Credited" },
-  { value: "rejected", label: "Rejected" },
-]
-
 export function SubmissionsView() {
   const { navigate, submissions } = useApp()
+  const t = useT()
   const [tab, setTab] = useState<SubmissionStatus | "all">("all")
+
+  const tabs: { value: SubmissionStatus | "all"; label: string }[] = [
+    { value: "all", label: t("creatorSubs.tabAll") },
+    { value: "pending", label: t("creatorSubs.tabPending") },
+    { value: "approved", label: t("creatorSubs.tabApproved") },
+    { value: "credited", label: t("creatorSubs.tabCredited") },
+    { value: "rejected", label: t("creatorSubs.tabRejected") },
+  ]
 
   const filtered = useMemo(
     () => (tab === "all" ? submissions : submissions.filter((s) => s.status === tab)),
@@ -41,12 +43,12 @@ export function SubmissionsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="My Submissions" description="Track the status and earnings of every video you submit." />
+      <PageHeader title={t("creatorSubs.title")} description={t("creatorSubs.description")} />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total credited" value={formatCurrency(totalEarned)} hint="Across all campaigns" />
-        <StatCard label="Total views" value={formatNumber(totalViews)} hint="At submission time" />
-        <StatCard label="Pending review" value={pendingCount} hint="Awaiting moderation" />
+        <StatCard label={t("creatorSubs.statCredited")} value={formatCurrency(totalEarned)} hint={t("creatorSubs.statCreditedHint")} />
+        <StatCard label={t("creatorSubs.statViews")} value={formatNumber(totalViews)} hint={t("creatorSubs.statViewsHint")} />
+        <StatCard label={t("creatorSubs.statPending")} value={pendingCount} hint={t("creatorSubs.statPendingHint")} />
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as SubmissionStatus | "all")}>
@@ -64,13 +66,13 @@ export function SubmissionsView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Campaign</TableHead>
-                <TableHead>Account</TableHead>
-                <TableHead className="text-right">Views</TableHead>
-                <TableHead className="text-right">Reward</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Submitted</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("table.campaign")}</TableHead>
+                <TableHead>{t("table.account")}</TableHead>
+                <TableHead className="text-right">{t("table.views")}</TableHead>
+                <TableHead className="text-right">{t("table.reward")}</TableHead>
+                <TableHead>{t("table.status")}</TableHead>
+                <TableHead>{t("table.submitted")}</TableHead>
+                <TableHead className="text-right">{t("table.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -113,7 +115,7 @@ export function SubmissionsView() {
                       }}
                     >
                       <ExternalLink />
-                      <span className="sr-only">Open video</span>
+                      <span className="sr-only">{t("submissions.openVideo")}</span>
                     </Button>
                   </TableCell>
                 </TableRow>
