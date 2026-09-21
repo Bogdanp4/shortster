@@ -311,9 +311,9 @@ export const ru: Dictionary = {
     statViewsHint: "От всех авторов",
     searchPlaceholder: "Поиск кампаний или брендов",
     catAll: "Все",
-    catClipping: "��липы",
+    catClipping: "Клипы",
     catLogo: "Логотип",
-    catVideoBanner: "��идеобаннер",
+    catVideoBanner: "Видеобаннер",
     catMusic: "Музыка",
     emptyTitle: "Кампании не найдены",
     emptyBody: "Попробуйте другой запрос или категорию.",
@@ -429,7 +429,7 @@ export const ru: Dictionary = {
       "Мы считываем число просмотров этого аккаунта напрямую с платформы и фиксируем его при отправке.",
     step2Title: "2. Ссылка на видео",
     step2DescManual:
-      "Вставьте ссылку на уже опубликован��ое публичное видео. Мы подтвердим владение и проверим на дубликаты.",
+      "Вставьте ссылку на уже опубликованное публичное видео. Мы подтвердим владение и проверим на дубликаты.",
     step2DescAuto:
       "Вставьте ссылку на уже опубликованное публичное видео. Мы проверим число просмотров напрямую с платформы — изменить его после отправки нельзя.",
     videoUrl: "Ссылка на видео",
@@ -500,7 +500,7 @@ export const ru: Dictionary = {
     lockAlertManualBody:
       "Модератор сверяет ваш скриншот с заявленным числом. Завышенное или поддельное подтверждение отклоняется и может привести к пометке аккаунта.",
     lockAlertAutoBody:
-      "Мы фиксируем и проверяем число просмотров в момент отправки. Накрученные или купленные п��о��мотры помечаются и отклоняются.",
+      "Мы фиксируем и проверяем число просмотров в момент отправки. Накрученные или купленные просмотры помечаются и отклоняются.",
     outcomeNotFoundTitle: "Видео не найдено",
     outcomeNotFoundBody:
       "Не удалось найти видео по этой ссылке. Проверьте правильность ссылки и что публикация общедоступна.",
@@ -511,7 +511,7 @@ export const ru: Dictionary = {
     outcomeWrongAccountBody:
       "Это видео опубликовано не с выбранного вами аккаунта. Отправлять можно только видео с подтверждённого вами аккаунта.",
     outcomeDuplicateTitle: "Видео уже отправлено",
-    outcomeDuplicateBody: "Это видео уже было отправлено в кампанию «{campaign}» {date}. Каждое видео можно отправи��ь только один раз.",
+    outcomeDuplicateBody: "Это видео уже было отправлено в кампанию «{campaign}» {date}. Каждое видео можно отправить только один раз.",
     outcomeDuplicateExistingStatus: "Текущий статус:",
     outcomeDuplicateFallback: "Это видео уже было отправлено. Каждое видео можно отправить только один раз.",
     tryAnotherLink: "Попробовать другую ссылку",
@@ -690,7 +690,7 @@ export const ru: Dictionary = {
     DUPLICATE_VIDEO: "Это видео уже было отправлено ранее.",
     INSUFFICIENT_BALANCE: "Недостаточно средств.",
     NOT_FOUND: "Не найдено.",
-    GENERIC: "Что-то пошло ��е так. Попробуйте снова.",
+    GENERIC: "Что-то пошло не так. Попробуйте снова.",
   },
 
   formError: {
@@ -701,7 +701,7 @@ export const ru: Dictionary = {
     selectPlatform: "Выберите хотя бы одну платформу",
     amountExceedsBalance: "Сумма превышает доступный баланс",
     minAmount: "Сумма меньше минимальной",
-    invalidNumber: "Введи��е корректное число",
+    invalidNumber: "Введите корректное число",
   },
 
   toast: {
@@ -819,7 +819,7 @@ export const ru: Dictionary = {
     catClipping: "Клиппинг",
     catLogo: "Логотип",
     catVideoBanner: "Видеобаннер",
-    catMusic: "Муз��ка",
+    catMusic: "Музыка",
     basics: "Основное",
     basicsDesc: "Название, категория и бриф",
     campaignTitleLabel: "Название кампании",
@@ -834,7 +834,7 @@ export const ru: Dictionary = {
     selectAtLeastOne: "Выберите хотя бы одну платформу.",
     requirements: "Требования",
     requirementsDesc: "Правила, которые модераторы проверяют в каждой заявке",
-    minDuration: "Мин. длитель��ость (сек)",
+    minDuration: "Мин. длительность (сек)",
     minViews: "Мин. просмотры",
     minFollowers: "Мин. подписчики",
     videoLanguage: "Язык видео",
@@ -876,6 +876,9 @@ export const ru: Dictionary = {
     launchCampaign: "Запустить кампанию",
     createdToast: "Кампания создана",
     createdToastDesc: "Зарезервировано {amount} (вкл. комиссию платформы {fee}). Ваша кампания активна и доступна креаторам.",
+    saveAsDraft: "Сохранить как черновик",
+    draftSavedToast: "Черновик сохранён",
+    draftSavedToastDesc: "Ваша кампания сохранена как черновик. Пополните баланс и запустите её, когда будете готовы.",
   },
 
   advOverview: {
@@ -901,7 +904,7 @@ export const ru: Dictionary = {
 
   adminDashboard: {
     title: "Дашборд",
-    description: "С��стояние и финансы платформы в целом.",
+    description: "Состояние и финансы платформы в целом.",
     monthlyGmv: "Месячный GMV",
     platformRevenue: "Доход платформы",
     totalUsers: "Всего пользователей",
@@ -946,7 +949,7 @@ export const ru: Dictionary = {
     liveCampaigns: "Активные офферы",
     advertiser: "Рекламодатель",
     joined: "Дата регистрации",
-    campaigns: "Оффер��",
+    campaigns: "Офферы",
     totalSpend: "Всего расходов",
   },
 
@@ -1110,10 +1113,10 @@ export const ru: Dictionary = {
     rejectSubmission: "Отклонить заявку",
     flagForAdminReview: "Отметить для проверки администратором",
     completeChecklistError: "Заполните чек-лист",
-    completeChecklistDesc: "Отметьте каждое требова��ие перед одобрением.",
+    completeChecklistDesc: "Отметьте каждое требование перед одобрением.",
     approvedToast: "Одобрено {id}",
     approvedManualDesc: "Креатору начислено {amount} за {views} подтверждённых просмотров.",
-    approvedAutoDesc: "Креатору будет н��числена выплата.",
+    approvedAutoDesc: "Креатору будет начислена выплата.",
     rejectedToast: "Отклонено {id}",
     rejectedDesc: "Креатор уведомлён.",
     flaggedToast: "Отправлено на проверку администратором",
@@ -1245,7 +1248,7 @@ export const ru: Dictionary = {
     notificationsDesc: "Выберите, о чём получать письма.",
     newSubmissions: "Новые заявки",
     newSubmissionsDesc: "Когда креатор отправляет видео на ваш оффер",
-    budgetAlerts: "Увед��мления о бюджете",
+    budgetAlerts: "Уведомления о бюджете",
     budgetAlertsDesc: "Когда оффер достигает 80% бюджета",
     weeklySummary: "Еженедельная сводка",
     weeklySummaryDesc: "Сводка эффективности ваших офферов",
@@ -1324,7 +1327,7 @@ export const ru: Dictionary = {
   submissionDetail: {
     submissionId: "Заявка {id}",
     backToSubmissions: "Назад к заявкам",
-    viewVideo: "Смотре��ь видео",
+    viewVideo: "Смотреть видео",
     viewsLocked: "Счётчик просмотров зафиксирован при отправке{when}. Дальнейший рост не меняет вознаграждение.",
     flaggedAdminReview: "Отмечено для проверки администратором",
     submissionRejected: "Заявка отклонена",
@@ -1424,7 +1427,7 @@ export const ru: Dictionary = {
 
   confirm: {
     removeAccountTitle: "Удалить аккаунт?",
-    removeAccountBody: "Этот аккаунт б��дет отключён от Shortster. Вы сможете п��дключить его позже.",
+    removeAccountBody: "Этот аккаунт будет отключён от Shortster. Вы сможете подключить его позже.",
     cancelCampaignTitle: "Отменить кампанию?",
     cancelCampaignBody: "Кампания перестанет принимать заявки. Это действие нельзя отменить.",
     confirmWithdrawalTitle: "Подтвердить вывод?",
@@ -1432,7 +1435,7 @@ export const ru: Dictionary = {
     rejectSubmissionTitle: "Отклонить заявку?",
     rejectSubmissionBody: "Выберите причину. Автор получит уведомление.",
     signOutTitle: "Выйти?",
-    signOutBody: "Чтобы вернуться в рабочее пространство, нужно буде�� войти снова.",
+    signOutBody: "Чтобы вернуться в рабочее пространство, нужно будет войти снова.",
     removeMemberTitle: "Удалить участника?",
     removeMemberBody: "Участник потеряет доступ к рабочему пространству.",
   },

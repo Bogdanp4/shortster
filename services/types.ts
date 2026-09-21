@@ -1,4 +1,5 @@
 import type { AppError } from "@/lib/errors"
+import type { CampaignCategory, CampaignRequirements, Platform } from "@/lib/types"
 
 // Every service method returns a Result instead of throwing, so call sites
 // (mostly AppProvider) can branch on `ok` without wrapping every call in
@@ -20,6 +21,26 @@ export interface CreateDepositInput {
 export interface ReserveForCampaignInput {
   campaignTitle: string
   creatorBudgetMinor: number
+  platformFeePercent: number
+}
+
+// Everything the create-campaign form collects. The service turns this into a
+// full Campaign (filling non-form fields with sensible defaults) and decides
+// active-vs-draft based on wallet balance.
+export interface CreateCampaignInput {
+  title: string
+  brand: string
+  category: CampaignCategory
+  description: string
+  instructions: string[]
+  platforms: Platform[]
+  requirements: CampaignRequirements
+  promoMaterialsUrl?: string
+  creatorBudgetMinor: number
+  ratePerMillionMinor: number
+  maxPayoutPerVideoMinor: number
+  maxPayoutPerAccountMinor: number
+  maxSubmissionsPerAccount: number
   platformFeePercent: number
 }
 

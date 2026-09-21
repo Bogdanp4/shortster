@@ -1,8 +1,8 @@
-import { calculateCampaignReserve } from "@/lib/domain/money"
+import { calculateCampaignReserve, calculatePlatformFee } from "@/lib/domain/money"
 import { toAppError } from "@/lib/errors"
 import type { AdvertiserWallet, Campaign, WalletTransaction } from "@/lib/types"
 import { generateReference, mockDelay, store, todayLabel } from "./store"
-import type { ReserveForCampaignInput, Result } from "./types"
+import type { CreateCampaignInput, ReserveForCampaignInput, Result } from "./types"
 
 export async function getCampaigns(): Promise<Result<Campaign[]>> {
   await mockDelay()
@@ -19,6 +19,96 @@ export async function getCampaign(id: string): Promise<Result<Campaign>> {
 export interface ReserveForCampaignResult {
   transaction: WalletTransaction
   wallet: AdvertiserWallet
+}
+
+export interface CreateCampaignResult {
+  campaign: Campaign
+  wallet: AdvertiserWallet
+  transaction?: WalletTransaction
+}
+
+/**
+ * Builds a full Campaign from the create-campaign form. If the advertiser
+ * wallet can cover budget + platform fee the campaign launches `active` and
+ * the reserve is taken; otherwise it is saved as a `draft` with no reserve so
+ * the advertiser can top up and launch it later. Either way the campaign is
+ * added to the store so it shows up in the advertiser's campaigns list.
+ */
+export async function createCampaign(input: CreateCampaignInput): Promise<Result<CreateCampaignResult>> {
+  await mockDelay()
+
+  if (input.creatorBudgetMinor <= 0) {
+    return { ok: false, error: toAppError("validation_error", "Campaign budget must be positive.") }
+  }
+  if (input.platforms.length === 0) {
+    return { ok: false, error: toAppError("validation_error", "Select at least one platform.") }
+  }
+
+  const totalReserveMinor = calculateCampaignReserve(input.creatorBudgetMinor, input.platformFeePercent)
+  const platformFeeMinor = calculatePlatformFee(input.creatorBudgetMinor, input.platformFeePercent)
+  const canFund = totalReserveMinor <= store.advertiserWallet.availableMinor
+
+  const now = new Date()
+  const end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+  const id = `camp-${Date.now()}`
+
+  const campaign: Campaign = {
+    id,
+    title: input.title,
+    brand: input.brand,
+    category: input.category,
+    cover: "/placeholder.svg",
+    description: input.description,
+    instructions: input.instructions,
+    requirements: input.requirements,
+    status: canFund ? "active" : "draft",
+    creatorBudgetMinor: input.creatorBudgetMinor,
+    creatorBudgetSpentMinor: 0,
+    platformFeePercent: input.platformFeePercent,
+    ratePerMillionMinor: input.ratePerMillionMinor,
+    maxPayoutPerAccountMinor: input.maxPayoutPerAccountMinor,
+    maxPayoutPerVideoMinor: input.maxPayoutPerVideoMinor,
+    maxSubmissionsPerAccount: input.maxSubmissionsPerAccount,
+    platforms: input.platforms,
+    countries: [],
+    startDate: now.toISOString().slice(0, 10),
+    endDate: end.toISOString().slice(0, 10),
+    requiredCta: "",
+    optionalHashtags: [],
+    promoMaterialsUrl: input.promoMaterialsUrl,
+    creators: 0,
+    submissionsCount: 0,
+    views: 0,
+    exampleVideos: [],
+    assets: [],
+  }
+
+  store.campaigns = [campaign, ...store.campaigns]
+
+  if (!canFund) {
+    return { ok: true, data: { campaign, wallet: store.advertiserWallet } }
+  }
+
+  const transaction: WalletTransaction = {
+    id: `atx-${Date.now()}`,
+    date: todayLabel(),
+    type: "Campaign Reserve",
+    description: `${input.title} budget`,
+    amountMinor: -totalReserveMinor,
+    status: "completed",
+    reference: generateReference("RES"),
+    campaign: input.title,
+  }
+
+  store.advertiserTransactions = [transaction, ...store.advertiserTransactions]
+  store.advertiserWallet = {
+    ...store.advertiserWallet,
+    availableMinor: store.advertiserWallet.availableMinor - totalReserveMinor,
+    reservedCreatorBudgetMinor: store.advertiserWallet.reservedCreatorBudgetMinor + input.creatorBudgetMinor,
+    reservedPlatformFeeMinor: store.advertiserWallet.reservedPlatformFeeMinor + platformFeeMinor,
+  }
+
+  return { ok: true, data: { campaign, wallet: store.advertiserWallet, transaction } }
 }
 
 /**

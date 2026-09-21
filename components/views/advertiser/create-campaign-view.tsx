@@ -49,12 +49,13 @@ const languageOptions: { value: VideoLanguage; labelKey: string }[] = [
 const FEE_PERCENT = DEFAULT_PLATFORM_FEE_PERCENT
 
 export function CreateCampaignView() {
-  const { navigate, advertiserWallet, reserveForCampaign } = useApp()
+  const { navigate, advertiserWallet, createCampaign } = useApp()
   const t = useT()
 
   // Basics
   const [title, setTitle] = useState("")
   const [category, setCategory] = useState<CampaignCategory>("clipping")
+  const [description, setDescription] = useState("")
 
   // Platforms
   const [selected, setSelected] = useState<Platform[]>(["tiktok", "instagram", "youtube"])
@@ -74,7 +75,10 @@ export function CreateCampaignView() {
   // Budget
   const [budget, setBudget] = useState("10000")
   const [rate, setRate] = useState("500")
+  const [maxPerVideo, setMaxPerVideo] = useState("200")
+  const [maxPerAccount, setMaxPerAccount] = useState("250")
 
+  const [submitting, setSubmitting] = useState(false)
   const [depositOpen, setDepositOpen] = useState(false)
 
   const budgetNum = Number(budget) || 0
@@ -95,11 +99,40 @@ export function CreateCampaignView() {
     setSelected((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]))
   }
 
-  async function launch() {
-    if (!canLaunch) return
+  function buildInput() {
     const name = title.trim() || t("createCampaign.untitledCampaign")
+    return {
+      title: name,
+      brand: name,
+      category,
+      description: description.trim(),
+      instructions: [],
+      platforms: selected,
+      requirements: {
+        minVideoDurationSeconds: Number(minDuration) || 0,
+        maxVideoDurationSeconds: 0,
+        minViews: Number(minViews) || 0,
+        minFollowers: Number(minFollowers) || 0,
+        videoLanguage: language,
+        specificAudience,
+        audienceDescription: specificAudience ? audienceDescription.trim() : undefined,
+        requiredHashtag: normalizedHashtag || undefined,
+      },
+      promoMaterialsUrl: promoUrl.trim() || undefined,
+      creatorBudgetMinor: budgetMinor,
+      ratePerMillionMinor: rateMinor,
+      maxPayoutPerVideoMinor: Math.round((Number(maxPerVideo) || 0) * 100),
+      maxPayoutPerAccountMinor: Math.round((Number(maxPerAccount) || 0) * 100),
+      maxSubmissionsPerAccount: 3,
+      platformFeePercent: FEE_PERCENT,
+    }
+  }
+
+  async function launch() {
+    if (!canLaunch || submitting) return
+    setSubmitting(true)
     try {
-      await reserveForCampaign(budgetMinor, FEE_PERCENT, name)
+      await createCampaign(buildInput())
       toast.success(t("createCampaign.createdToast"), {
         description: t("createCampaign.createdToastDesc", {
           amount: formatCurrency(totalReserveMinor),
@@ -109,6 +142,24 @@ export function CreateCampaignView() {
       navigate("campaigns")
     } catch (e) {
       toast.error(getErrorMessage(e))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function saveAsDraft() {
+    if (noPlatform || audienceInvalid || budgetNum <= 0 || submitting) return
+    setSubmitting(true)
+    try {
+      await createCampaign(buildInput())
+      toast.success(t("createCampaign.draftSavedToast"), {
+        description: t("createCampaign.draftSavedToastDesc"),
+      })
+      navigate("campaigns")
+    } catch (e) {
+      toast.error(getErrorMessage(e))
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -170,7 +221,13 @@ export function CreateCampaignView() {
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="desc">{t("createCampaign.descriptionLabel")}</FieldLabel>
-                  <Textarea id="desc" rows={4} placeholder={t("createCampaign.descriptionPlaceholder")} />
+                  <Textarea
+                    id="desc"
+                    rows={4}
+                    placeholder={t("createCampaign.descriptionPlaceholder")}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
                   <FieldDescription>{t("createCampaign.descriptionHelp")}</FieldDescription>
                 </Field>
               </div>
@@ -393,11 +450,21 @@ export function CreateCampaignView() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field>
                     <FieldLabel htmlFor="maxvid">{t("createCampaign.maxPayoutVideo")}</FieldLabel>
-                    <Input id="maxvid" type="number" defaultValue="200" />
+                    <Input
+                      id="maxvid"
+                      type="number"
+                      value={maxPerVideo}
+                      onChange={(e) => setMaxPerVideo(e.target.value)}
+                    />
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="maxacc">{t("createCampaign.maxPayoutAccount")}</FieldLabel>
-                    <Input id="maxacc" type="number" defaultValue="250" />
+                    <Input
+                      id="maxacc"
+                      type="number"
+                      value={maxPerAccount}
+                      onChange={(e) => setMaxPerAccount(e.target.value)}
+                    />
                   </Field>
                 </div>
               </div>
@@ -488,11 +555,19 @@ export function CreateCampaignView() {
                   {t("createCampaign.addAmount", { amount: formatCurrency(shortfall) })}
                 </Button>
               ) : (
-                <Button size="lg" onClick={launch} disabled={!canLaunch}>
+                <Button size="lg" onClick={launch} disabled={!canLaunch || submitting}>
                   <Rocket data-icon="inline-start" />
                   {t("createCampaign.launchCampaign")}
                 </Button>
               )}
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={saveAsDraft}
+                disabled={noPlatform || audienceInvalid || budgetNum <= 0 || submitting}
+              >
+                {t("createCampaign.saveAsDraft")}
+              </Button>
             </CardContent>
           </Card>
         </div>
