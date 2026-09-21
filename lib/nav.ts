@@ -55,7 +55,6 @@ export const navConfig: Record<Role, NavItem[]> = {
   moderator: [
     { key: "queue", label: "Review Queue", icon: ClipboardCheck },
     { key: "ig-verify", label: "Instagram Verification", icon: Camera },
-    { key: "fraud", label: "Fraud Review", icon: ShieldAlert },
     { key: "history", label: "History", icon: History },
   ],
   admin: [
@@ -96,7 +95,7 @@ export const viewsByRole: Record<Role, string[]> = {
     "team",
     "adv-settings",
   ],
-  moderator: ["queue", "review", "ig-verify", "fraud", "history"],
+  moderator: ["queue", "review", "ig-verify", "history"],
   admin: [
     "dashboard",
     "users",

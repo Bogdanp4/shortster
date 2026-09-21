@@ -254,7 +254,9 @@ export function ReviewDetailView() {
                       <X className="size-4 text-destructive" />
                     )}
                     <span className="text-muted-foreground">
-                      Required hashtag {submission.requiredHashtagPresent ? "detected" : "missing"} (auto-scan)
+                      {submission.requiredHashtagPresent
+                        ? t("reviewDetail.hashtagDetected")
+                        : t("reviewDetail.hashtagMissing")}
                     </span>
                   </div>
                 </>
@@ -340,11 +342,11 @@ export function ReviewDetailView() {
                 variant="ghost"
                 onClick={() => {
                   toast.warning(t("reviewDetail.flaggedToast"))
-                  navigate("fraud")
+                  navigate("queue")
                 }}
               >
                 <Flag data-icon="inline-start" />
-                {t("reviewDetail.flagForFraud")}
+                {t("reviewDetail.flagForAdminReview")}
               </Button>
             </CardContent>
           </Card>

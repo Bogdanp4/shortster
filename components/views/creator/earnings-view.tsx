@@ -173,7 +173,7 @@ export function EarningsView() {
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border/60 bg-background/90 p-4 backdrop-blur-xl lg:hidden">
         <Button className="w-full" size="lg" onClick={() => setWithdrawOpen(true)}>
           <Banknote data-icon="inline-start" />
-          Withdraw funds
+          {t("common.withdrawFunds")}
         </Button>
       </div>
 

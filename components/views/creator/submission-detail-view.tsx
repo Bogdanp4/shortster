@@ -75,11 +75,13 @@ export function SubmissionDetailView() {
             </CardContent>
           </Card>
 
-          {(submission.status === "rejected" || submission.status === "fraud") &&
+          {(submission.status === "rejected" || submission.status === "admin_review") &&
             (submission.rejectionReason || submission.moderatorNote) && (
               <Alert variant="destructive">
                 <AlertTitle>
-                  {submission.status === "fraud" ? t("submissionDetail.flaggedFraud") : t("submissionDetail.submissionRejected")}
+                  {submission.status === "admin_review"
+                    ? t("submissionDetail.flaggedAdminReview")
+                    : t("submissionDetail.submissionRejected")}
                 </AlertTitle>
                 <AlertDescription>
                   {submission.rejectionReason ?? submission.moderatorNote}

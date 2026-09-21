@@ -22,7 +22,7 @@ export type SubmissionStatus =
   | "approved"
   | "credited"
   | "rejected"
-  | "fraud"
+  | "admin_review"
 
 export type CampaignStatus = "active" | "draft" | "paused" | "completed"
 
@@ -315,17 +315,6 @@ export type AuthScreen =
   | "reset-password"
   | "reset-password-success"
 
-export interface CreatorOnboardingProfile {
-  displayName: string
-  username: string
-  country: string
-  language: string
-  avatar?: string
-  socialConnected: boolean
-  socialPlatform?: Platform
-  socialHandle?: string
-}
-
 export interface AdvertiserOnboardingProfile {
   companyName: string
   website?: string
@@ -346,9 +335,7 @@ export interface AuthUser {
   activeWorkspace: Role
   emailVerified: boolean
   onboardingCompleted: boolean
-  onboardingStep: number
   createdAt: string
   updatedAt: string
-  creatorProfile?: CreatorOnboardingProfile
   advertiserProfile?: AdvertiserOnboardingProfile
 }

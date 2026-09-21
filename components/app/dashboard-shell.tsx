@@ -6,11 +6,13 @@ import { SidebarNav } from "./sidebar-nav"
 import { RoleSwitcher } from "./role-switcher"
 import { TopHeader } from "./top-header"
 import { ViewRouter } from "./view-router"
+import { useT } from "@/components/i18n/locale-provider"
 import { roleLabels } from "@/lib/nav"
 import { DEMO_ROLE_OVERRIDE_ENABLED } from "@/lib/dev-config"
 
 export function DashboardShell() {
   const { role } = useApp()
+  const t = useT()
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -30,9 +32,7 @@ export function DashboardShell() {
         <div className="border-t border-border/60 p-4">
           <div className="rounded-lg bg-muted/50 p-3">
             <p className="text-xs font-medium">{roleLabels[role]} workspace</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Interactive prototype. All data is simulated.
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("shell.prototypeNote")}</p>
           </div>
         </div>
       </aside>

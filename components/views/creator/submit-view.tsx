@@ -581,7 +581,7 @@ export function SubmitView() {
                         {proofFiles.length < MAX_PROOF && (
                           <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                             <ImagePlus data-icon="inline-start" />
-                            Add screenshot
+                            {t("common.addScreenshot")}
                           </Button>
                         )}
                       </div>

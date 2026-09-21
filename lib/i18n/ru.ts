@@ -39,6 +39,8 @@ export const ru: Dictionary = {
     loading: "Загрузка…",
     openMenu: "Открыть меню",
     accountMenu: "Меню аккаунта",
+    addScreenshot: "Добавить скриншот",
+    withdrawFunds: "Вывести средства",
   },
   notif: {
     ariaLabel: "Уведомления",
@@ -263,6 +265,8 @@ export const ru: Dictionary = {
     advertiserDesc: "Запуск кампаний",
     moderatorDesc: "Проверка заявок",
     adminDesc: "Управление платформой",
+    demoBadge: "Демо",
+    demoModeOnly: "Только в демо-режиме",
   },
   shell: {
     searchWorkspace: "Поиск в пространстве «{role}»...",
@@ -286,7 +290,6 @@ export const ru: Dictionary = {
     "adv-settings": "Настройки",
     queue: "Очередь проверки",
     "ig-verify": "Проверка Instagram",
-    fraud: "Проверка на мошенничество",
     history: "История",
     dashboard: "Панель",
     users: "Пользователи",
@@ -426,7 +429,7 @@ export const ru: Dictionary = {
       "Мы считываем число просмотров этого аккаунта напрямую с платформы и фиксируем его при отправке.",
     step2Title: "2. Ссылка на видео",
     step2DescManual:
-      "Вставьте ссылку на уже опубликованное публичное видео. Мы подтвердим владение и проверим на дубликаты.",
+      "Вставьте ссылку на уже опубликован��ое публичное видео. Мы подтвердим владение и проверим на дубликаты.",
     step2DescAuto:
       "Вставьте ссылку на уже опубликованное публичное видео. Мы проверим число просмотров напрямую с платформы — изменить его после отправки нельзя.",
     videoUrl: "Ссылка на видео",
@@ -508,7 +511,7 @@ export const ru: Dictionary = {
     outcomeWrongAccountBody:
       "Это видео опубликовано не с выбранного вами аккаунта. Отправлять можно только видео с подтверждённого вами аккаунта.",
     outcomeDuplicateTitle: "Видео уже отправлено",
-    outcomeDuplicateBody: "Это видео уже было отправлено в кампанию «{campaign}» {date}. Каждое видео можно отправить только один раз.",
+    outcomeDuplicateBody: "Это видео уже было отправлено в кампанию «{campaign}» {date}. Каждое видео можно отправи��ь только один раз.",
     outcomeDuplicateExistingStatus: "Текущий статус:",
     outcomeDuplicateFallback: "Это видео уже было отправлено. Каждое видео можно отправить только один раз.",
     tryAnotherLink: "Попробовать другую ссылку",
@@ -571,7 +574,7 @@ export const ru: Dictionary = {
       approved: "Подтверждено",
       credited: "Начислено",
       rejected: "Отклонено",
-      fraud: "Проверка администратором",
+      admin_review: "Проверка администратором",
     },
     campaign: {
       draft: "Черновик",
@@ -1037,26 +1040,6 @@ export const ru: Dictionary = {
     approvedToast: "Одобрено {reference}",
   },
 
-  fraudReview: {
-    title: "Проверка мошенничества",
-    description: "Расследуйте креаторов с высоким риском и принимайте меры по подозрительной активности.",
-    openCases: "Открытые дела",
-    accountsBanned: "Заблокировано аккаунтов",
-    thisMonth: "За этот месяц",
-    recovered: "Возвращено",
-    reversedPayouts: "Отменённые выплаты",
-    flaggedOn: "отмечен в {campaign}",
-    clear: "Очистить",
-    banAccount: "Заблокировать аккаунт",
-    clearedToast: "Очищен {handle}",
-    bannedToast: "Заблокирован {handle}",
-    riskSignals: "Сигналы риска",
-    history: "История",
-    submissions: "Заявки",
-    rejected: "Отклонено",
-    linkedAccounts: "Связанные аккаунты",
-  },
-
   reviewDetail: {
     title: "Проверка заявки",
     backLabel: "К очереди",
@@ -1103,15 +1086,15 @@ export const ru: Dictionary = {
     approveSubmission: "Одобрить заявку",
     tickAllRequirements: "Отметьте все {count} требования, чтобы включить одобрение",
     rejectSubmission: "Отклонить заявку",
-    flagForFraud: "Отметить как мошенничество",
+    flagForAdminReview: "Отметить для проверки администратором",
     completeChecklistError: "Заполните чек-лист",
-    completeChecklistDesc: "Отметьте каждое требование перед одобрением.",
+    completeChecklistDesc: "Отметьте каждое требова��ие перед одобрением.",
     approvedToast: "Одобрено {id}",
     approvedManualDesc: "Креатору начислено {amount} за {views} подтверждённых просмотров.",
     approvedAutoDesc: "Креатору будет начислена выплата.",
     rejectedToast: "Отклонено {id}",
     rejectedDesc: "Креатор уведомлён.",
-    flaggedToast: "Отправлено на проверку мошенничества",
+    flaggedToast: "Отправлено на проверку администратором",
   },
 
   igVerify: {
@@ -1321,7 +1304,7 @@ export const ru: Dictionary = {
     backToSubmissions: "Назад к заявкам",
     viewVideo: "Смотре��ь видео",
     viewsLocked: "Счётчик просмотров зафиксирован при отправке{when}. Дальнейший рост не меняет вознаграждение.",
-    flaggedFraud: "Отмечено как мошенничество",
+    flaggedAdminReview: "Отмечено для проверки администратором",
     submissionRejected: "Заявка отклонена",
     timeline: "Хронология",
     submitted: "Отправлено",
@@ -1419,7 +1402,7 @@ export const ru: Dictionary = {
 
   confirm: {
     removeAccountTitle: "Удалить аккаунт?",
-    removeAccountBody: "Этот аккаунт будет отключён от Shortster. Вы сможете подключить его позже.",
+    removeAccountBody: "Этот аккаунт будет отключён от Shortster. Вы сможете п��дключить его позже.",
     cancelCampaignTitle: "Отменить кампанию?",
     cancelCampaignBody: "Кампания перестанет принимать заявки. Это действие нельзя отменить.",
     confirmWithdrawalTitle: "Подтвердить вывод?",

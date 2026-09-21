@@ -679,7 +679,7 @@ export const moderationQueue: Submission[] = [
 export const creatorTransactions: WalletTransaction[] = [
   { id: "tx-9001", date: "Sep 19, 2026", type: "Creator Reward", description: "Stake Highlights", amount: 92.15, status: "completed", reference: "SUB-1041", campaign: "Stake Highlights", submission: "sub-1041" },
   { id: "tx-9002", date: "Sep 15, 2026", type: "Creator Reward", description: "Stake Highlights", amount: 200.0, status: "completed", reference: "SUB-1045", campaign: "Stake Highlights", submission: "sub-1045" },
-  { id: "tx-9003", date: "Sep 12, 2026", type: "Withdrawal", description: "Payout to PayPal", amount: -500.0, status: "completed", reference: "WD-3120" },
+  { id: "tx-9003", date: "Sep 12, 2026", type: "Withdrawal", description: "Payout to USDT wallet", amount: -500.0, status: "completed", reference: "WD-3120" },
   { id: "tx-9004", date: "Sep 8, 2026", type: "Creator Reward", description: "Gaming Clips", amount: 128.4, status: "completed", reference: "SUB-1030", campaign: "Gaming Clips" },
   { id: "tx-9005", date: "Sep 5, 2026", type: "Adjustment", description: "Goodwill credit", amount: 15.0, status: "completed", reference: "ADJ-221" },
   { id: "tx-9006", date: "Sep 2, 2026", type: "Creator Reward", description: "AI App UGC", amount: 88.42, status: "pending", reference: "SUB-1043", campaign: "AI App UGC", submission: "sub-1043" },
@@ -764,7 +764,7 @@ export const notifications: Notification[] = [
   { id: "n2", title: "Instagram verified", detail: "@shortsterclips is now verified", time: "1h ago", kind: "info", read: false },
   { id: "n3", title: "Campaign almost out of budget", detail: "Music Promotion at 92% spent", time: "3h ago", kind: "warning", read: false },
   { id: "n4", title: "Submission rejected", detail: "Music Promotion — audio not used", time: "1d ago", kind: "danger", read: true },
-  { id: "n5", title: "Withdrawal completed", detail: "$500.00 to PayPal", time: "2d ago", kind: "success", amount: 500, read: true },
+  { id: "n5", title: "Withdrawal completed", detail: "$500.00 to USDT wallet", time: "2d ago", kind: "success", amount: 500, read: true },
 ]
 
 export const adminUsers: AdminUser[] = [
@@ -786,9 +786,9 @@ export const adminTransactions: WalletTransaction[] = [
 ]
 
 export const adminWithdrawals: WalletTransaction[] = [
-  { id: "wd-1", date: "Sep 18, 2026", type: "Withdrawal", description: "Mia Chen → Bank transfer", amount: -1200, status: "pending", reference: "WD-3125" },
-  { id: "wd-2", date: "Sep 12, 2026", type: "Withdrawal", description: "Alex Rivera → PayPal", amount: -500, status: "completed", reference: "WD-3120" },
-  { id: "wd-3", date: "Sep 5, 2026", type: "Withdrawal", description: "Sam Okafor → Bank transfer", amount: -820, status: "completed", reference: "WD-3101" },
+  { id: "wd-1", date: "Sep 18, 2026", type: "Withdrawal", description: "Mia Chen → USDT (Tron)", amount: -1200, status: "pending", reference: "WD-3125" },
+  { id: "wd-2", date: "Sep 12, 2026", type: "Withdrawal", description: "Alex Rivera → USDC (Ethereum)", amount: -500, status: "completed", reference: "WD-3120" },
+  { id: "wd-3", date: "Sep 5, 2026", type: "Withdrawal", description: "Sam Okafor → USDT (BSC)", amount: -820, status: "completed", reference: "WD-3101" },
 ]
 
 export const auditLogs: AuditLog[] = [

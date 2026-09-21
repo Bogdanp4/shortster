@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { Logo } from "@/components/app/logo"
 import { Button } from "@/components/ui/button"
 import { LanguageSelector } from "@/components/i18n/language-selector"
@@ -59,12 +60,12 @@ export function LandingView() {
 
       <footer className="flex flex-col items-center gap-2 px-4 py-6 text-center text-xs text-muted-foreground">
         <div className="flex items-center gap-4">
-          <button type="button" className="hover:text-foreground hover:underline">
+          <Link href="/terms" className="hover:text-foreground hover:underline">
             {t("footer.terms")}
-          </button>
-          <button type="button" className="hover:text-foreground hover:underline">
+          </Link>
+          <Link href="/privacy" className="hover:text-foreground hover:underline">
             {t("footer.privacy")}
-          </button>
+          </Link>
         </div>
         <p>
           &copy; {new Date().getFullYear()} {t("brand.name")}. {t("footer.rights")}

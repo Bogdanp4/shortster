@@ -44,7 +44,7 @@ export function RoleSwitcher() {
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               {t("profile.viewingAs")}
               <span className="rounded-sm bg-amber-500/15 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
-                Demo
+                {t("profile.demoBadge")}
               </span>
             </span>
             <span className="text-sm font-medium leading-none">{t(`roles.${role}`)}</span>
@@ -54,7 +54,7 @@ export function RoleSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-[--anchor-width] min-w-56" align="start">
         <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
-          Demo mode only
+          {t("profile.demoModeOnly")}
         </div>
         <div className="px-2 pb-1.5 text-xs font-medium text-muted-foreground">{t("profile.switchRole")}</div>
         <DropdownMenuGroup>

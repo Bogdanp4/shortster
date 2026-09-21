@@ -76,14 +76,33 @@ export function formatDate(input: string | number | Date): string {
   return date.toLocaleDateString(intlLocale(), { year: "numeric", month: "short", day: "numeric" })
 }
 
+// Absolute date + time, formatted for the active locale.
+export function formatDateTime(input: string | number | Date): string {
+  const date = input instanceof Date ? input : new Date(input)
+  const time = date.getTime()
+  if (!Number.isFinite(time)) return typeof input === "string" ? input : "—"
+  return date.toLocaleString(intlLocale(), {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
 export function compactNumber(value: number): string {
+  const enSuffixes = { million: "M", thousand: "K" }
+  const ruSuffixes = { million: "млн", thousand: "тыс." }
+  const suffixes = activeLocale === "ru" ? ruSuffixes : enSuffixes
   if (Math.abs(value) >= 1_000_000) {
-    return (value / 1_000_000).toFixed(value % 1_000_000 === 0 ? 0 : 1) + "M"
+    const n = (value / 1_000_000).toFixed(value % 1_000_000 === 0 ? 0 : 1)
+    return n.toLocaleString(intlLocale()) + " " + suffixes.million
   }
   if (Math.abs(value) >= 1_000) {
-    return (value / 1_000).toFixed(value % 1_000 === 0 ? 0 : 1) + "K"
+    const n = (value / 1_000).toFixed(value % 1_000 === 0 ? 0 : 1)
+    return n.toLocaleString(intlLocale()) + " " + suffixes.thousand
   }
-  return String(value)
+  return value.toLocaleString(intlLocale())
 }
 
 // reward = views * (rate per 1,000,000 views)

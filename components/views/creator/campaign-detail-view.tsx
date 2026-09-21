@@ -65,7 +65,7 @@ export function CampaignDetailView() {
     <div className="flex flex-col gap-6">
       <Button variant="ghost" onClick={() => navigate("discover")} className="w-fit">
         <ArrowLeft data-icon="inline-start" />
-        Back to Discover
+        {t("campaignDetail.backToDiscover")}
       </Button>
 
       <div className="relative overflow-hidden rounded-xl border border-border/60">
