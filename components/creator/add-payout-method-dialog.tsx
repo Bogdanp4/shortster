@@ -5,6 +5,8 @@ import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
+import { SUPPORTED_CRYPTO_ASSETS, SUPPORTED_CRYPTO_NETWORKS } from "@/lib/config"
+import { payoutNetworkLabel } from "@/lib/format"
 import type { PayoutMethod, CryptoAsset, CryptoNetwork } from "@/lib/types"
 import {
   Dialog,
@@ -32,26 +34,20 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-const assets: { value: CryptoAsset; label: string }[] = [
-  { value: "USDT", label: "USDT (Tether)" },
-  { value: "USDC", label: "USDC (USD Coin)" },
-]
-
-const networks: { value: CryptoNetwork; label: string; note: string }[] = [
-  { value: "ethereum", label: "Ethereum (ERC-20)", note: "Higher network fees, widely supported" },
-  { value: "tron", label: "Tron (TRC-20)", note: "Low fees, popular for stablecoins" },
-  { value: "bsc", label: "BNB Smart Chain (BEP-20)", note: "Low fees" },
-  { value: "polygon", label: "Polygon", note: "Very low fees" },
-  { value: "solana", label: "Solana", note: "Fast, very low fees" },
-]
-
-const networkLabel: Record<CryptoNetwork, string> = {
-  ethereum: "Ethereum (ERC-20)",
-  tron: "Tron (TRC-20)",
-  bsc: "BNB Smart Chain (BEP-20)",
-  polygon: "Polygon",
-  solana: "Solana",
+const assetLabel: Record<CryptoAsset, string> = {
+  USDT: "USDT (Tether)",
+  USDC: "USDC (USD Coin)",
 }
+
+const assets: { value: CryptoAsset; label: string }[] = SUPPORTED_CRYPTO_ASSETS.map((value) => ({
+  value,
+  label: assetLabel[value],
+}))
+
+const networks: { value: CryptoNetwork; label: string }[] = SUPPORTED_CRYPTO_NETWORKS.map((value) => ({
+  value,
+  label: payoutNetworkLabel[value] ?? value,
+}))
 
 // Loose per-network address validation — enough to catch obvious mistakes in the
 // prototype without pretending to be a real on-chain checksum.
@@ -195,7 +191,7 @@ export function AddPayoutMethodDialog({
               {touched && addressError ? (
                 <span className="text-destructive">{addressError}</span>
               ) : (
-                t("payoutMethodDialog.receivingNote", { asset, network: networkLabel[network] })
+                t("payoutMethodDialog.receivingNote", { asset, network: payoutNetworkLabel[network] ?? network })
               )}
             </FieldDescription>
           </Field>
@@ -211,7 +207,7 @@ export function AddPayoutMethodDialog({
           <Field orientation="horizontal">
             <Checkbox id="confirm-payout" checked={confirm} onCheckedChange={(v) => setConfirm(v === true)} />
             <FieldLabel htmlFor="confirm-payout" className="font-normal">
-              {t("payoutMethodDialog.confirmCheckbox", { asset, network: networkLabel[network] })}
+              {t("payoutMethodDialog.confirmCheckbox", { asset, network: payoutNetworkLabel[network] ?? network })}
             </FieldLabel>
           </Field>
         </FieldGroup>
