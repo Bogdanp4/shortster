@@ -3,8 +3,7 @@
 import Image from "next/image"
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
- import { getCampaign } from "@/lib/mock-data"
- import type { VideoLanguage } from "@/lib/types"
+  import type { VideoLanguage } from "@/lib/types"
 import { formatMoney, formatNumber, compactNumber, percent, formatRelative } from "@/lib/format"
 import { buildRequirementsChecklist } from "@/lib/domain/requirements"
 import { Button } from "@/components/ui/button"
@@ -43,10 +42,10 @@ const assetIcon: Record<string, typeof FileText> = {
 }
 
 export function CampaignDetailView() {
-  const { params, navigate, submissions } = useApp()
+  const { params, navigate, submissions, getCampaignById } = useApp()
   const t = useT()
-  const campaign = getCampaign(params.id)
-  const mySubmissions = submissions.filter((s) => s.campaignId === params.id)
+  const campaign = getCampaignById(params.campaignId)
+  const mySubmissions = submissions.filter((s) => s.campaignId === params.campaignId)
   const requirementsChecklist = campaign ? buildRequirementsChecklist(campaign.requirements, t) : []
   const languageLabels: Record<VideoLanguage, string> = {
     any: t("enums.videoLanguage.any"),
@@ -295,7 +294,7 @@ export function CampaignDetailView() {
               </div>
 
               {campaign.status === "active" ? (
-                <Button size="lg" onClick={() => navigate("submit", { id: campaign.id })}>
+                <Button size="lg" onClick={() => navigate("submit", { campaignId: campaign.id })}>
                   <Send data-icon="inline-start" />
                   {t("campaignDetail.submitVideo")}
                 </Button>

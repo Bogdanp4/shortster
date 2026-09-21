@@ -5,7 +5,7 @@ import { Eye, DollarSign, FileVideo, Users, PlusCircle } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
-import { campaigns, advertiserStatsSeries, advertiserWallet } from "@/lib/mock-data"
+import { advertiserStatsSeries } from "@/lib/mock-data"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
@@ -17,7 +17,7 @@ import { Progress } from "@/components/ui/progress"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 
 export function AdvertiserOverviewView() {
-  const { navigate } = useApp()
+  const { navigate, campaigns, advertiserWallet } = useApp()
   const t = useT()
   const chartConfig = {
     views: { label: t("advOverview.totalViews"), color: "var(--chart-1)" },

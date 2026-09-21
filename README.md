@@ -1,8 +1,9 @@
 # Shortster
 
 Shortster is a demo/prototype platform connecting **advertisers** running short-form video
-campaigns with **creators** who submit qualifying content for performance-based rewards. A
-third role, **moderator**, reviews submissions and fraud flags.
+campaigns with **creators** who submit qualifying content for performance-based rewards.
+**Moderators** review submissions and can flag them for admin review, and **admins** handle
+fraud cases and platform oversight.
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [v0](https://v0.app).
 
@@ -33,7 +34,14 @@ pnpm dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 Use the role switcher on the landing/login screen (or the account menu once signed in) to explore
-the **creator**, **advertiser**, and **moderator** experiences with mock data.
+the **creator**, **advertiser**, **moderator**, and **admin** experiences with mock data.
+
+### Demo mode
+
+Demo-only affordances (the role switcher and demo account shortcuts) are gated behind demo mode,
+which is controlled by the `NEXT_PUBLIC_DEMO_MODE` environment variable. Set
+`NEXT_PUBLIC_DEMO_MODE=true` to enable them; when unset, the app behaves as a normal sign-in flow.
+Demo credentials live in [`lib/auth-mock-data.ts`](./lib/auth-mock-data.ts).
 
 ## Project structure
 
@@ -44,10 +52,14 @@ the **creator**, **advertiser**, and **moderator** experiences with mock data.
 - `components/auth/` — landing, login, signup, and the mock `AuthProvider`.
 - `components/views/{creator,advertiser,moderator,admin}/` — role-specific screens.
 - `components/shared/` — cross-role UI (status badges, page headers, stat cards, etc).
+- `services/` — async, mock-backed service per domain (campaigns, submissions, moderation,
+  wallets, withdrawals, billing, fraud, social accounts, accounts, notifications) reading/writing
+  a single in-memory store (`services/store.ts`) that is the source of truth. See
+  [`FRONTEND_HANDOFF.md`](./FRONTEND_HANDOFF.md) for the backend-swap boundary.
 - `lib/i18n/` — English/Russian UI dictionaries and the locale provider (`useT()`).
-- `lib/mock-data.ts`, `lib/auth-mock-data.ts` — in-memory demo data.
-- `lib/format.ts` — locale-aware currency/number/date formatting helpers.
-- `lib/domain/money.ts` — money-handling utilities (see handoff doc for the minor-units migration).
+- `lib/mock-data.ts`, `lib/auth-mock-data.ts` — in-memory demo data seeding the store.
+- `lib/format.ts` — locale-aware currency/number/date formatting helpers (money in minor units).
+- `lib/domain/money.ts` — integer-safe money arithmetic (minor units; no inline math in components).
 
 ## Internationalization
 

@@ -3,7 +3,8 @@
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, LineChart } from "recharts"
 import { Eye, DollarSign, TrendingUp } from "lucide-react"
 
-import { campaigns, advertiserStatsSeries } from "@/lib/mock-data"
+import { advertiserStatsSeries } from "@/lib/mock-data"
+import { useApp } from "@/components/app/app-provider"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
@@ -15,6 +16,7 @@ import { useT } from "@/components/i18n/locale-provider"
 
 export function AdvertiserAnalyticsView() {
   const t = useT()
+  const { campaigns } = useApp()
   const totalViews = campaigns.reduce((s, c) => s + c.views, 0)
   const totalSpentMinor = campaigns.reduce((s, c) => s + c.creatorBudgetSpentMinor, 0)
   const cpmMinor = totalViews > 0 ? (totalSpentMinor / totalViews) * 1000 : 0

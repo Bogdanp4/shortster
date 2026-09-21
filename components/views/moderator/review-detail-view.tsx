@@ -6,7 +6,6 @@ import { toast } from "sonner"
 import Image from "next/image"
 
 import { useApp } from "@/components/app/app-provider"
-import { getCampaign } from "@/lib/mock-data"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { buildRequirementsChecklist } from "@/lib/domain/requirements"
 import { PageHeader } from "@/components/shared/page-header"
@@ -52,9 +51,10 @@ function CheckStatusBadge({ status, t }: { status: CheckStatus; t: (key: string)
 
 export function ReviewDetailView() {
   const t = useT()
-  const { params, navigate, moderationQueue, approveSubmission, rejectSubmission, flagSubmissionForAdmin } = useApp()
+  const { params, navigate, moderationQueue, approveSubmission, rejectSubmission, flagSubmissionForAdmin, getCampaignById } =
+    useApp()
   const submission = moderationQueue.find((s) => s.id === params.submissionId) ?? moderationQueue[0]
-  const campaign = getCampaign(submission.campaignId)
+  const campaign = getCampaignById(submission.campaignId)
 
   const manual = submission.metricsMode === "manual"
   const requirements = useMemo(

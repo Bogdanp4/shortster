@@ -2,7 +2,8 @@
 
 import { Building2 } from "lucide-react"
 
-import { adminUsers, campaigns } from "@/lib/mock-data"
+import { adminUsers } from "@/lib/mock-data"
+import { useApp } from "@/components/app/app-provider"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
@@ -14,6 +15,7 @@ import { useT } from "@/components/i18n/locale-provider"
 
 export function AdminAdvertisersView() {
   const t = useT()
+  const { campaigns } = useApp()
   const advertisers = adminUsers.filter((u) => u.role === "advertiser")
   const totalSpend = advertisers.reduce((s, a) => s + (a.spendMinor ?? 0), 0)
 

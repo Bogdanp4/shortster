@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { campaigns } from "@/lib/mock-data"
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
 import { PageHeader } from "@/components/shared/page-header"
@@ -25,7 +24,7 @@ const categories: { value: string; labelKey: string }[] = [
 
 export function DiscoverView() {
   const t = useT()
-  const { socialAccounts, navigate } = useApp()
+  const { socialAccounts, navigate, campaigns } = useApp()
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("all")
   const [bannerDismissed, setBannerDismissed] = useState(false)
