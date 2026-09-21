@@ -1,6 +1,7 @@
 "use client"
 
 import { formatCurrency } from "@/lib/format"
+import { useT } from "@/components/i18n/locale-provider"
 import type { WalletTransaction } from "@/lib/types"
 import {
   Dialog,
@@ -19,6 +20,7 @@ export function TransactionDetailDialog({
   transaction: WalletTransaction | null
   onOpenChange: (open: boolean) => void
 }) {
+  const t = useT()
   const positive = (transaction?.amount ?? 0) >= 0
 
   return (
@@ -44,10 +46,12 @@ export function TransactionDetailDialog({
             <Separator />
 
             <div className="flex flex-col gap-3">
-              <Row label="Date" value={transaction.date} />
-              {transaction.campaign && <Row label="Campaign" value={transaction.campaign} />}
-              {transaction.submission && <Row label="Submission" value={`#${transaction.submission}`} />}
-              <Row label="Transaction ID" value={transaction.reference} mono />
+              <Row label={t("txDetail.date")} value={transaction.date} />
+              {transaction.campaign && <Row label={t("txDetail.campaign")} value={transaction.campaign} />}
+              {transaction.submission && (
+                <Row label={t("txDetail.submission")} value={`#${transaction.submission}`} />
+              )}
+              <Row label={t("txDetail.transactionId")} value={transaction.reference} mono />
             </div>
           </>
         )}

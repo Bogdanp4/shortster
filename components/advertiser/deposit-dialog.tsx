@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import { CheckCircle2, CreditCard, Landmark, Bitcoin, ArrowRight, Plus, Loader2 } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { formatCurrency } from "@/lib/format"
 import type { PaymentMethod } from "@/lib/types"
 import {
@@ -34,6 +35,7 @@ export function DepositDialog({
   onOpenChange: (open: boolean) => void
 }) {
   const { advertiserWallet, paymentMethods, deposit } = useApp()
+  const t = useT()
   const [step, setStep] = useState<Step>("form")
   const [amount, setAmount] = useState("")
   const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null)
@@ -47,9 +49,10 @@ export function DepositDialog({
   )
 
   let error: string | null = null
-  if (amount !== "" && numeric <= 0) error = "Enter a valid amount."
-  else if (numeric > 0 && numeric < MIN_DEPOSIT) error = `Minimum deposit is ${formatCurrency(MIN_DEPOSIT)}.`
-  else if (paymentMethods.length === 0) error = "Add a payment method to continue."
+  if (amount !== "" && numeric <= 0) error = t("depositDialog.invalidAmount")
+  else if (numeric > 0 && numeric < MIN_DEPOSIT)
+    error = t("depositDialog.minDeposit", { amount: formatCurrency(MIN_DEPOSIT) })
+  else if (paymentMethods.length === 0) error = t("depositDialog.addMethodToContinue")
 
   const canReview = numeric >= MIN_DEPOSIT && !error
 
@@ -88,16 +91,16 @@ export function DepositDialog({
           {step === "form" && (
             <>
               <DialogHeader>
-                <DialogTitle>Add funds</DialogTitle>
+                <DialogTitle>{t("depositDialog.addFunds")}</DialogTitle>
                 <DialogDescription>
-                  Available:{" "}
+                  {t("depositDialog.available")}:{" "}
                   <span className="font-medium text-foreground">{formatCurrency(advertiserWallet.available)}</span>
                 </DialogDescription>
               </DialogHeader>
 
               <div className="flex flex-col gap-4">
                 <Field data-invalid={!!error && amount !== "" ? true : undefined}>
-                  <FieldLabel htmlFor="dep-amount">Deposit amount</FieldLabel>
+                  <FieldLabel htmlFor="dep-amount">{t("depositDialog.depositAmount")}</FieldLabel>
                   <InputGroup>
                     <InputGroupAddon>$</InputGroupAddon>
                     <InputGroupInput
@@ -129,13 +132,13 @@ export function DepositDialog({
                 <Separator />
 
                 <div className="flex flex-col gap-2">
-                  <span className="text-sm font-medium">Payment method</span>
+                  <span className="text-sm font-medium">{t("depositDialog.paymentMethod")}</span>
                   {paymentMethods.length === 0 ? (
                     <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-border p-4">
-                      <p className="text-sm text-muted-foreground">No payment method added</p>
+                      <p className="text-sm text-muted-foreground">{t("depositDialog.noMethodAdded")}</p>
                       <Button variant="secondary" size="sm" onClick={() => setAddMethodOpen(true)}>
                         <Plus data-icon="inline-start" />
-                        Add payment method
+                        {t("depositDialog.addPaymentMethod")}
                       </Button>
                     </div>
                   ) : (
@@ -158,7 +161,7 @@ export function DepositDialog({
                             <div className="flex flex-col">
                               <span className="text-sm font-medium">{m.label}</span>
                               <span className="text-xs text-muted-foreground">
-                                {m.last4 === "WIRE" ? "Bank wire" : `•••• ${m.last4}`}
+                                {m.last4 === "WIRE" ? t("depositDialog.bankWire") : `•••• ${m.last4}`}
                               </span>
                             </div>
                             {selected && <CheckCircle2 className="ml-auto size-4 text-primary" />}
@@ -167,7 +170,7 @@ export function DepositDialog({
                       })}
                       <Button variant="ghost" size="sm" className="self-start" onClick={() => setAddMethodOpen(true)}>
                         <Plus data-icon="inline-start" />
-                        Add another method
+                        {t("depositDialog.addAnotherMethod")}
                       </Button>
                     </div>
                   )}
@@ -178,10 +181,10 @@ export function DepositDialog({
 
               <DialogFooter>
                 <Button variant="outline" onClick={close}>
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 <Button disabled={!canReview} onClick={() => setStep("review")}>
-                  Review deposit
+                  {t("depositDialog.reviewDeposit")}
                   <ArrowRight data-icon="inline-end" />
                 </Button>
               </DialogFooter>
@@ -191,31 +194,37 @@ export function DepositDialog({
           {step === "review" && method && (
             <>
               <DialogHeader>
-                <DialogTitle>Add funds</DialogTitle>
-                <DialogDescription>Confirm your deposit details.</DialogDescription>
+                <DialogTitle>{t("depositDialog.addFunds")}</DialogTitle>
+                <DialogDescription>{t("depositDialog.confirmDetails")}</DialogDescription>
               </DialogHeader>
 
               <div className="flex flex-col gap-3 rounded-lg border border-border p-4">
-                <Row label="Deposit amount" value={formatCurrency(numeric)} />
-                <Row label="Processing fee" value={formatCurrency(0)} />
+                <Row label={t("depositDialog.depositAmount")} value={formatCurrency(numeric)} />
+                <Row label={t("depositDialog.processingFee")} value={formatCurrency(0)} />
                 <Separator />
-                <Row label="Total charged" value={formatCurrency(numeric)} strong />
-                <Row label="Payment method" value={`${method.label}${method.last4 === "WIRE" ? "" : ` •••• ${method.last4}`}`} />
-                <Row label="New available balance" value={formatCurrency(advertiserWallet.available + numeric)} />
+                <Row label={t("depositDialog.totalCharged")} value={formatCurrency(numeric)} strong />
+                <Row
+                  label={t("depositDialog.paymentMethod")}
+                  value={`${method.label}${method.last4 === "WIRE" ? "" : ` •••• ${method.last4}`}`}
+                />
+                <Row
+                  label={t("depositDialog.newAvailableBalance")}
+                  value={formatCurrency(advertiserWallet.available + numeric)}
+                />
               </div>
 
               <DialogFooter>
                 <Button variant="outline" onClick={() => setStep("form")} disabled={processing}>
-                  Back
+                  {t("depositDialog.back")}
                 </Button>
                 <Button onClick={confirm} disabled={processing}>
                   {processing ? (
                     <>
                       <Loader2 data-icon="inline-start" className="animate-spin" />
-                      Processing
+                      {t("depositDialog.processing")}
                     </>
                   ) : (
-                    "Confirm deposit"
+                    t("depositDialog.confirmDeposit")
                   )}
                 </Button>
               </DialogFooter>
@@ -228,20 +237,20 @@ export function DepositDialog({
                 <div className="flex size-12 items-center justify-center rounded-full bg-primary/12">
                   <CheckCircle2 className="size-6 text-primary" />
                 </div>
-                <DialogTitle>Funds added</DialogTitle>
-                <DialogDescription>Your balance is ready for campaigns.</DialogDescription>
+                <DialogTitle>{t("depositDialog.fundsAdded")}</DialogTitle>
+                <DialogDescription>{t("depositDialog.balanceReady")}</DialogDescription>
               </DialogHeader>
 
               <div className="flex flex-col items-center gap-1 py-2">
                 <span className="text-3xl font-semibold tabular-nums text-primary">+{formatCurrency(numeric)}</span>
                 <span className="text-sm text-muted-foreground">
-                  New balance:{" "}
+                  {t("depositDialog.newBalance")}:{" "}
                   <span className="text-foreground">{formatCurrency(advertiserWallet.available)}</span>
                 </span>
               </div>
 
               <DialogFooter>
-                <Button onClick={close}>Done</Button>
+                <Button onClick={close}>{t("depositDialog.done")}</Button>
               </DialogFooter>
             </>
           )}

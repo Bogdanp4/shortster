@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import { CheckCircle2, Wallet, ArrowRight, Plus, Loader2 } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { creatorMinWithdrawal } from "@/lib/mock-data"
 import { formatCurrency } from "@/lib/format"
 import type { PayoutMethod } from "@/lib/types"
@@ -45,6 +46,7 @@ export function WithdrawDialog({
   onOpenChange: (open: boolean) => void
 }) {
   const { creatorWallet, payoutMethods, creatorTransactions, withdraw, navigate } = useApp()
+  const t = useT()
   const [step, setStep] = useState<Step>("form")
   const [amount, setAmount] = useState("")
   const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null)
@@ -64,12 +66,12 @@ export function WithdrawDialog({
   )
 
   let error: string | null = null
-  if (amount !== "" && numeric <= 0) error = "Enter a valid amount."
-  else if (numeric > available) error = "Insufficient balance. You can only withdraw your available balance."
+  if (amount !== "" && numeric <= 0) error = t("withdrawDialog.invalidAmount")
+  else if (numeric > available) error = t("withdrawDialog.insufficientBalance")
   else if (numeric > 0 && numeric < creatorMinWithdrawal)
-    error = `Minimum withdrawal is ${formatCurrency(creatorMinWithdrawal)}.`
-  else if (payoutMethods.length === 0) error = "Add a payout method to continue."
-  else if (method && !method.verified) error = "This payout method needs verification before you can withdraw."
+    error = t("withdrawDialog.minWithdrawalError", { amount: formatCurrency(creatorMinWithdrawal) })
+  else if (payoutMethods.length === 0) error = t("withdrawDialog.addMethodToContinue")
+  else if (method && !method.verified) error = t("withdrawDialog.needsVerification")
 
   const canReview = numeric > 0 && !error && !hasPendingWithdrawal
 
@@ -113,9 +115,10 @@ export function WithdrawDialog({
           {step === "form" && (
             <>
               <DialogHeader>
-                <DialogTitle>Withdraw funds</DialogTitle>
+                <DialogTitle>{t("withdrawDialog.withdrawFunds")}</DialogTitle>
                 <DialogDescription>
-                  Available balance: <span className="font-medium text-foreground">{formatCurrency(available)}</span>
+                  {t("withdrawDialog.availableBalance")}:{" "}
+                  <span className="font-medium text-foreground">{formatCurrency(available)}</span>
                 </DialogDescription>
               </DialogHeader>
 
@@ -123,15 +126,13 @@ export function WithdrawDialog({
                 {hasPendingWithdrawal && (
                   <Alert>
                     <Loader2 />
-                    <AlertTitle>Withdrawal already processing</AlertTitle>
-                    <AlertDescription>
-                      You have a pending withdrawal. You can start a new one once it clears.
-                    </AlertDescription>
+                    <AlertTitle>{t("withdrawDialog.pendingTitle")}</AlertTitle>
+                    <AlertDescription>{t("withdrawDialog.pendingDesc")}</AlertDescription>
                   </Alert>
                 )}
 
                 <Field data-invalid={!!error && amount !== "" ? true : undefined}>
-                  <FieldLabel htmlFor="wd-amount">Withdrawal amount</FieldLabel>
+                  <FieldLabel htmlFor="wd-amount">{t("withdrawDialog.withdrawalAmount")}</FieldLabel>
                   <InputGroup>
                     <InputGroupAddon>$</InputGroupAddon>
                     <InputGroupInput
@@ -153,29 +154,29 @@ export function WithdrawDialog({
                     50%
                   </Button>
                   <Button type="button" variant="outline" size="sm" className="flex-1" onClick={() => setPct(1)}>
-                    Max
+                    {t("withdrawDialog.max")}
                   </Button>
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Available</span>
+                  <span className="text-muted-foreground">{t("withdrawDialog.available")}</span>
                   <span className="tabular-nums">{formatCurrency(available)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Minimum withdrawal</span>
+                  <span className="text-muted-foreground">{t("withdrawDialog.minWithdrawal")}</span>
                   <span className="tabular-nums">{formatCurrency(creatorMinWithdrawal)}</span>
                 </div>
 
                 <Separator />
 
                 <div className="flex flex-col gap-2">
-                  <span className="text-sm font-medium">Payout method</span>
+                  <span className="text-sm font-medium">{t("withdrawDialog.payoutMethod")}</span>
                   {payoutMethods.length === 0 ? (
                     <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-border p-4">
-                      <p className="text-sm text-muted-foreground">No payout method added</p>
+                      <p className="text-sm text-muted-foreground">{t("withdrawDialog.noMethodAdded")}</p>
                       <Button variant="secondary" size="sm" onClick={() => setAddMethodOpen(true)}>
                         <Plus data-icon="inline-start" />
-                        Add payout method
+                        {t("withdrawDialog.addPayoutMethod")}
                       </Button>
                     </div>
                   ) : (
@@ -206,7 +207,7 @@ export function WithdrawDialog({
                       })}
                       <Button variant="ghost" size="sm" className="self-start" onClick={() => setAddMethodOpen(true)}>
                         <Plus data-icon="inline-start" />
-                        Add another method
+                        {t("withdrawDialog.addAnotherMethod")}
                       </Button>
                     </div>
                   )}
@@ -217,10 +218,10 @@ export function WithdrawDialog({
 
               <DialogFooter>
                 <Button variant="outline" onClick={close}>
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 <Button disabled={!canReview} onClick={() => setStep("review")}>
-                  Review withdrawal
+                  {t("withdrawDialog.reviewWithdrawal")}
                   <ArrowRight data-icon="inline-end" />
                 </Button>
               </DialogFooter>
@@ -230,32 +231,35 @@ export function WithdrawDialog({
           {step === "review" && method && (
             <>
               <DialogHeader>
-                <DialogTitle>Withdraw funds</DialogTitle>
-                <DialogDescription>Review the details before confirming.</DialogDescription>
+                <DialogTitle>{t("withdrawDialog.withdrawFunds")}</DialogTitle>
+                <DialogDescription>{t("withdrawDialog.reviewDetails")}</DialogDescription>
               </DialogHeader>
 
               <div className="flex flex-col gap-3 rounded-lg border border-border p-4">
-                <Row label="Amount" value={formatCurrency(numeric)} />
-                <Row label="Fee" value={formatCurrency(0)} />
+                <Row label={t("withdrawDialog.amount")} value={formatCurrency(numeric)} />
+                <Row label={t("withdrawDialog.fee")} value={formatCurrency(0)} />
                 <Separator />
-                <Row label="You receive" value={`${formatCurrency(numeric)} in ${method.asset}`} strong />
-                <Row label="Payout wallet" value={`${method.label} · ${networkLabel[method.network] ?? method.network}`} />
-                <Row label="Address" value={shortenAddress(method.walletAddress)} />
-                <Row label="Balance after withdrawal" value={formatCurrency(available - numeric)} />
+                <Row label={t("withdrawDialog.youReceive")} value={`${formatCurrency(numeric)} in ${method.asset}`} strong />
+                <Row
+                  label={t("withdrawDialog.payoutWallet")}
+                  value={`${method.label} · ${networkLabel[method.network] ?? method.network}`}
+                />
+                <Row label={t("withdrawDialog.address")} value={shortenAddress(method.walletAddress)} />
+                <Row label={t("withdrawDialog.balanceAfterWithdrawal")} value={formatCurrency(available - numeric)} />
               </div>
 
               <DialogFooter>
                 <Button variant="outline" onClick={() => setStep("form")} disabled={processing}>
-                  Back
+                  {t("withdrawDialog.back")}
                 </Button>
                 <Button onClick={confirm} disabled={processing}>
                   {processing ? (
                     <>
                       <Loader2 data-icon="inline-start" className="animate-spin" />
-                      Processing
+                      {t("withdrawDialog.processing")}
                     </>
                   ) : (
-                    "Confirm withdrawal"
+                    t("withdrawDialog.confirmWithdrawal")
                   )}
                 </Button>
               </DialogFooter>
@@ -268,14 +272,14 @@ export function WithdrawDialog({
                 <div className="flex size-12 items-center justify-center rounded-full bg-primary/12">
                   <CheckCircle2 className="size-6 text-primary" />
                 </div>
-                <DialogTitle>Withdrawal requested</DialogTitle>
-                <DialogDescription>Your withdrawal request has been created.</DialogDescription>
+                <DialogTitle>{t("withdrawDialog.withdrawalRequested")}</DialogTitle>
+                <DialogDescription>{t("withdrawDialog.requestCreated")}</DialogDescription>
               </DialogHeader>
 
               <div className="flex flex-col items-center gap-1 py-2">
                 <span className="text-3xl font-semibold tabular-nums">{formatCurrency(numeric)}</span>
                 <span className="text-sm text-muted-foreground">
-                  Status: <span className="text-foreground">Processing</span>
+                  {t("withdrawDialog.status")}: <span className="text-foreground">{t("withdrawDialog.processing")}</span>
                 </span>
               </div>
 
@@ -286,7 +290,7 @@ export function WithdrawDialog({
                     close()
                   }}
                 >
-                  Back to earnings
+                  {t("withdrawDialog.backToEarnings")}
                 </Button>
                 <Button
                   onClick={() => {
@@ -294,7 +298,7 @@ export function WithdrawDialog({
                     navigate("earnings")
                   }}
                 >
-                  View transaction
+                  {t("withdrawDialog.viewTransaction")}
                 </Button>
               </DialogFooter>
             </>

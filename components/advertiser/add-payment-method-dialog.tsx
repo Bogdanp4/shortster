@@ -4,6 +4,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import type { PaymentMethod, PaymentMethodType } from "@/lib/types"
 import {
   Dialog,
@@ -28,6 +29,7 @@ export function AddPaymentMethodDialog({
   onAdded?: (method: PaymentMethod) => void
 }) {
   const { addPaymentMethod } = useApp()
+  const t = useT()
   const [type, setType] = useState<PaymentMethodType>("card")
   const [number, setNumber] = useState("")
   const [name, setName] = useState("")
@@ -46,12 +48,12 @@ export function AddPaymentMethodDialog({
     const method: PaymentMethod = {
       id: `pm-${Date.now()}`,
       type,
-      label: type === "card" ? "Visa" : type === "wire" ? "Wire transfer" : "Crypto",
+      label: type === "card" ? t("pmDialog.visa") : type === "wire" ? t("pmDialog.wireTransfer") : t("pmDialog.crypto"),
       last4: type === "wire" ? "WIRE" : last4,
       detail: type === "card" ? "Expires 12/29" : undefined,
     }
     addPaymentMethod(method)
-    toast.success("Payment method added")
+    toast.success(t("pmDialog.added"))
     onAdded?.(method)
     reset()
     onOpenChange(false)
@@ -67,12 +69,12 @@ export function AddPaymentMethodDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add payment method</DialogTitle>
-          <DialogDescription>Add a funding source for campaign deposits. Prototype only.</DialogDescription>
+          <DialogTitle>{t("pmDialog.title")}</DialogTitle>
+          <DialogDescription>{t("pmDialog.description")}</DialogDescription>
         </DialogHeader>
         <FieldGroup>
           <Field>
-            <FieldLabel>Method type</FieldLabel>
+            <FieldLabel>{t("pmDialog.methodType")}</FieldLabel>
             <ToggleGroup
               value={[type]}
               onValueChange={(v) => {
@@ -81,40 +83,45 @@ export function AddPaymentMethodDialog({
               }}
               className="justify-start"
             >
-              <ToggleGroupItem value="card">Card</ToggleGroupItem>
-              <ToggleGroupItem value="wire">Wire</ToggleGroupItem>
-              <ToggleGroupItem value="crypto">Crypto</ToggleGroupItem>
+              <ToggleGroupItem value="card">{t("pmDialog.card")}</ToggleGroupItem>
+              <ToggleGroupItem value="wire">{t("pmDialog.wire")}</ToggleGroupItem>
+              <ToggleGroupItem value="crypto">{t("pmDialog.crypto")}</ToggleGroupItem>
             </ToggleGroup>
           </Field>
           {type !== "wire" && (
             <>
               <Field>
-                <FieldLabel htmlFor="pm-name">Name on {type === "card" ? "card" : "account"}</FieldLabel>
-                <Input id="pm-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Acme Media Inc." />
+                <FieldLabel htmlFor="pm-name">
+                  {type === "card" ? t("pmDialog.nameOnCard") : t("pmDialog.nameOnAccount")}
+                </FieldLabel>
+                <Input
+                  id="pm-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={t("pmDialog.namePlaceholder")}
+                />
               </Field>
               <Field>
-                <FieldLabel htmlFor="pm-number">{type === "card" ? "Card number" : "Wallet address"}</FieldLabel>
+                <FieldLabel htmlFor="pm-number">
+                  {type === "card" ? t("pmDialog.cardNumber") : t("pmDialog.walletAddress")}
+                </FieldLabel>
                 <Input
                   id="pm-number"
                   value={number}
                   onChange={(e) => setNumber(e.target.value)}
-                  placeholder={type === "card" ? "4242 4242 4242 4242" : "0x…"}
+                  placeholder={type === "card" ? t("pmDialog.cardPlaceholder") : t("pmDialog.walletPlaceholder")}
                 />
               </Field>
             </>
           )}
-          {type === "wire" && (
-            <FieldDescription>
-              Wire transfers are confirmed manually. We will generate reference details after you continue.
-            </FieldDescription>
-          )}
+          {type === "wire" && <FieldDescription>{t("pmDialog.wireHint")}</FieldDescription>}
         </FieldGroup>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button onClick={save} disabled={!canSave}>
-            Add method
+            {t("pmDialog.addMethod")}
           </Button>
         </DialogFooter>
       </DialogContent>

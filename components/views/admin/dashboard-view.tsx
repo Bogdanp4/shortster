@@ -13,14 +13,13 @@ import { Badge } from "@/components/ui/badge"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { useT } from "@/components/i18n/locale-provider"
 
-const chartConfig = {
-  gmv: { label: "GMV", color: "var(--chart-1)" },
-  revenue: { label: "Revenue", color: "var(--chart-2)" },
-} satisfies ChartConfig
-
 export function AdminDashboardView() {
   const { navigate } = useApp()
   const t = useT()
+  const chartConfig = {
+    gmv: { label: "GMV", color: "var(--chart-1)" },
+    revenue: { label: t("adminDashboard.revenue"), color: "var(--chart-2)" },
+  } satisfies ChartConfig
   const gmv = adminStatsSeries.at(-1)!.gmv
   const revenue = adminStatsSeries.at(-1)!.revenue
 

@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { notifications as seed } from "@/lib/mock-data"
 import { formatMoney } from "@/lib/format"
 import { cn } from "@/lib/utils"
+import { useT } from "@/components/i18n/locale-provider"
 import { Bell, CheckCircle2, AlertTriangle, XCircle, Info } from "lucide-react"
 
 const kindMeta = {
@@ -18,12 +19,15 @@ const kindMeta = {
 }
 
 export function NotificationsMenu() {
+  const t = useT()
   const [items, setItems] = useState(seed)
   const unread = items.filter((i) => !i.read).length
 
   return (
     <Popover>
-      <PopoverTrigger render={<Button variant="ghost" size="icon" aria-label="Notifications" className="relative" />}>
+      <PopoverTrigger
+        render={<Button variant="ghost" size="icon" aria-label={t("notif.ariaLabel")} className="relative" />}
+      >
         <Bell className="size-5" />
         {unread > 0 && (
           <span className="absolute right-1.5 top-1.5 flex size-2 items-center justify-center">
@@ -34,7 +38,7 @@ export function NotificationsMenu() {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
         <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-sm font-semibold">Notifications</span>
+          <span className="text-sm font-semibold">{t("notif.title")}</span>
           {unread > 0 && (
             <Button
               variant="ghost"
@@ -42,7 +46,7 @@ export function NotificationsMenu() {
               className="h-auto px-2 py-1 text-xs"
               onClick={() => setItems((prev) => prev.map((i) => ({ ...i, read: true })))}
             >
-              Mark all read
+              {t("notif.markAllRead")}
             </Button>
           )}
         </div>

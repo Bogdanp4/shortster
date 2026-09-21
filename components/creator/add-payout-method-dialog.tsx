@@ -4,6 +4,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import type { PayoutMethod, CryptoAsset, CryptoNetwork } from "@/lib/types"
 import {
   Dialog,
@@ -54,18 +55,22 @@ const networkLabel: Record<CryptoNetwork, string> = {
 
 // Loose per-network address validation — enough to catch obvious mistakes in the
 // prototype without pretending to be a real on-chain checksum.
-function validateAddress(network: CryptoNetwork, address: string): string | null {
+function validateAddress(
+  network: CryptoNetwork,
+  address: string,
+  t: (key: string) => string,
+): string | null {
   const a = address.trim()
-  if (!a) return "Enter your wallet address."
+  if (!a) return t("payoutMethodDialog.enterAddress")
   switch (network) {
     case "ethereum":
     case "bsc":
     case "polygon":
-      return /^0x[a-fA-F0-9]{40}$/.test(a) ? null : "Expected a 0x address with 40 hex characters."
+      return /^0x[a-fA-F0-9]{40}$/.test(a) ? null : t("payoutMethodDialog.invalidEvmAddress")
     case "tron":
-      return /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(a) ? null : "Expected a Tron address starting with T."
+      return /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(a) ? null : t("payoutMethodDialog.invalidTronAddress")
     case "solana":
-      return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a) ? null : "Expected a base58 Solana address."
+      return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a) ? null : t("payoutMethodDialog.invalidSolanaAddress")
     default:
       return null
   }
@@ -86,6 +91,7 @@ export function AddPayoutMethodDialog({
   onAdded?: (method: PayoutMethod) => void
 }) {
   const { addPayoutMethod } = useApp()
+  const t = useT()
   const [asset, setAsset] = useState<CryptoAsset>("USDT")
   const [network, setNetwork] = useState<CryptoNetwork>("tron")
   const [address, setAddress] = useState("")
@@ -102,7 +108,7 @@ export function AddPayoutMethodDialog({
     setTouched(false)
   }
 
-  const addressError = validateAddress(network, address)
+  const addressError = validateAddress(network, address, t)
   const canSave = !addressError && confirm
 
   function save() {
@@ -119,7 +125,7 @@ export function AddPayoutMethodDialog({
       verified: true,
     }
     addPayoutMethod(method)
-    toast.success("Crypto payout wallet saved")
+    toast.success(t("payoutMethodDialog.savedToast"))
     onAdded?.(method)
     reset()
     onOpenChange(false)
@@ -135,16 +141,13 @@ export function AddPayoutMethodDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add crypto payout wallet</DialogTitle>
-          <DialogDescription>
-            Withdrawals are paid in stablecoins. Double-check the network — funds sent to the wrong network cannot be
-            recovered.
-          </DialogDescription>
+          <DialogTitle>{t("payoutMethodDialog.title")}</DialogTitle>
+          <DialogDescription>{t("payoutMethodDialog.description")}</DialogDescription>
         </DialogHeader>
         <FieldGroup>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field>
-              <FieldLabel htmlFor="asset">Asset</FieldLabel>
+              <FieldLabel htmlFor="asset">{t("payoutMethodDialog.asset")}</FieldLabel>
               <Select value={asset} onValueChange={(v) => v && setAsset(v as CryptoAsset)}>
                 <SelectTrigger id="asset">
                   <SelectValue />
@@ -161,7 +164,7 @@ export function AddPayoutMethodDialog({
               </Select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="network">Network</FieldLabel>
+              <FieldLabel htmlFor="network">{t("payoutMethodDialog.network")}</FieldLabel>
               <Select value={network} onValueChange={(v) => v && setNetwork(v as CryptoNetwork)}>
                 <SelectTrigger id="network">
                   <SelectValue />
@@ -179,7 +182,7 @@ export function AddPayoutMethodDialog({
             </Field>
           </div>
           <Field>
-            <FieldLabel htmlFor="address">Wallet address</FieldLabel>
+            <FieldLabel htmlFor="address">{t("payoutMethodDialog.walletAddress")}</FieldLabel>
             <Input
               id="address"
               value={address}
@@ -192,32 +195,32 @@ export function AddPayoutMethodDialog({
               {touched && addressError ? (
                 <span className="text-destructive">{addressError}</span>
               ) : (
-                `Receiving ${asset} on ${networkLabel[network]}. Prototype only — no real transfer is made.`
+                t("payoutMethodDialog.receivingNote", { asset, network: networkLabel[network] })
               )}
             </FieldDescription>
           </Field>
           <Field>
-            <FieldLabel htmlFor="label">Label (optional)</FieldLabel>
+            <FieldLabel htmlFor="label">{t("payoutMethodDialog.label")}</FieldLabel>
             <Input
               id="label"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              placeholder="e.g. Main wallet"
+              placeholder={t("payoutMethodDialog.labelPlaceholder")}
             />
           </Field>
           <Field orientation="horizontal">
             <Checkbox id="confirm-payout" checked={confirm} onCheckedChange={(v) => setConfirm(v === true)} />
             <FieldLabel htmlFor="confirm-payout" className="font-normal">
-              I confirm this wallet supports {asset} on {networkLabel[network]} and the address is correct.
+              {t("payoutMethodDialog.confirmCheckbox", { asset, network: networkLabel[network] })}
             </FieldLabel>
           </Field>
         </FieldGroup>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button onClick={save} disabled={!canSave}>
-            Save payout wallet
+            {t("payoutMethodDialog.savePayoutWallet")}
           </Button>
         </DialogFooter>
       </DialogContent>

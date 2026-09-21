@@ -45,7 +45,7 @@ export function TopHeader() {
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl lg:px-6">
       <div className="flex items-center gap-2 lg:hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetTrigger render={<Button variant="ghost" size="icon" aria-label="Open menu" />}>
+          <SheetTrigger render={<Button variant="ghost" size="icon" aria-label={t("common.openMenu")} />}>
             <Menu className="size-5" />
           </SheetTrigger>
           <SheetContent side="left" className="w-72 p-0">
@@ -78,7 +78,7 @@ export function TopHeader() {
             type="button"
             onClick={() => navigate("earnings")}
             className="hidden items-center gap-2 rounded-lg border border-border/60 px-3 py-1.5 text-left transition-colors hover:bg-muted/50 sm:flex"
-            aria-label="View earnings"
+            aria-label={t("shell.balance")}
           >
             <div className="flex flex-col leading-tight">
               <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{t("shell.balance")}</span>
@@ -91,7 +91,7 @@ export function TopHeader() {
             type="button"
             onClick={() => navigate("wallet")}
             className="hidden items-center gap-2 rounded-lg border border-border/60 px-3 py-1.5 text-left transition-colors hover:bg-muted/50 sm:flex"
-            aria-label="View wallet"
+            aria-label={t("shell.available")}
           >
             <div className="flex flex-col leading-tight">
               <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{t("shell.available")}</span>
@@ -102,7 +102,7 @@ export function TopHeader() {
         <NotificationsMenu />
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<Button variant="ghost" size="icon" className="rounded-full" aria-label="Account menu" />}
+            render={<Button variant="ghost" size="icon" className="rounded-full" aria-label={t("common.accountMenu")} />}
           >
             <Avatar className="size-9 border border-border/60">
               <AvatarFallback className="bg-primary/12 text-sm font-semibold text-primary">
