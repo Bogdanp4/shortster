@@ -1340,6 +1340,7 @@ export const en = {
   submissionDetail: {
     submissionId: "Submission {id}",
     backToSubmissions: "Back to submissions",
+    notFound: "Submission not found.",
     viewVideo: "View video",
     viewsLocked: "View count locked at submission{when}. Later growth doesn't change your reward.",
     flaggedAdminReview: "Flagged for admin review",

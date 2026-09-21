@@ -1,6 +1,6 @@
 "use client"
 
-import { ExternalLink, Heart, MessageCircle, Clock, Eye, Lock } from "lucide-react"
+import { ExternalLink, Heart, MessageCircle, Clock, Eye, Lock, ArrowLeft } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
@@ -18,7 +18,19 @@ import Image from "next/image"
 export function SubmissionDetailView() {
   const { params, navigate, submissions } = useApp()
   const t = useT()
-  const submission = submissions.find((s) => s.id === params.id) ?? submissions[0]
+  const submission = submissions.find((s) => s.id === params.id)
+
+  if (!submission) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Button variant="ghost" onClick={() => navigate("submissions")} className="w-fit">
+          <ArrowLeft data-icon="inline-start" />
+          {t("submissionDetail.backToSubmissions")}
+        </Button>
+        <p className="text-muted-foreground">{t("submissionDetail.notFound")}</p>
+      </div>
+    )
+  }
 
   const reward = submission.finalRewardMinor ?? submission.calculatedRewardMinor
   const capped = submission.finalRewardMinor != null && submission.finalRewardMinor < submission.calculatedRewardMinor
@@ -160,7 +172,7 @@ export function SubmissionDetailView() {
             <CardContent>
               <button
                 className="flex w-full items-center gap-3 text-left"
-                onClick={() => navigate("campaign", { id: submission.campaignId })}
+                onClick={() => navigate("campaign", { campaignId: submission.campaignId })}
               >
                 <BrandAvatar name={submission.brand} src={submission.cover} className="size-10" />
                 <div className="flex flex-col">
