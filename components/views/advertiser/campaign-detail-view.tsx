@@ -25,7 +25,7 @@ export function AdvertiserCampaignDetailView() {
   const { selectedCampaignId, navigate } = useApp()
   const t = useT()
   const campaign = getCampaign(selectedCampaignId ?? "stake-highlights") ?? campaigns[0]
-  const pct = Math.round((campaign.spent / campaign.budget) * 100)
+  const pct = Math.round((campaign.creatorBudgetSpentMinor / campaign.creatorBudgetMinor) * 100)
   const submissions = moderationQueue.filter((s) => s.campaignId === campaign.id)
 
   const chartConfig = {
@@ -60,7 +60,7 @@ export function AdvertiserCampaignDetailView() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label={t("advCampaignDetail.views")} value={formatNumber(campaign.views)} icon={Eye} />
-        <StatCard label={t("advCampaignDetail.spent")} value={formatCurrency(campaign.spent)} icon={DollarSign} />
+        <StatCard label={t("advCampaignDetail.spent")} value={formatCurrency(campaign.creatorBudgetSpentMinor)} icon={DollarSign} />
         <StatCard label={t("advCampaignDetail.submissions")} value={campaign.submissionsCount} icon={FileVideo} />
         <StatCard label={t("advCampaignDetail.creators")} value={campaign.creators} icon={Users} />
       </div>
@@ -70,8 +70,8 @@ export function AdvertiserCampaignDetailView() {
           <CardTitle>{t("advCampaignDetail.budgetUsage")}</CardTitle>
           <CardDescription>
             {t("advCampaignDetail.ofSpent", {
-              spent: formatCurrency(campaign.spent),
-              budget: formatCurrency(campaign.budget),
+              spent: formatCurrency(campaign.creatorBudgetSpentMinor),
+              budget: formatCurrency(campaign.creatorBudgetMinor),
             })}
           </CardDescription>
         </CardHeader>
@@ -79,7 +79,11 @@ export function AdvertiserCampaignDetailView() {
           <Progress value={pct} />
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{t("advCampaignDetail.percentUsed", { pct })}</span>
-            <span>{t("advCampaignDetail.remaining", { amount: formatCurrency(campaign.budget - campaign.spent) })}</span>
+            <span>
+              {t("advCampaignDetail.remaining", {
+                amount: formatCurrency(campaign.creatorBudgetMinor - campaign.creatorBudgetSpentMinor),
+              })}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -150,7 +154,9 @@ export function AdvertiserCampaignDetailView() {
                         <PlatformIcon platform={s.platform} className="size-4" />
                       </TableCell>
                       <TableCell className="text-right tabular-nums">{formatNumber(s.viewsAtSubmission)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{formatCurrency(s.cappedReward ?? s.reward)}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatCurrency(s.finalRewardMinor ?? s.calculatedRewardMinor)}
+                      </TableCell>
                       <TableCell>
                         <SubmissionStatusBadge status={s.status} />
                       </TableCell>
@@ -186,10 +192,10 @@ export function AdvertiserCampaignDetailView() {
                 <CardTitle>{t("advCampaignDetail.terms")}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-3 text-sm">
-                <Row label={t("advCampaignDetail.rate")} value={`${formatCurrency(campaign.ratePerMillion)} / 1M`} />
+                <Row label={t("advCampaignDetail.rate")} value={`${formatCurrency(campaign.ratePerMillionMinor)} / 1M`} />
                 <Row label={t("advCampaignDetail.minViews")} value={formatNumber(campaign.minViews)} />
-                <Row label={t("advCampaignDetail.maxPerVideo")} value={formatCurrency(campaign.maxPayoutPerVideo)} />
-                <Row label={t("advCampaignDetail.maxPerAccount")} value={formatCurrency(campaign.maxPayoutPerAccount)} />
+                <Row label={t("advCampaignDetail.maxPerVideo")} value={formatCurrency(campaign.maxPayoutPerVideoMinor)} />
+                <Row label={t("advCampaignDetail.maxPerAccount")} value={formatCurrency(campaign.maxPayoutPerAccountMinor)} />
                 <Row
                   label={t("advCampaignDetail.duration")}
                   value={`${campaign.minDuration}–${campaign.maxDuration}s`}

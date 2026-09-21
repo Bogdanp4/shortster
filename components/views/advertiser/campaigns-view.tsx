@@ -91,7 +91,7 @@ export function AdvertiserCampaignsView() {
             </TableHeader>
             <TableBody>
               {filtered.map((c) => {
-                const pct = Math.round((c.spent / c.budget) * 100)
+                const pct = Math.round((c.creatorBudgetSpentMinor / c.creatorBudgetMinor) * 100)
                 return (
                   <TableRow
                     key={c.id}
@@ -119,7 +119,7 @@ export function AdvertiserCampaignsView() {
                     <TableCell>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-xs text-muted-foreground">
-                          {formatCurrency(c.spent)} / {formatCurrency(c.budget)}
+                          {formatCurrency(c.creatorBudgetSpentMinor)} / {formatCurrency(c.creatorBudgetMinor)}
                         </span>
                         <Progress value={pct} />
                       </div>

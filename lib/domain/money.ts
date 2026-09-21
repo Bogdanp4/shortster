@@ -1,10 +1,6 @@
 // Integer-safe money math, operating on minor units (cents) so nothing here
 // is subject to floating-point rounding drift. Display formatting stays in
 // `lib/format.ts` — these helpers only compute amounts.
-//
-// NOTE: `lib/mock-data.ts` still stores legacy float-dollar fields today;
-// these helpers are ready for the minor-units migration described in
-// FRONTEND_HANDOFF.md but are not yet wired into every call site.
 
 export interface RewardCalcInput {
   views: number

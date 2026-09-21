@@ -16,8 +16,8 @@ import { useT } from "@/components/i18n/locale-provider"
 export function AdvertiserAnalyticsView() {
   const t = useT()
   const totalViews = campaigns.reduce((s, c) => s + c.views, 0)
-  const totalSpent = campaigns.reduce((s, c) => s + c.spent, 0)
-  const cpm = totalViews > 0 ? (totalSpent / totalViews) * 1000 : 0
+  const totalSpentMinor = campaigns.reduce((s, c) => s + c.creatorBudgetSpentMinor, 0)
+  const cpmMinor = totalViews > 0 ? (totalSpentMinor / totalViews) * 1000 : 0
   const maxViews = Math.max(...campaigns.map((c) => c.views))
 
   const viewsConfig = {
@@ -25,7 +25,7 @@ export function AdvertiserAnalyticsView() {
   } satisfies ChartConfig
 
   const spendConfig = {
-    spend: { label: t("advAnalytics.spend"), color: "var(--chart-2)" },
+    spendMinor: { label: t("advAnalytics.spend"), color: "var(--chart-2)" },
   } satisfies ChartConfig
 
   return (
@@ -41,13 +41,13 @@ export function AdvertiserAnalyticsView() {
         />
         <StatCard
           label={t("advAnalytics.totalSpent")}
-          value={formatCurrency(totalSpent)}
+          value={formatCurrency(totalSpentMinor)}
           icon={DollarSign}
           trend={{ value: "+9.4%", positive: true }}
         />
         <StatCard
           label={t("advAnalytics.effectiveCpm")}
-          value={formatCurrency(cpm)}
+          value={formatCurrency(cpmMinor)}
           icon={TrendingUp}
           hint={t("advAnalytics.costPer1kViews")}
         />
@@ -82,9 +82,9 @@ export function AdvertiserAnalyticsView() {
               <LineChart data={advertiserStatsSeries} margin={{ left: 12, right: 12, top: 8 }}>
                 <CartesianGrid vertical={false} />
                 <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} />
-                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `$${v}`} />
+                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `$${v / 100}`} />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Line dataKey="spend" type="natural" stroke="var(--color-spend)" strokeWidth={2} dot={false} />
+                <Line dataKey="spendMinor" type="natural" stroke="var(--color-spendMinor)" strokeWidth={2} dot={false} />
               </LineChart>
             </ChartContainer>
           </CardContent>

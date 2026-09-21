@@ -20,8 +20,8 @@ export function SubmissionDetailView() {
   const t = useT()
   const submission = submissions.find((s) => s.id === params.id) ?? submissions[0]
 
-  const reward = submission.cappedReward ?? submission.reward
-  const capped = submission.cappedReward != null && submission.cappedReward < submission.reward
+  const reward = submission.finalRewardMinor ?? submission.calculatedRewardMinor
+  const capped = submission.finalRewardMinor != null && submission.finalRewardMinor < submission.calculatedRewardMinor
 
   const stats = [
     { icon: Eye, label: t("submissionDetail.views"), value: formatNumber(submission.viewsAtSubmission) },

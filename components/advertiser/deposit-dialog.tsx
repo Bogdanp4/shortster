@@ -24,6 +24,7 @@ import { AddPaymentMethodDialog } from "./add-payment-method-dialog"
 const methodIcon = { card: CreditCard, wire: Landmark, crypto: Bitcoin }
 const presets = [500, 1000, 5000]
 const MIN_DEPOSIT = 100
+const MIN_DEPOSIT_MINOR = MIN_DEPOSIT * 100
 
 type Step = "form" | "review" | "success"
 
@@ -43,6 +44,7 @@ export function DepositDialog({
   const [processing, setProcessing] = useState(false)
 
   const numeric = Number(amount) || 0
+  const numericMinor = Math.round(numeric * 100)
   const method = useMemo(
     () => paymentMethods.find((m) => m.id === selectedMethodId) ?? paymentMethods[0] ?? null,
     [paymentMethods, selectedMethodId],
@@ -51,7 +53,7 @@ export function DepositDialog({
   let error: string | null = null
   if (amount !== "" && numeric <= 0) error = t("depositDialog.invalidAmount")
   else if (numeric > 0 && numeric < MIN_DEPOSIT)
-    error = t("depositDialog.minDeposit", { amount: formatCurrency(MIN_DEPOSIT) })
+    error = t("depositDialog.minDeposit", { amount: formatCurrency(MIN_DEPOSIT_MINOR) })
   else if (paymentMethods.length === 0) error = t("depositDialog.addMethodToContinue")
 
   const canReview = numeric >= MIN_DEPOSIT && !error
@@ -67,7 +69,7 @@ export function DepositDialog({
     if (!method) return
     setProcessing(true)
     setTimeout(() => {
-      deposit(numeric, method)
+      deposit(numericMinor, method)
       setProcessing(false)
       setStep("success")
     }, 900)
@@ -94,7 +96,7 @@ export function DepositDialog({
                 <DialogTitle>{t("depositDialog.addFunds")}</DialogTitle>
                 <DialogDescription>
                   {t("depositDialog.available")}:{" "}
-                  <span className="font-medium text-foreground">{formatCurrency(advertiserWallet.available)}</span>
+                  <span className="font-medium text-foreground">{formatCurrency(advertiserWallet.availableMinor)}</span>
                 </DialogDescription>
               </DialogHeader>
 
@@ -124,7 +126,7 @@ export function DepositDialog({
                       className="flex-1"
                       onClick={() => setAmount(String(p))}
                     >
-                      {formatCurrency(p)}
+                      {formatCurrency(p * 100)}
                     </Button>
                   ))}
                 </div>
@@ -199,17 +201,17 @@ export function DepositDialog({
               </DialogHeader>
 
               <div className="flex flex-col gap-3 rounded-lg border border-border p-4">
-                <Row label={t("depositDialog.depositAmount")} value={formatCurrency(numeric)} />
+                <Row label={t("depositDialog.depositAmount")} value={formatCurrency(numericMinor)} />
                 <Row label={t("depositDialog.processingFee")} value={formatCurrency(0)} />
                 <Separator />
-                <Row label={t("depositDialog.totalCharged")} value={formatCurrency(numeric)} strong />
+                <Row label={t("depositDialog.totalCharged")} value={formatCurrency(numericMinor)} strong />
                 <Row
                   label={t("depositDialog.paymentMethod")}
                   value={`${method.label}${method.last4 === "WIRE" ? "" : ` •••• ${method.last4}`}`}
                 />
                 <Row
                   label={t("depositDialog.newAvailableBalance")}
-                  value={formatCurrency(advertiserWallet.available + numeric)}
+                  value={formatCurrency(advertiserWallet.availableMinor + numericMinor)}
                 />
               </div>
 
@@ -242,10 +244,10 @@ export function DepositDialog({
               </DialogHeader>
 
               <div className="flex flex-col items-center gap-1 py-2">
-                <span className="text-3xl font-semibold tabular-nums text-primary">+{formatCurrency(numeric)}</span>
+                <span className="text-3xl font-semibold tabular-nums text-primary">+{formatCurrency(numericMinor)}</span>
                 <span className="text-sm text-muted-foreground">
                   {t("depositDialog.newBalance")}:{" "}
-                  <span className="text-foreground">{formatCurrency(advertiserWallet.available)}</span>
+                  <span className="text-foreground">{formatCurrency(advertiserWallet.availableMinor)}</span>
                 </span>
               </div>
 

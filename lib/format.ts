@@ -23,13 +23,16 @@ export const categoryLabel: Record<CampaignCategory, string> = {
   music: "Music",
 }
 
-export function formatMoney(value: number, opts?: { compact?: boolean }): string {
-  if (opts?.compact && Math.abs(value) >= 1000) {
-    return "$" + compactNumber(value)
+// All money inputs here are integer minor units (cents), matching
+// lib/domain/money.ts and every Minor-suffixed field in lib/types.ts.
+export function formatMoney(valueMinor: number, opts?: { compact?: boolean }): string {
+  const dollars = valueMinor / 100
+  if (opts?.compact && Math.abs(dollars) >= 1000) {
+    return "$" + compactNumber(dollars)
   }
   // Keep USD currency formatting consistent across locales (the platform pays
   // in USD); only the grouping/decimal separators follow the active locale.
-  return value.toLocaleString(intlLocale(), {
+  return dollars.toLocaleString(intlLocale(), {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
@@ -37,9 +40,9 @@ export function formatMoney(value: number, opts?: { compact?: boolean }): string
   })
 }
 
-export function formatMoneySigned(value: number): string {
-  const sign = value >= 0 ? "+" : "-"
-  return sign + formatMoney(Math.abs(value))
+export function formatMoneySigned(valueMinor: number): string {
+  const sign = valueMinor >= 0 ? "+" : "-"
+  return sign + formatMoney(Math.abs(valueMinor))
 }
 
 export function formatNumber(value: number): string {
@@ -105,11 +108,6 @@ export function compactNumber(value: number): string {
   return value.toLocaleString(intlLocale())
 }
 
-// reward = views * (rate per 1,000,000 views)
-export function computeReward(views: number, ratePerMillion: number): number {
-  return (views / 1_000_000) * ratePerMillion
-}
-
 // Normalize a platform video ID from a URL so the same video posted under
 // different URL shapes (youtu.be/X, youtube.com/shorts/X, watch?v=X) resolves
 // to a single ID for duplicate detection.
@@ -127,41 +125,6 @@ export function extractVideoId(url: string): string {
   // Fall back to the last non-empty path segment.
   const seg = clean.split(/[/?#]/).filter(Boolean).pop()
   return seg ?? clean
-}
-
-export interface PayoutInput {
-  views: number
-  ratePerMillion: number
-  maxPayoutPerVideo: number
-  remainingBudget: number
-}
-
-export function calcPayout({
-  views,
-  ratePerMillion,
-  maxPayoutPerVideo,
-  remainingBudget,
-}: PayoutInput) {
-  const rawReward = computeReward(views, ratePerMillion)
-  let finalReward = rawReward
-  let limitReason: "per_video" | "budget" | null = null
-  if (finalReward > maxPayoutPerVideo) {
-    finalReward = maxPayoutPerVideo
-    limitReason = "per_video"
-  }
-  if (finalReward > remainingBudget) {
-    finalReward = remainingBudget
-    limitReason = "budget"
-  }
-  return {
-    views,
-    ratePerMillion,
-    rawReward: Number(rawReward.toFixed(2)),
-    perVideoCap: maxPayoutPerVideo,
-    remainingBudget,
-    finalReward: Number(finalReward.toFixed(2)),
-    limitReason,
-  }
 }
 
 export function percent(part: number, whole: number): number {

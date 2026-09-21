@@ -45,7 +45,10 @@ export function DiscoverView() {
   }, [query, category])
 
   const activeCampaigns = campaigns.filter((c) => c.status === "active")
-  const activeBudgetRemaining = activeCampaigns.reduce((sum, c) => sum + Math.max(0, c.budget - c.spent), 0)
+  const activeBudgetRemaining = activeCampaigns.reduce(
+    (sum, c) => sum + Math.max(0, c.creatorBudgetMinor - c.creatorBudgetSpentMinor),
+    0,
+  )
   const totalViews = campaigns.reduce((sum, c) => sum + c.views, 0)
 
   return (

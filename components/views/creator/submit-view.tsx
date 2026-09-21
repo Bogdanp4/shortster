@@ -25,7 +25,8 @@ import { toast } from "sonner"
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
 import { getCampaign, resolveMockVideo } from "@/lib/mock-data"
-import { formatMoney, formatNumber, calcPayout, detectPlatformFromUrl, platformUrlPlaceholder } from "@/lib/format"
+import { formatMoney, formatNumber, detectPlatformFromUrl, platformUrlPlaceholder } from "@/lib/format"
+import { calculateReward, calculateFinalReward } from "@/lib/domain/money"
 import type {
   Platform,
   ResolvedVideo,
@@ -131,12 +132,18 @@ export function SubmitView() {
   const effectiveViews = manualMode ? claimedViewsNum : (video?.views ?? 0)
   const payout =
     video && effectiveViews > 0
-      ? calcPayout({
-          views: effectiveViews,
-          ratePerMillion: campaign.ratePerMillion,
-          maxPayoutPerVideo: campaign.maxPayoutPerVideo,
-          remainingBudget: remaining,
-        })
+      ? (() => {
+          const rawRewardMinor = calculateReward({
+            views: effectiveViews,
+            ratePerMillionMinor: campaign.ratePerMillionMinor,
+          })
+          const { finalRewardMinor, limitReason } = calculateFinalReward({
+            rawRewardMinor,
+            maxPayoutPerVideoMinor: campaign.maxPayoutPerVideoMinor,
+            remainingBudgetMinor: remaining,
+          })
+          return { rawRewardMinor, finalRewardMinor, limitReason }
+        })()
       : null
 
   const durationOk = video ? video.duration >= campaign.minDuration && video.duration <= campaign.maxDuration : true
@@ -221,9 +228,9 @@ export function SubmitView() {
         likes: video.likes,
         comments: video.comments,
         duration: video.duration,
-        ratePerMillion: campaign.ratePerMillion,
-        reward: payout.rawReward,
-        cappedReward: payout.limitReason ? payout.finalReward : undefined,
+        ratePerMillionMinor: campaign.ratePerMillionMinor,
+        calculatedRewardMinor: payout.rawRewardMinor,
+        finalRewardMinor: payout.limitReason ? payout.finalRewardMinor : undefined,
         status: "pending",
         submittedAt: "Just now",
         lockedAt: manualMode ? undefined : "Just now",
@@ -712,23 +719,23 @@ export function SubmitView() {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
-              <Row label={t("submit.rowRate")}>{formatMoney(campaign.ratePerMillion)} {t("submit.ratePerMillionSuffix")}</Row>
+              <Row label={t("submit.rowRate")}>{formatMoney(campaign.ratePerMillionMinor)} {t("submit.ratePerMillionSuffix")}</Row>
               <Row label={t("submit.rowMinViews")}>{formatNumber(campaign.minViews)}</Row>
-              <Row label={t("submit.rowMaxPerVideo")}>{formatMoney(campaign.maxPayoutPerVideo)}</Row>
+              <Row label={t("submit.rowMaxPerVideo")}>{formatMoney(campaign.maxPayoutPerVideoMinor)}</Row>
               <Row label={t("submit.rowBudgetRemaining")}>{formatMoney(remaining, { compact: true })}</Row>
 
               {payout && video ? (
                 <>
                   <Separator />
-                  <Row label={t("submit.rowRaw", { views: formatNumber(effectiveViews) })}>{formatMoney(payout.rawReward)}</Row>
+                  <Row label={t("submit.rowRaw", { views: formatNumber(effectiveViews) })}>{formatMoney(payout.rawRewardMinor)}</Row>
                   {payout.limitReason === "per_video" && (
                     <Row label={t("submit.rowPerVideoCap")} tone="warning">
-                      &minus;{formatMoney(payout.rawReward - payout.finalReward)}
+                      &minus;{formatMoney(payout.rawRewardMinor - payout.finalRewardMinor)}
                     </Row>
                   )}
                   {payout.limitReason === "budget" && (
                     <Row label={t("submit.rowLimitedByBudget")} tone="warning">
-                      &minus;{formatMoney(payout.rawReward - payout.finalReward)}
+                      &minus;{formatMoney(payout.rawRewardMinor - payout.finalRewardMinor)}
                     </Row>
                   )}
                   <Separator />
@@ -737,7 +744,7 @@ export function SubmitView() {
                       {manualMode ? t("submit.estPending") : t("submit.youllEarn")}
                     </span>
                     <span className="text-2xl font-bold text-primary tabular-nums">
-                      {formatMoney(payout.finalReward)}
+                      {formatMoney(payout.finalRewardMinor)}
                     </span>
                   </div>
                   {manualMode && (
@@ -746,7 +753,7 @@ export function SubmitView() {
                   {!manualMode && payout.limitReason && (
                     <p className="text-xs text-muted-foreground">
                       {payout.limitReason === "per_video"
-                        ? t("submit.capNotePerVideo", { amount: formatMoney(campaign.maxPayoutPerVideo) })
+                        ? t("submit.capNotePerVideo", { amount: formatMoney(campaign.maxPayoutPerVideoMinor) })
                         : t("submit.capNoteBudget", { amount: formatMoney(remaining) })}
                     </p>
                   )}
@@ -760,7 +767,7 @@ export function SubmitView() {
                     </span>
                     {!(manualMode && stage === "review") && (
                       <span className="text-lg font-semibold text-primary tabular-nums">
-                        {formatMoney((500000 / 1_000_000) * campaign.ratePerMillion)}
+                        {formatMoney(Math.round((500000 / 1_000_000) * campaign.ratePerMillionMinor))}
                       </span>
                     )}
                   </div>

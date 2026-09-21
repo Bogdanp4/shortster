@@ -58,8 +58,8 @@ export function CampaignDetailView() {
     )
   }
 
-  const spentPct = percent(campaign.spent, campaign.budget)
-  const remaining = campaign.budget - campaign.spent
+  const spentPct = percent(campaign.creatorBudgetSpentMinor, campaign.creatorBudgetMinor)
+  const remaining = campaign.creatorBudgetMinor - campaign.creatorBudgetSpentMinor
 
   return (
     <div className="flex flex-col gap-6">
@@ -140,9 +140,9 @@ export function CampaignDetailView() {
                 <AlertTitle>{t("campaignDetail.howPaidTitle")}</AlertTitle>
                 <AlertDescription>
                   {t("campaignDetail.howPaidBody", {
-                    rate: formatMoney(campaign.ratePerMillion),
-                    maxVideo: formatMoney(campaign.maxPayoutPerVideo),
-                    maxAccount: formatMoney(campaign.maxPayoutPerAccount),
+                    rate: formatMoney(campaign.ratePerMillionMinor),
+                    maxVideo: formatMoney(campaign.maxPayoutPerVideoMinor),
+                    maxAccount: formatMoney(campaign.maxPayoutPerAccountMinor),
                     minViews: formatNumber(campaign.minViews),
                   })}
                 </AlertDescription>
@@ -221,7 +221,7 @@ export function CampaignDetailView() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-medium tabular-nums">
-                          {formatMoney(s.cappedReward ?? s.reward)}
+                          {formatMoney(s.finalRewardMinor ?? s.calculatedRewardMinor)}
                         </span>
                         <SubmissionStatusBadge status={s.status} />
                       </div>
@@ -267,7 +267,7 @@ export function CampaignDetailView() {
           <Card>
             <CardContent className="flex flex-col gap-4 p-5">
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-semibold text-primary">{formatMoney(campaign.ratePerMillion)}</span>
+                <span className="text-3xl font-semibold text-primary">{formatMoney(campaign.ratePerMillionMinor)}</span>
                 <span className="text-sm text-muted-foreground">{t("campaignDetail.perMillionViews")}</span>
               </div>
 
@@ -317,8 +317,8 @@ export function CampaignDetailView() {
                 </div>
               </Detail>
               <Separator />
-              <Detail label={t("campaignDetail.maxPerVideo")}>{formatMoney(campaign.maxPayoutPerVideo)}</Detail>
-              <Detail label={t("campaignDetail.maxPerAccount")}>{formatMoney(campaign.maxPayoutPerAccount)}</Detail>
+                <Detail label={t("campaignDetail.maxPerVideo")}>{formatMoney(campaign.maxPayoutPerVideoMinor)}</Detail>
+                <Detail label={t("campaignDetail.maxPerAccount")}>{formatMoney(campaign.maxPayoutPerAccountMinor)}</Detail>
               <Detail label={t("campaignDetail.maxSubmissions")}>{t("campaignDetail.perAccount", { count: campaign.maxSubmissionsPerAccount })}</Detail>
               <Separator />
               <Detail label={t("campaignDetail.minViewsToCredit")}>

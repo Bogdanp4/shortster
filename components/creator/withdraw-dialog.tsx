@@ -5,7 +5,7 @@ import { CheckCircle2, Wallet, ArrowRight, Plus, Loader2 } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
-import { creatorMinWithdrawal } from "@/lib/mock-data"
+import { MIN_WITHDRAWAL_MINOR } from "@/lib/config"
 import { formatCurrency } from "@/lib/format"
 import type { PayoutMethod } from "@/lib/types"
 import {
@@ -53,8 +53,8 @@ export function WithdrawDialog({
   const [addMethodOpen, setAddMethodOpen] = useState(false)
   const [processing, setProcessing] = useState(false)
 
-  const available = creatorWallet.available
-  const numeric = Number(amount) || 0
+  const availableMinor = creatorWallet.availableMinor
+  const numericMinor = Math.round((Number(amount) || 0) * 100)
 
   const method = useMemo(
     () => payoutMethods.find((m) => m.id === selectedMethodId) ?? payoutMethods[0] ?? null,
@@ -66,18 +66,18 @@ export function WithdrawDialog({
   )
 
   let error: string | null = null
-  if (amount !== "" && numeric <= 0) error = t("withdrawDialog.invalidAmount")
-  else if (numeric > available) error = t("withdrawDialog.insufficientBalance")
-  else if (numeric > 0 && numeric < creatorMinWithdrawal)
-    error = t("withdrawDialog.minWithdrawalError", { amount: formatCurrency(creatorMinWithdrawal) })
+  if (amount !== "" && numericMinor <= 0) error = t("withdrawDialog.invalidAmount")
+  else if (numericMinor > availableMinor) error = t("withdrawDialog.insufficientBalance")
+  else if (numericMinor > 0 && numericMinor < MIN_WITHDRAWAL_MINOR)
+    error = t("withdrawDialog.minWithdrawalError", { amount: formatCurrency(MIN_WITHDRAWAL_MINOR) })
   else if (payoutMethods.length === 0) error = t("withdrawDialog.addMethodToContinue")
   else if (method && !method.verified) error = t("withdrawDialog.needsVerification")
 
-  const canReview = numeric > 0 && !error && !hasPendingWithdrawal
+  const canReview = numericMinor > 0 && !error && !hasPendingWithdrawal
 
   function setPct(pct: number) {
-    const value = Math.floor(available * pct * 100) / 100
-    setAmount(String(value))
+    const valueMinor = Math.floor(availableMinor * pct)
+    setAmount((valueMinor / 100).toString())
   }
 
   function reset() {
@@ -91,7 +91,7 @@ export function WithdrawDialog({
     if (!method) return
     setProcessing(true)
     setTimeout(() => {
-      withdraw(numeric, method)
+      withdraw(numericMinor, method)
       setProcessing(false)
       setStep("success")
     }, 900)
@@ -118,7 +118,7 @@ export function WithdrawDialog({
                 <DialogTitle>{t("withdrawDialog.withdrawFunds")}</DialogTitle>
                 <DialogDescription>
                   {t("withdrawDialog.availableBalance")}:{" "}
-                  <span className="font-medium text-foreground">{formatCurrency(available)}</span>
+                  <span className="font-medium text-foreground">{formatCurrency(availableMinor)}</span>
                 </DialogDescription>
               </DialogHeader>
 
@@ -160,11 +160,11 @@ export function WithdrawDialog({
 
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">{t("withdrawDialog.available")}</span>
-                  <span className="tabular-nums">{formatCurrency(available)}</span>
+                  <span className="tabular-nums">{formatCurrency(availableMinor)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">{t("withdrawDialog.minWithdrawal")}</span>
-                  <span className="tabular-nums">{formatCurrency(creatorMinWithdrawal)}</span>
+                  <span className="tabular-nums">{formatCurrency(MIN_WITHDRAWAL_MINOR)}</span>
                 </div>
 
                 <Separator />
@@ -236,16 +236,23 @@ export function WithdrawDialog({
               </DialogHeader>
 
               <div className="flex flex-col gap-3 rounded-lg border border-border p-4">
-                <Row label={t("withdrawDialog.amount")} value={formatCurrency(numeric)} />
+                <Row label={t("withdrawDialog.amount")} value={formatCurrency(numericMinor)} />
                 <Row label={t("withdrawDialog.fee")} value={formatCurrency(0)} />
                 <Separator />
-                <Row label={t("withdrawDialog.youReceive")} value={`${formatCurrency(numeric)} in ${method.asset}`} strong />
+                <Row
+                  label={t("withdrawDialog.youReceive")}
+                  value={`${formatCurrency(numericMinor)} in ${method.asset}`}
+                  strong
+                />
                 <Row
                   label={t("withdrawDialog.payoutWallet")}
                   value={`${method.label} · ${networkLabel[method.network] ?? method.network}`}
                 />
                 <Row label={t("withdrawDialog.address")} value={shortenAddress(method.walletAddress)} />
-                <Row label={t("withdrawDialog.balanceAfterWithdrawal")} value={formatCurrency(available - numeric)} />
+                <Row
+                  label={t("withdrawDialog.balanceAfterWithdrawal")}
+                  value={formatCurrency(availableMinor - numericMinor)}
+                />
               </div>
 
               <DialogFooter>
@@ -277,7 +284,7 @@ export function WithdrawDialog({
               </DialogHeader>
 
               <div className="flex flex-col items-center gap-1 py-2">
-                <span className="text-3xl font-semibold tabular-nums">{formatCurrency(numeric)}</span>
+                <span className="text-3xl font-semibold tabular-nums">{formatCurrency(numericMinor)}</span>
                 <span className="text-sm text-muted-foreground">
                   {t("withdrawDialog.status")}: <span className="text-foreground">{t("withdrawDialog.processing")}</span>
                 </span>

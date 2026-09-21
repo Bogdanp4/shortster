@@ -42,10 +42,10 @@ export function ReviewDetailView() {
   const verifiedViews = Number(verifiedInput) || 0
   const payableViews = manual ? Math.min(claimed, verifiedViews) : submission.viewsAtSubmission
   const overstated = manual && verifiedViews < claimed
-  const payableReward = useMemo(() => {
-    if (!manual) return submission.cappedReward ?? submission.reward
-    const raw = (payableViews / 1_000_000) * submission.ratePerMillion
-    const cap = campaign?.maxPayoutPerVideo ?? Number.POSITIVE_INFINITY
+  const payableRewardMinor = useMemo(() => {
+    if (!manual) return submission.finalRewardMinor ?? submission.calculatedRewardMinor
+    const raw = Math.round((payableViews / 1_000_000) * submission.ratePerMillionMinor)
+    const cap = campaign?.maxPayoutPerVideoMinor ?? Number.POSITIVE_INFINITY
     return Math.min(raw, cap)
   }, [manual, payableViews, submission, campaign])
 
@@ -71,7 +71,7 @@ export function ReviewDetailView() {
     toast.success(t("reviewDetail.approvedToast", { id: submission.id.toUpperCase() }), {
       description: manual
         ? t("reviewDetail.approvedManualDesc", {
-            amount: formatCurrency(payableReward),
+            amount: formatCurrency(payableRewardMinor),
             views: formatNumber(payableViews),
           })
         : t("reviewDetail.approvedAutoDesc"),

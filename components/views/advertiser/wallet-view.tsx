@@ -38,18 +38,18 @@ export function AdvertiserWalletView() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label={t("advWallet.available")}
-          value={formatCurrency(advertiserWallet.available)}
+          value={formatCurrency(advertiserWallet.availableMinor)}
           icon={Wallet}
           hint={t("advWallet.availableHint")}
         />
         <StatCard
           label={t("advWallet.reserved")}
-          value={formatCurrency(advertiserWallet.reserved)}
+          value={formatCurrency(advertiserWallet.reservedCreatorBudgetMinor + advertiserWallet.reservedPlatformFeeMinor)}
           icon={Lock}
           hint={t("advWallet.reservedHint")}
         />
-        <StatCard label={t("advWallet.totalDeposited")} value={formatCurrency(advertiserWallet.totalDeposited)} />
-        <StatCard label={t("advWallet.totalSpent")} value={formatCurrency(advertiserWallet.totalSpent)} />
+        <StatCard label={t("advWallet.totalDeposited")} value={formatCurrency(advertiserWallet.totalDepositedMinor)} />
+        <StatCard label={t("advWallet.totalSpent")} value={formatCurrency(advertiserWallet.totalSpentMinor)} />
       </div>
 
       <Card>
@@ -129,10 +129,10 @@ export function AdvertiserWalletView() {
                     <TransactionStatusBadge status={tx.status} />
                   </TableCell>
                   <TableCell
-                    className={`text-right font-medium tabular-nums ${tx.amount < 0 ? "text-muted-foreground" : "text-primary"}`}
+                    className={`text-right font-medium tabular-nums ${tx.amountMinor < 0 ? "text-muted-foreground" : "text-primary"}`}
                   >
-                    {tx.amount < 0 ? "-" : "+"}
-                    {formatCurrency(Math.abs(tx.amount))}
+                    {tx.amountMinor < 0 ? "-" : "+"}
+                    {formatCurrency(Math.abs(tx.amountMinor))}
                   </TableCell>
                   <TableCell>
                     <ChevronRight className="size-4 text-muted-foreground" />

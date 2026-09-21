@@ -90,17 +90,21 @@ export interface PaymentMethod {
   detail?: string
 }
 
+// All wallet/campaign money fields are integer minor units (cents) — never
+// floats — so arithmetic in lib/domain/money.ts stays rounding-safe. Display
+// formatting divides by 100 in lib/format.ts.
 export interface CreatorWallet {
-  available: number
-  pending: number
-  lifetime: number
+  availableMinor: number
+  pendingMinor: number
+  lifetimeMinor: number
 }
 
 export interface AdvertiserWallet {
-  available: number
-  reserved: number
-  totalDeposited: number
-  totalSpent: number
+  availableMinor: number
+  reservedCreatorBudgetMinor: number
+  reservedPlatformFeeMinor: number
+  totalDepositedMinor: number
+  totalSpentMinor: number
 }
 
 // Structured, moderator-checkable campaign requirements.
@@ -126,14 +130,14 @@ export interface Campaign {
   // Structured requirements used by the create flow and moderator checklist.
   req: CampaignRequirements
   status: CampaignStatus
-  budget: number
-  spent: number
+  creatorBudgetMinor: number
+  creatorBudgetSpentMinor: number
   // Shortster fee is paid by the advertiser (default 10%), never deducted from creators.
-  feePercent: number
-  ratePerMillion: number
+  platformFeePercent: number
+  ratePerMillionMinor: number
   minViews: number
-  maxPayoutPerAccount: number
-  maxPayoutPerVideo: number
+  maxPayoutPerAccountMinor: number
+  maxPayoutPerVideoMinor: number
   maxSubmissionsPerAccount: number
   platforms: Platform[]
   minDuration: number
@@ -177,11 +181,11 @@ export interface DuplicateInfo {
 
 export interface PayoutBreakdown {
   views: number
-  ratePerMillion: number
-  rawReward: number
-  perVideoCap: number
-  remainingBudget: number
-  finalReward: number
+  ratePerMillionMinor: number
+  rawRewardMinor: number
+  perVideoCapMinor: number
+  remainingBudgetMinor: number
+  finalRewardMinor: number
   limitReason: "per_video" | "budget" | null
 }
 
@@ -202,9 +206,9 @@ export interface Submission {
   likes: number
   comments: number
   duration: number
-  ratePerMillion: number
-  reward: number
-  cappedReward?: number
+  ratePerMillionMinor: number
+  calculatedRewardMinor: number
+  finalRewardMinor?: number
   status: SubmissionStatus
   submittedAt: string
   moderatorNote?: string
@@ -232,7 +236,7 @@ export interface WalletTransaction {
   date: string
   type: string
   description: string
-  amount: number
+  amountMinor: number
   status: "completed" | "pending" | "failed"
   reference: string
   campaign?: string
@@ -245,7 +249,7 @@ export interface Notification {
   detail: string
   time: string
   kind: "success" | "warning" | "danger" | "info"
-  amount?: number
+  amountMinor?: number
   read: boolean
 }
 
@@ -277,9 +281,9 @@ export interface AdminUser {
   role: Role
   status: "active" | "suspended" | "pending"
   joined: string
-  earnings?: number
-  spend?: number
-}
+  earningsMinor?: number
+  spendMinor?: number
+  }
 
 export interface AuditLog {
   id: string
