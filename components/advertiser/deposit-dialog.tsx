@@ -2,10 +2,12 @@
 
 import { useMemo, useState } from "react"
 import { CheckCircle2, CreditCard, Landmark, Bitcoin, ArrowRight, Plus, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
 import { formatCurrency } from "@/lib/format"
+import { getErrorMessage } from "@/lib/errors"
 import type { PaymentMethod } from "@/lib/types"
 import {
   Dialog,
@@ -65,14 +67,17 @@ export function DepositDialog({
     setProcessing(false)
   }
 
-  function confirm() {
+  async function confirm() {
     if (!method) return
     setProcessing(true)
-    setTimeout(() => {
-      deposit(numericMinor, method)
-      setProcessing(false)
+    try {
+      await deposit(numericMinor, method)
       setStep("success")
-    }, 900)
+    } catch (e) {
+      toast.error(getErrorMessage(e))
+    } finally {
+      setProcessing(false)
+    }
   }
 
   function close() {

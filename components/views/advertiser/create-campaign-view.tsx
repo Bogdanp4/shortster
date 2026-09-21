@@ -7,6 +7,9 @@ import { toast } from "sonner"
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
 import { formatCurrency } from "@/lib/format"
+import { getErrorMessage } from "@/lib/errors"
+import { DEFAULT_PLATFORM_FEE_PERCENT } from "@/lib/config"
+import { calculateCampaignReserve, calculatePlatformFee } from "@/lib/domain/money"
 import type { Platform, CampaignCategory, VideoLanguage } from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
 import { PlatformIcon, platformLabel } from "@/components/shared/platform-icon"
@@ -43,7 +46,7 @@ const languageOptions: { value: VideoLanguage; labelKey: string }[] = [
   { value: "uk", labelKey: "createCampaign.langUk" },
 ]
 
-const FEE_PERCENT = 10
+const FEE_PERCENT = DEFAULT_PLATFORM_FEE_PERCENT
 
 export function CreateCampaignView() {
   const { navigate, advertiserWallet, reserveForCampaign } = useApp()
@@ -78,8 +81,8 @@ export function CreateCampaignView() {
   const rateNum = Number(rate) || 0
   const budgetMinor = Math.round(budgetNum * 100)
   const rateMinor = Math.round(rateNum * 100)
-  const feeMinor = Math.round(budgetMinor * (FEE_PERCENT / 100))
-  const totalReserveMinor = budgetMinor + feeMinor
+  const feeMinor = calculatePlatformFee(budgetMinor, FEE_PERCENT)
+  const totalReserveMinor = calculateCampaignReserve(budgetMinor, FEE_PERCENT)
   const estimatedViews = rateNum > 0 ? (budgetNum / rateNum) * 1_000_000 : 0
 
   const insufficient = totalReserveMinor > advertiserWallet.availableMinor
@@ -92,17 +95,21 @@ export function CreateCampaignView() {
     setSelected((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]))
   }
 
-  function launch() {
+  async function launch() {
     if (!canLaunch) return
     const name = title.trim() || t("createCampaign.untitledCampaign")
-    reserveForCampaign(totalReserveMinor, name)
-    toast.success(t("createCampaign.createdToast"), {
-      description: t("createCampaign.createdToastDesc", {
-        amount: formatCurrency(totalReserveMinor),
-        fee: formatCurrency(feeMinor),
-      }),
-    })
-    navigate("campaigns")
+    try {
+      await reserveForCampaign(budgetMinor, FEE_PERCENT, name)
+      toast.success(t("createCampaign.createdToast"), {
+        description: t("createCampaign.createdToastDesc", {
+          amount: formatCurrency(totalReserveMinor),
+          fee: formatCurrency(feeMinor),
+        }),
+      })
+      navigate("campaigns")
+    } catch (e) {
+      toast.error(getErrorMessage(e))
+    }
   }
 
   const normalizedHashtag = requiredHashtag.trim()

@@ -28,6 +28,7 @@ import { getCampaign, resolveMockVideo } from "@/lib/mock-data"
 import { formatMoney, formatNumber, detectPlatformFromUrl, platformUrlPlaceholder } from "@/lib/format"
 import { calculateReward, calculateFinalReward } from "@/lib/domain/money"
 import { buildRequirementsChecklist } from "@/lib/domain/requirements"
+import { getErrorMessage } from "@/lib/errors"
 import type {
   Platform,
   ResolvedVideo,
@@ -251,12 +252,18 @@ export function SubmitView() {
         proofAssets: manualMode ? proofFiles : undefined,
       }
       addSubmission(submission)
-      toast.success(manualMode ? t("submit.toastManualTitle") : t("submit.toastAutoTitle"), {
-        description: manualMode
-          ? t("submit.toastManualBody", { campaign: campaign.title, views: formatNumber(claimedViewsNum) })
-          : t("submit.toastAutoBody", { campaign: campaign.title, views: formatNumber(video.views) }),
-      })
-      navigate("submissions")
+        .then(() => {
+          toast.success(manualMode ? t("submit.toastManualTitle") : t("submit.toastAutoTitle"), {
+            description: manualMode
+              ? t("submit.toastManualBody", { campaign: campaign.title, views: formatNumber(claimedViewsNum) })
+              : t("submit.toastAutoBody", { campaign: campaign.title, views: formatNumber(video.views) }),
+          })
+          navigate("submissions")
+        })
+        .catch((e) => {
+          setSubmitting(false)
+          toast.error(getErrorMessage(e))
+        })
     }, 900)
   }
 

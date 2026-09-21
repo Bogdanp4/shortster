@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react"
 import { CheckCircle2, Wallet, ArrowRight, Plus, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
 import { MIN_WITHDRAWAL_MINOR } from "@/lib/config"
 import { formatCurrency } from "@/lib/format"
+import { getErrorMessage } from "@/lib/errors"
 import type { PayoutMethod } from "@/lib/types"
 import {
   Dialog,
@@ -87,14 +89,17 @@ export function WithdrawDialog({
     setProcessing(false)
   }
 
-  function confirm() {
+  async function confirm() {
     if (!method) return
     setProcessing(true)
-    setTimeout(() => {
-      withdraw(numericMinor, method)
-      setProcessing(false)
+    try {
+      await withdraw(numericMinor, method)
       setStep("success")
-    }, 900)
+    } catch (e) {
+      toast.error(getErrorMessage(e))
+    } finally {
+      setProcessing(false)
+    }
   }
 
   function close() {
