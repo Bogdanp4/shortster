@@ -19,33 +19,35 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-
-const chartConfig = {
-  views: { label: "Views", color: "var(--chart-1)" },
-  spend: { label: "Spend", color: "var(--chart-2)" },
-} satisfies ChartConfig
+import { useT } from "@/components/i18n/locale-provider"
 
 export function AdvertiserCampaignDetailView() {
   const { selectedCampaignId, navigate } = useApp()
+  const t = useT()
   const campaign = getCampaign(selectedCampaignId ?? "stake-highlights") ?? campaigns[0]
   const pct = Math.round((campaign.spent / campaign.budget) * 100)
   const submissions = moderationQueue.filter((s) => s.campaignId === campaign.id)
+
+  const chartConfig = {
+    views: { label: t("advCampaignDetail.views"), color: "var(--chart-1)" },
+    spend: { label: t("advCampaignDetail.spent"), color: "var(--chart-2)" },
+  } satisfies ChartConfig
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={campaign.title}
         description={`${categoryLabel[campaign.category]} · ${campaign.brand}`}
-        backLabel="Back to campaigns"
+        backLabel={t("advCampaignDetail.backToCampaigns")}
         onBack={() => navigate("campaigns")}
       >
-        <Button variant="outline" onClick={() => toast.info("Campaign paused")}>
+        <Button variant="outline" onClick={() => toast.info(t("advCampaignDetail.paused"))}>
           <Pause data-icon="inline-start" />
-          Pause
+          {t("advCampaignDetail.pause")}
         </Button>
-        <Button variant="outline" onClick={() => toast.info("Opening editor…")}>
+        <Button variant="outline" onClick={() => toast.info(t("advCampaignDetail.openingEditor"))}>
           <Pencil data-icon="inline-start" />
-          Edit
+          {t("advCampaignDetail.edit")}
         </Button>
       </PageHeader>
 
@@ -57,40 +59,43 @@ export function AdvertiserCampaignDetailView() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Views" value={formatNumber(campaign.views)} icon={Eye} />
-        <StatCard label="Spent" value={formatCurrency(campaign.spent)} icon={DollarSign} />
-        <StatCard label="Submissions" value={campaign.submissionsCount} icon={FileVideo} />
-        <StatCard label="Creators" value={campaign.creators} icon={Users} />
+        <StatCard label={t("advCampaignDetail.views")} value={formatNumber(campaign.views)} icon={Eye} />
+        <StatCard label={t("advCampaignDetail.spent")} value={formatCurrency(campaign.spent)} icon={DollarSign} />
+        <StatCard label={t("advCampaignDetail.submissions")} value={campaign.submissionsCount} icon={FileVideo} />
+        <StatCard label={t("advCampaignDetail.creators")} value={campaign.creators} icon={Users} />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Budget usage</CardTitle>
+          <CardTitle>{t("advCampaignDetail.budgetUsage")}</CardTitle>
           <CardDescription>
-            {formatCurrency(campaign.spent)} of {formatCurrency(campaign.budget)} spent
+            {t("advCampaignDetail.ofSpent", {
+              spent: formatCurrency(campaign.spent),
+              budget: formatCurrency(campaign.budget),
+            })}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <Progress value={pct} />
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{pct}% used</span>
-            <span>{formatCurrency(campaign.budget - campaign.spent)} remaining</span>
+            <span>{t("advCampaignDetail.percentUsed", { pct })}</span>
+            <span>{t("advCampaignDetail.remaining", { amount: formatCurrency(campaign.budget - campaign.spent) })}</span>
           </div>
         </CardContent>
       </Card>
 
       <Tabs defaultValue="performance">
         <TabsList>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="submissions">Submissions</TabsTrigger>
-          <TabsTrigger value="brief">Brief</TabsTrigger>
+          <TabsTrigger value="performance">{t("advCampaignDetail.performance")}</TabsTrigger>
+          <TabsTrigger value="submissions">{t("advCampaignDetail.submissionsTab")}</TabsTrigger>
+          <TabsTrigger value="brief">{t("advCampaignDetail.brief")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="performance">
           <Card>
             <CardHeader>
-              <CardTitle>Views & spend</CardTitle>
-              <CardDescription>Daily performance</CardDescription>
+              <CardTitle>{t("advCampaignDetail.viewsAndSpend")}</CardTitle>
+              <CardDescription>{t("advCampaignDetail.dailyPerformance")}</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer config={chartConfig} className="aspect-[3/1] w-full">
@@ -118,18 +123,18 @@ export function AdvertiserCampaignDetailView() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Creator</TableHead>
-                    <TableHead>Platform</TableHead>
-                    <TableHead className="text-right">Views</TableHead>
-                    <TableHead className="text-right">Reward</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{t("advCampaignDetail.creator")}</TableHead>
+                    <TableHead>{t("advCampaignDetail.platform")}</TableHead>
+                    <TableHead className="text-right">{t("advCampaignDetail.views")}</TableHead>
+                    <TableHead className="text-right">{t("advCampaignDetail.reward")}</TableHead>
+                    <TableHead>{t("advCampaignDetail.status")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {submissions.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
-                        No submissions yet for this campaign.
+                        {t("advCampaignDetail.noSubmissionsYet")}
                       </TableCell>
                     </TableRow>
                   )}
@@ -161,13 +166,13 @@ export function AdvertiserCampaignDetailView() {
           <div className="grid gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Description</CardTitle>
+                <CardTitle>{t("advCampaignDetail.description")}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
                 <p className="text-sm leading-relaxed text-muted-foreground">{campaign.description}</p>
                 <Separator />
                 <div className="flex flex-col gap-2">
-                  <span className="text-sm font-medium">Requirements</span>
+                  <span className="text-sm font-medium">{t("advCampaignDetail.requirements")}</span>
                   <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
                     {campaign.requirements.map((r) => (
                       <li key={r}>· {r}</li>
@@ -178,14 +183,17 @@ export function AdvertiserCampaignDetailView() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Terms</CardTitle>
+                <CardTitle>{t("advCampaignDetail.terms")}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-3 text-sm">
-                <Row label="Rate" value={`${formatCurrency(campaign.ratePerMillion)} / 1M`} />
-                <Row label="Min views" value={formatNumber(campaign.minViews)} />
-                <Row label="Max / video" value={formatCurrency(campaign.maxPayoutPerVideo)} />
-                <Row label="Max / account" value={formatCurrency(campaign.maxPayoutPerAccount)} />
-                <Row label="Duration" value={`${campaign.minDuration}–${campaign.maxDuration}s`} />
+                <Row label={t("advCampaignDetail.rate")} value={`${formatCurrency(campaign.ratePerMillion)} / 1M`} />
+                <Row label={t("advCampaignDetail.minViews")} value={formatNumber(campaign.minViews)} />
+                <Row label={t("advCampaignDetail.maxPerVideo")} value={formatCurrency(campaign.maxPayoutPerVideo)} />
+                <Row label={t("advCampaignDetail.maxPerAccount")} value={formatCurrency(campaign.maxPayoutPerAccount)} />
+                <Row
+                  label={t("advCampaignDetail.duration")}
+                  value={`${campaign.minDuration}–${campaign.maxDuration}s`}
+                />
               </CardContent>
             </Card>
           </div>

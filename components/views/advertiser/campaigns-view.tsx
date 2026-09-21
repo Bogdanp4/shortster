@@ -17,18 +17,23 @@ import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
+import { useT } from "@/components/i18n/locale-provider"
 
-const tabs: { value: CampaignStatus | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "active", label: "Active" },
-  { value: "paused", label: "Paused" },
-  { value: "completed", label: "Completed" },
-]
+const tabValues: (CampaignStatus | "all")[] = ["all", "active", "paused", "completed"]
 
 export function AdvertiserCampaignsView() {
   const { navigate } = useApp()
+  const t = useT()
   const [tab, setTab] = useState<CampaignStatus | "all">("all")
   const [query, setQuery] = useState("")
+
+  const tabLabels: Record<CampaignStatus | "all", string> = {
+    all: t("campaignsList.all"),
+    active: t("campaignsList.active"),
+    paused: t("campaignsList.paused"),
+    completed: t("campaignsList.completed"),
+    draft: t("status.draft"),
+  }
 
   const filtered = useMemo(
     () =>
@@ -42,19 +47,19 @@ export function AdvertiserCampaignsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Campaigns" description="Manage every campaign you're running.">
+      <PageHeader title={t("campaignsList.title")} description={t("campaignsList.description")}>
         <Button onClick={() => navigate("create")}>
           <PlusCircle data-icon="inline-start" />
-          Create campaign
+          {t("campaignsList.createCampaign")}
         </Button>
       </PageHeader>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Tabs value={tab} onValueChange={(v) => setTab(v as CampaignStatus | "all")}>
           <TabsList>
-            {tabs.map((t) => (
-              <TabsTrigger key={t.value} value={t.value}>
-                {t.label}
+            {tabValues.map((v) => (
+              <TabsTrigger key={v} value={v}>
+                {tabLabels[v]}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -63,7 +68,11 @@ export function AdvertiserCampaignsView() {
           <InputGroupAddon>
             <Search />
           </InputGroupAddon>
-          <InputGroupInput placeholder="Search campaigns" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <InputGroupInput
+            placeholder={t("campaignsList.searchPlaceholder")}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
         </InputGroup>
       </div>
 
@@ -72,12 +81,12 @@ export function AdvertiserCampaignsView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Campaign</TableHead>
-                <TableHead>Platforms</TableHead>
-                <TableHead className="text-right">Views</TableHead>
-                <TableHead className="text-right">Submissions</TableHead>
-                <TableHead className="w-[200px]">Budget</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("campaignsList.colCampaign")}</TableHead>
+                <TableHead>{t("campaignsList.colPlatforms")}</TableHead>
+                <TableHead className="text-right">{t("campaignsList.colViews")}</TableHead>
+                <TableHead className="text-right">{t("campaignsList.colSubmissions")}</TableHead>
+                <TableHead className="w-[200px]">{t("campaignsList.colBudget")}</TableHead>
+                <TableHead>{t("campaignsList.colStatus")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

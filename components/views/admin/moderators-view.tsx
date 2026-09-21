@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { useT } from "@/components/i18n/locale-provider"
 
 interface ModeratorStats {
   reviewedToday: number
@@ -32,6 +33,7 @@ function initials(name: string) {
 }
 
 export function AdminModeratorsView() {
+  const t = useT()
   const platformMods = adminUsers.filter((u) => u.role === "moderator")
   const mods = [
     ...platformMods.map((m) => ({
@@ -48,20 +50,20 @@ export function AdminModeratorsView() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Moderators"
-        description="Manage the moderation team and monitor review performance."
+        title={t("adminModerators.title")}
+        description={t("adminModerators.description")}
         action={
-          <Button onClick={() => toast.success("Invite sent")}>
+          <Button onClick={() => toast.success(t("adminModerators.inviteSentToast"))}>
             <Plus data-icon="inline-start" />
-            Invite moderator
+            {t("adminModerators.inviteModerator")}
           </Button>
         }
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Active moderators" value={mods.length} icon={UserCog} />
-        <StatCard label="Reviewed today" value={totalReviewed} icon={ClipboardCheck} />
-        <StatCard label="Avg. approval rate" value="77%" />
+        <StatCard label={t("adminModerators.activeModerators")} value={mods.length} icon={UserCog} />
+        <StatCard label={t("adminModerators.reviewedToday")} value={totalReviewed} icon={ClipboardCheck} />
+        <StatCard label={t("adminModerators.avgApprovalRate")} value="77%" />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -77,24 +79,24 @@ export function AdminModeratorsView() {
                   <CardDescription>{m.handle}</CardDescription>
                 </div>
                 <Badge variant="outline" className="ml-auto">
-                  Active
+                  {t("adminModerators.active")}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Reviewed today</span>
+                <span className="text-muted-foreground">{t("adminModerators.reviewedToday")}</span>
                 <span className="font-medium tabular-nums">{m.reviewedToday}</span>
               </div>
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Approval rate</span>
+                  <span className="text-muted-foreground">{t("adminModerators.approvalRate")}</span>
                   <span className="font-medium tabular-nums">{m.approvalRate}%</span>
                 </div>
                 <Progress value={m.approvalRate} />
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Avg. review time</span>
+                <span className="text-muted-foreground">{t("adminModerators.avgReviewTime")}</span>
                 <span className="font-medium tabular-nums">{m.avgSeconds}s</span>
               </div>
             </CardContent>

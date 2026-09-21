@@ -152,7 +152,7 @@ export function CreateCampaignView() {
                       <SelectGroup>
                         {categoryOptions.map((c) => (
                           <SelectItem key={c.value} value={c.value}>
-                            {c.label}
+                            {t(c.labelKey)}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -210,7 +210,7 @@ export function CreateCampaignView() {
                         <PlatformIcon platform={p.value} className="size-6" />
                         <div className="flex flex-col">
                           <span className="text-sm font-medium">{p.label}</span>
-                          <span className="text-xs text-muted-foreground">{p.description}</span>
+                          <span className="text-xs text-muted-foreground">{t(p.descKey)}</span>
                         </div>
                       </button>
                     )
@@ -277,7 +277,7 @@ export function CreateCampaignView() {
                         <SelectGroup>
                           {languageOptions.map((l) => (
                             <SelectItem key={l.value} value={l.value}>
-                              {l.label}
+                              {t(l.labelKey)}
                             </SelectItem>
                           ))}
                         </SelectGroup>

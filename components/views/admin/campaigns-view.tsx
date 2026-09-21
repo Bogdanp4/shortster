@@ -21,19 +21,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal } from "lucide-react"
+import { useT } from "@/components/i18n/locale-provider"
 
 export function AdminCampaignsView() {
+  const t = useT()
   const totalBudget = campaigns.reduce((s, c) => s + c.budget, 0)
   const totalViews = campaigns.reduce((s, c) => s + c.views, 0)
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Campaigns" description="Oversee every campaign across all advertisers." />
+      <PageHeader title={t("adminCampaigns.title")} description={t("adminCampaigns.description")} />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total campaigns" value={campaigns.length} icon={Megaphone} />
-        <StatCard label="Total budget" value={formatCurrency(totalBudget)} />
-        <StatCard label="Combined views" value={formatNumber(totalViews)} />
+        <StatCard label={t("adminCampaigns.totalCampaigns")} value={campaigns.length} icon={Megaphone} />
+        <StatCard label={t("adminCampaigns.totalBudget")} value={formatCurrency(totalBudget)} />
+        <StatCard label={t("adminCampaigns.combinedViews")} value={formatNumber(totalViews)} />
       </div>
 
       <Card>
@@ -41,12 +43,12 @@ export function AdminCampaignsView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Campaign</TableHead>
-                <TableHead>Advertiser</TableHead>
-                <TableHead>Platforms</TableHead>
-                <TableHead className="text-right">Budget</TableHead>
-                <TableHead className="text-right">Views</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("adminCampaigns.campaign")}</TableHead>
+                <TableHead>{t("adminCampaigns.advertiser")}</TableHead>
+                <TableHead>{t("adminCampaigns.platforms")}</TableHead>
+                <TableHead className="text-right">{t("adminCampaigns.budget")}</TableHead>
+                <TableHead className="text-right">{t("adminCampaigns.views")}</TableHead>
+                <TableHead>{t("adminCampaigns.status")}</TableHead>
                 <TableHead className="text-right" />
               </TableRow>
             </TableHeader>
@@ -77,15 +79,24 @@ export function AdminCampaignsView() {
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon-sm">
                           <MoreHorizontal />
-                          <span className="sr-only">Actions</span>
+                          <span className="sr-only">{t("adminCampaigns.actions")}</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuGroup>
-                          <DropdownMenuItem onClick={() => toast.info(`Viewing ${c.title}`)}>View</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => toast.warning(`Paused ${c.title}`)}>Pause</DropdownMenuItem>
-                          <DropdownMenuItem variant="destructive" onClick={() => toast.error(`Suspended ${c.title}`)}>
-                            Suspend
+                          <DropdownMenuItem onClick={() => toast.info(t("adminCampaigns.viewingToast", { title: c.title }))}>
+                            {t("adminCampaigns.view")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => toast.warning(t("adminCampaigns.pausedToast", { title: c.title }))}
+                          >
+                            {t("adminCampaigns.pause")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => toast.error(t("adminCampaigns.suspendedToast", { title: c.title }))}
+                          >
+                            {t("adminCampaigns.suspend")}
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>

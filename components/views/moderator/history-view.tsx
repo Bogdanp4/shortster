@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { useT } from "@/components/i18n/locale-provider"
 
 type Action = "approved" | "rejected" | "flagged"
 
@@ -18,31 +19,37 @@ const history: { id: string; action: Action; submission: string; creator: string
   { id: "h6", action: "rejected", submission: "SUB-1033", creator: "Sam Okafor", campaign: "Sports Highlights", time: "11:35", note: "Missing intro sting" },
 ]
 
-const config: Record<Action, { icon: typeof CheckCircle2; label: string; className: string }> = {
-  approved: { icon: CheckCircle2, label: "Approved", className: "text-primary" },
-  rejected: { icon: XCircle, label: "Rejected", className: "text-destructive" },
-  flagged: { icon: Flag, label: "Flagged", className: "text-chart-4" },
+const config: Record<Action, { icon: typeof CheckCircle2; className: string }> = {
+  approved: { icon: CheckCircle2, className: "text-primary" },
+  rejected: { icon: XCircle, className: "text-destructive" },
+  flagged: { icon: Flag, className: "text-chart-4" },
 }
 
 export function ModerationHistoryView() {
+  const t = useT()
+  const label: Record<Action, string> = {
+    approved: t("modHistory.approved"),
+    rejected: t("modHistory.rejected"),
+    flagged: t("modHistory.flagged"),
+  }
   const approved = history.filter((h) => h.action === "approved").length
   const rejected = history.filter((h) => h.action === "rejected").length
   const flagged = history.filter((h) => h.action === "flagged").length
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="History" description="Your recent moderation decisions." />
+      <PageHeader title={t("modHistory.title")} description={t("modHistory.description")} />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Approved" value={approved} icon={CheckCircle2} />
-        <StatCard label="Rejected" value={rejected} icon={XCircle} />
-        <StatCard label="Flagged" value={flagged} icon={Flag} />
+        <StatCard label={t("modHistory.approved")} value={approved} icon={CheckCircle2} />
+        <StatCard label={t("modHistory.rejected")} value={rejected} icon={XCircle} />
+        <StatCard label={t("modHistory.flagged")} value={flagged} icon={Flag} />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Today&apos;s activity</CardTitle>
-          <CardDescription>All decisions from your current session</CardDescription>
+          <CardTitle>{t("modHistory.todaysActivity")}</CardTitle>
+          <CardDescription>{t("modHistory.todaysActivityDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-1">
           {history.map((h, i, arr) => {
@@ -53,7 +60,7 @@ export function ModerationHistoryView() {
                   <c.icon className={`mt-0.5 size-5 shrink-0 ${c.className}`} />
                   <div className="flex flex-1 flex-col gap-0.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{c.label}</span>
+                      <span className="text-sm font-medium">{label[h.action]}</span>
                       <span className="font-mono text-xs text-muted-foreground">{h.submission}</span>
                     </div>
                     <span className="text-sm text-muted-foreground">

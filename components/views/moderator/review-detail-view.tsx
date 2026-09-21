@@ -20,8 +20,10 @@ import { Field, FieldGroup, FieldLabel, FieldDescription } from "@/components/ui
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useT } from "@/components/i18n/locale-provider"
 
 export function ReviewDetailView() {
+  const t = useT()
   const { params, navigate } = useApp()
   const submission = moderationQueue.find((s) => s.id === params.submissionId) ?? moderationQueue[0]
   const campaign = getCampaign(submission.campaignId)
@@ -49,41 +51,46 @@ export function ReviewDetailView() {
 
   const stats = manual
     ? [
-        { icon: Eye, label: "Declared views", value: formatNumber(claimed) },
-        { icon: Heart, label: "Likes", value: formatNumber(submission.likes) },
-        { icon: MessageCircle, label: "Comments", value: formatNumber(submission.comments) },
-        { icon: Clock, label: "Duration", value: `${submission.duration}s` },
+        { icon: Eye, label: t("reviewDetail.declaredViews"), value: formatNumber(claimed) },
+        { icon: Heart, label: t("reviewDetail.likes"), value: formatNumber(submission.likes) },
+        { icon: MessageCircle, label: t("reviewDetail.comments"), value: formatNumber(submission.comments) },
+        { icon: Clock, label: t("reviewDetail.duration"), value: `${submission.duration}s` },
       ]
     : [
-        { icon: Eye, label: "Verified views", value: formatNumber(submission.viewsAtSubmission) },
-        { icon: Heart, label: "Likes", value: formatNumber(submission.likes) },
-        { icon: MessageCircle, label: "Comments", value: formatNumber(submission.comments) },
-        { icon: Clock, label: "Duration", value: `${submission.duration}s` },
+        { icon: Eye, label: t("reviewDetail.verifiedViews"), value: formatNumber(submission.viewsAtSubmission) },
+        { icon: Heart, label: t("reviewDetail.likes"), value: formatNumber(submission.likes) },
+        { icon: MessageCircle, label: t("reviewDetail.comments"), value: formatNumber(submission.comments) },
+        { icon: Clock, label: t("reviewDetail.duration"), value: `${submission.duration}s` },
       ]
 
   function approve() {
     if (!allChecked) {
-      toast.error("Complete the checklist", { description: "Tick every requirement before approving." })
+      toast.error(t("reviewDetail.completeChecklistError"), { description: t("reviewDetail.completeChecklistDesc") })
       return
     }
-    toast.success(`Approved ${submission.id.toUpperCase()}`, {
+    toast.success(t("reviewDetail.approvedToast", { id: submission.id.toUpperCase() }), {
       description: manual
-        ? `Creator credited ${formatCurrency(payableReward)} on ${formatNumber(payableViews)} verified views.`
-        : "Creator will be credited.",
+        ? t("reviewDetail.approvedManualDesc", {
+            amount: formatCurrency(payableReward),
+            views: formatNumber(payableViews),
+          })
+        : t("reviewDetail.approvedAutoDesc"),
     })
     navigate("queue")
   }
   function reject() {
-    toast.error(`Rejected ${submission.id.toUpperCase()}`, { description: "Creator has been notified." })
+    toast.error(t("reviewDetail.rejectedToast", { id: submission.id.toUpperCase() }), {
+      description: t("reviewDetail.rejectedDesc"),
+    })
     navigate("queue")
   }
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Review submission"
+        title={t("reviewDetail.title")}
         description={`${submission.id.toUpperCase()} · ${submission.campaignTitle}`}
-        backLabel="Back to queue"
+        backLabel={t("reviewDetail.backLabel")}
         onBack={() => navigate("queue")}
       />
 
@@ -106,7 +113,7 @@ export function ReviewDetailView() {
                 className={`absolute right-4 top-4 gap-1 ${manual ? "text-warning" : "text-success"}`}
               >
                 {manual ? <PencilLine className="size-3" /> : <Zap className="size-3" />}
-                {manual ? "Manual verification" : "Automatic verification"}
+                {manual ? t("reviewDetail.manualVerification") : t("reviewDetail.autoVerification")}
               </Badge>
             </div>
             <CardContent className="grid grid-cols-2 gap-4 pt-6 sm:grid-cols-4">
@@ -128,16 +135,13 @@ export function ReviewDetailView() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <PencilLine className="size-4 text-warning" />
-                  Verify declared views
+                  {t("reviewDetail.verifyDeclaredViews")}
                 </CardTitle>
-                <CardDescription>
-                  This account can&apos;t be read via API. Confirm the view count against the creator&apos;s proof —
-                  payout is capped at the lower of declared and verified.
-                </CardDescription>
+                <CardDescription>{t("reviewDetail.verifyDeclaredViewsDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
-                  <span className="text-sm font-medium">Proof screenshots</span>
+                  <span className="text-sm font-medium">{t("reviewDetail.proofScreenshots")}</span>
                   <div className="flex flex-wrap gap-3">
                     {(submission.proofAssets ?? []).map((src, i) => (
                       <a
@@ -149,7 +153,7 @@ export function ReviewDetailView() {
                       >
                         <Image
                           src={src || "/placeholder.svg"}
-                          alt={`Proof ${i + 1}`}
+                          alt={t("reviewDetail.proofAlt", { n: i + 1 })}
                           fill
                           className="object-cover transition-transform group-hover:scale-105"
                           sizes="112px"
@@ -162,7 +166,7 @@ export function ReviewDetailView() {
                     {(submission.proofAssets ?? []).length === 0 && (
                       <div className="flex size-28 flex-col items-center justify-center gap-1 rounded-lg border border-dashed text-muted-foreground">
                         <ImageIcon className="size-5" />
-                        <span className="text-xs">No proof</span>
+                        <span className="text-xs">{t("reviewDetail.noProof")}</span>
                       </div>
                     )}
                   </div>
@@ -170,13 +174,13 @@ export function ReviewDetailView() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field>
-                    <FieldLabel>Creator declared</FieldLabel>
+                    <FieldLabel>{t("reviewDetail.creatorDeclared")}</FieldLabel>
                     <div className="flex h-9 items-center rounded-md border bg-muted/40 px-3 text-sm font-medium tabular-nums">
-                      {formatNumber(claimed)} views
+                      {formatNumber(claimed)} {t("reviewDetail.viewsUnit")}
                     </div>
                   </Field>
                   <Field>
-                    <FieldLabel htmlFor="verified">Moderator verified</FieldLabel>
+                    <FieldLabel htmlFor="verified">{t("reviewDetail.moderatorVerified")}</FieldLabel>
                     <InputGroup>
                       <InputGroupAddon>
                         <Eye className="size-4" />
@@ -188,17 +192,19 @@ export function ReviewDetailView() {
                         onChange={(e) => setVerifiedInput(e.target.value.replace(/[^0-9]/g, ""))}
                       />
                     </InputGroup>
-                    <FieldDescription>Set to the real count shown in the proof.</FieldDescription>
+                    <FieldDescription>{t("reviewDetail.setToRealCount")}</FieldDescription>
                   </Field>
                 </div>
 
                 {overstated && (
                   <Alert variant="destructive">
                     <Flag />
-                    <AlertTitle>Declared count higher than verified</AlertTitle>
+                    <AlertTitle>{t("reviewDetail.overstatedTitle")}</AlertTitle>
                     <AlertDescription>
-                      The creator declared {formatNumber(claimed)} but you verified {formatNumber(verifiedViews)}. Payout
-                      will be based on the lower verified figure. Consider flagging if the gap looks intentional.
+                      {t("reviewDetail.overstatedDesc", {
+                        claimed: formatNumber(claimed),
+                        verified: formatNumber(verifiedViews),
+                      })}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -206,9 +212,12 @@ export function ReviewDetailView() {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
-                    <span className="text-sm text-muted-foreground">Payable views</span>
+                    <span className="text-sm text-muted-foreground">{t("reviewDetail.payableViews")}</span>
                     <span className="text-xs text-muted-foreground">
-                      min(declared {formatNumber(claimed)}, verified {formatNumber(verifiedViews)})
+                      {t("reviewDetail.payableViewsFormula", {
+                        claimed: formatNumber(claimed),
+                        verified: formatNumber(verifiedViews),
+                      })}
                     </span>
                   </div>
                   <span className="text-lg font-semibold tabular-nums">{formatNumber(payableViews)}</span>
@@ -219,12 +228,12 @@ export function ReviewDetailView() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Requirement checklist</CardTitle>
-              <CardDescription>Confirm the video meets every item in the brief before approving</CardDescription>
+              <CardTitle>{t("reviewDetail.checklistTitle")}</CardTitle>
+              <CardDescription>{t("reviewDetail.checklistDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {requirements.length === 0 && (
-                <p className="text-sm text-muted-foreground">This campaign has no structured requirements.</p>
+                <p className="text-sm text-muted-foreground">{t("reviewDetail.noRequirements")}</p>
               )}
               {requirements.map((r) => (
                 <label key={r} className="flex items-center gap-3 text-sm">
@@ -255,16 +264,16 @@ export function ReviewDetailView() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Moderator note</CardTitle>
-              <CardDescription>Required when rejecting a submission</CardDescription>
+              <CardTitle>{t("reviewDetail.noteTitle")}</CardTitle>
+              <CardDescription>{t("reviewDetail.noteDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="note" className="sr-only">
-                    Note
+                    {t("reviewDetail.noteTitle")}
                   </FieldLabel>
-                  <Textarea id="note" rows={3} placeholder="Explain your decision…" />
+                  <Textarea id="note" rows={3} placeholder={t("reviewDetail.notePlaceholder")} />
                 </Field>
               </FieldGroup>
             </CardContent>
@@ -274,36 +283,38 @@ export function ReviewDetailView() {
         <div className="flex flex-col gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Risk assessment</CardTitle>
-              <CardDescription>Automated fraud signals</CardDescription>
+              <CardTitle>{t("reviewDetail.riskAssessment")}</CardTitle>
+              <CardDescription>{t("reviewDetail.riskAssessmentDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Risk score</span>
+                <span className="text-sm text-muted-foreground">{t("reviewDetail.riskScore")}</span>
                 <RiskBadge score={submission.riskScore} />
               </div>
               <Separator />
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Creator</span>
+                <span className="text-muted-foreground">{t("reviewDetail.creator")}</span>
                 <span className="font-medium">{submission.creatorName}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Account</span>
+                <span className="text-muted-foreground">{t("reviewDetail.account")}</span>
                 <span className="font-medium">{submission.accountHandle}</span>
               </div>
               {submission.followersAtSubmission !== undefined && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Followers</span>
+                  <span className="text-muted-foreground">{t("reviewDetail.followers")}</span>
                   <span className="font-medium">{formatNumber(submission.followersAtSubmission)}</span>
                 </div>
               )}
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Verification</span>
-                <span className="font-medium">{manual ? "Manual (proof)" : "Automatic (API)"}</span>
+                <span className="text-muted-foreground">{t("reviewDetail.verification")}</span>
+                <span className="font-medium">
+                  {manual ? t("reviewDetail.manualProof") : t("reviewDetail.automaticApi")}
+                </span>
               </div>
               <Separator />
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Reward</span>
+                <span className="text-muted-foreground">{t("reviewDetail.reward")}</span>
                 <span className="font-medium">{formatCurrency(payableReward)}</span>
               </div>
             </CardContent>
@@ -313,27 +324,27 @@ export function ReviewDetailView() {
             <CardContent className="flex flex-col gap-3 pt-6">
               <Button size="lg" onClick={approve} disabled={!allChecked}>
                 <Check data-icon="inline-start" />
-                Approve submission
+                {t("reviewDetail.approveSubmission")}
               </Button>
               {!allChecked && requirements.length > 0 && (
                 <p className="text-center text-xs text-muted-foreground">
-                  Tick all {requirements.length} requirements to enable approval
+                  {t("reviewDetail.tickAllRequirements", { count: requirements.length })}
                 </p>
               )}
               <Button size="lg" variant="outline" onClick={reject}>
                 <X data-icon="inline-start" />
-                Reject submission
+                {t("reviewDetail.rejectSubmission")}
               </Button>
               <Button
                 size="lg"
                 variant="ghost"
                 onClick={() => {
-                  toast.warning("Flagged for fraud review")
+                  toast.warning(t("reviewDetail.flaggedToast"))
                   navigate("fraud")
                 }}
               >
                 <Flag data-icon="inline-start" />
-                Flag for fraud
+                {t("reviewDetail.flagForFraud")}
               </Button>
             </CardContent>
           </Card>

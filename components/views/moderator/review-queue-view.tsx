@@ -14,20 +14,22 @@ import { BrandAvatar } from "@/components/shared/brand-avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { useT } from "@/components/i18n/locale-provider"
 
 export function ReviewQueueView() {
+  const t = useT()
   const { navigate } = useApp()
   const avgWait = "27 min"
   const highRisk = moderationQueue.filter((s) => s.riskScore >= 40).length
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Review Queue" description="Approve or reject creator submissions. Highest risk first." />
+      <PageHeader title={t("reviewQueue.title")} description={t("reviewQueue.description")} />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="In queue" value={moderationQueue.length} icon={Clock} />
-        <StatCard label="High risk" value={highRisk} icon={AlertTriangle} hint="Risk score ≥ 40" />
-        <StatCard label="Avg. wait" value={avgWait} hint="Time to first review" />
+        <StatCard label={t("reviewQueue.inQueue")} value={moderationQueue.length} icon={Clock} />
+        <StatCard label={t("reviewQueue.highRisk")} value={highRisk} icon={AlertTriangle} hint={t("reviewQueue.highRiskHint")} />
+        <StatCard label={t("reviewQueue.avgWait")} value={avgWait} hint={t("reviewQueue.avgWaitHint")} />
       </div>
 
       <div className="flex flex-col gap-3">
@@ -48,7 +50,7 @@ export function ReviewQueueView() {
                       {s.metricsMode === "manual" && (
                         <Badge variant="secondary" className="gap-1 text-warning">
                           <PencilLine className="size-3" />
-                          Manual
+                          {t("reviewQueue.manual")}
                         </Badge>
                       )}
                     </div>
@@ -57,8 +59,8 @@ export function ReviewQueueView() {
                         <PlatformIcon platform={s.platform} className="size-3.5" />
                         {s.creatorName} · {s.accountHandle}
                       </span>
-                      <span>{formatNumber(s.viewsAtSubmission)} views</span>
-                      <span>{formatCurrency(s.cappedReward ?? s.reward)} reward</span>
+                      <span>{formatNumber(s.viewsAtSubmission)} {t("reviewQueue.views")}</span>
+                      <span>{formatCurrency(s.cappedReward ?? s.reward)} {t("reviewQueue.reward")}</span>
                       <span>{formatRelative(s.submittedAt)}</span>
                     </div>
                   </div>
@@ -67,22 +69,22 @@ export function ReviewQueueView() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => toast.success(`Approved ${s.id.toUpperCase()}`)}
+                    onClick={() => toast.success(t("reviewQueue.approvedToast", { id: s.id.toUpperCase() }))}
                   >
                     <Check data-icon="inline-start" />
-                    Approve
+                    {t("reviewQueue.approve")}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => toast.error(`Rejected ${s.id.toUpperCase()}`)}
+                    onClick={() => toast.error(t("reviewQueue.rejectedToast", { id: s.id.toUpperCase() }))}
                   >
                     <X data-icon="inline-start" />
-                    Reject
+                    {t("reviewQueue.reject")}
                   </Button>
                   <Button variant="ghost" size="icon-sm" onClick={() => navigate("review", { submissionId: s.id })}>
                     <ChevronRight />
-                    <span className="sr-only">Review details</span>
+                    <span className="sr-only">{t("reviewQueue.reviewDetails")}</span>
                   </Button>
                 </div>
               </CardContent>

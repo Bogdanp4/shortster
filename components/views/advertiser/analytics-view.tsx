@@ -11,36 +11,53 @@ import { BrandAvatar } from "@/components/shared/brand-avatar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-
-const viewsConfig = {
-  views: { label: "Views", color: "var(--chart-1)" },
-} satisfies ChartConfig
-
-const spendConfig = {
-  spend: { label: "Spend", color: "var(--chart-2)" },
-} satisfies ChartConfig
+import { useT } from "@/components/i18n/locale-provider"
 
 export function AdvertiserAnalyticsView() {
+  const t = useT()
   const totalViews = campaigns.reduce((s, c) => s + c.views, 0)
   const totalSpent = campaigns.reduce((s, c) => s + c.spent, 0)
   const cpm = totalViews > 0 ? (totalSpent / totalViews) * 1000 : 0
   const maxViews = Math.max(...campaigns.map((c) => c.views))
 
+  const viewsConfig = {
+    views: { label: t("advAnalytics.views"), color: "var(--chart-1)" },
+  } satisfies ChartConfig
+
+  const spendConfig = {
+    spend: { label: t("advAnalytics.spend"), color: "var(--chart-2)" },
+  } satisfies ChartConfig
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Analytics" description="Deep dive into your campaign performance." />
+      <PageHeader title={t("advAnalytics.title")} description={t("advAnalytics.description")} />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total views" value={formatNumber(totalViews)} icon={Eye} trend={{ value: "+18.2%", positive: true }} />
-        <StatCard label="Total spent" value={formatCurrency(totalSpent)} icon={DollarSign} trend={{ value: "+9.4%", positive: true }} />
-        <StatCard label="Effective CPM" value={formatCurrency(cpm)} icon={TrendingUp} hint="Cost per 1K views" />
+        <StatCard
+          label={t("advAnalytics.totalViews")}
+          value={formatNumber(totalViews)}
+          icon={Eye}
+          trend={{ value: "+18.2%", positive: true }}
+        />
+        <StatCard
+          label={t("advAnalytics.totalSpent")}
+          value={formatCurrency(totalSpent)}
+          icon={DollarSign}
+          trend={{ value: "+9.4%", positive: true }}
+        />
+        <StatCard
+          label={t("advAnalytics.effectiveCpm")}
+          value={formatCurrency(cpm)}
+          icon={TrendingUp}
+          hint={t("advAnalytics.costPer1kViews")}
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Views trend</CardTitle>
-            <CardDescription>Daily verified views</CardDescription>
+            <CardTitle>{t("advAnalytics.viewsTrend")}</CardTitle>
+            <CardDescription>{t("advAnalytics.dailyVerifiedViews")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={viewsConfig} className="aspect-[2/1] w-full">
@@ -57,8 +74,8 @@ export function AdvertiserAnalyticsView() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Spend trend</CardTitle>
-            <CardDescription>Daily payout spend</CardDescription>
+            <CardTitle>{t("advAnalytics.spendTrend")}</CardTitle>
+            <CardDescription>{t("advAnalytics.dailyPayoutSpend")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={spendConfig} className="aspect-[2/1] w-full">
@@ -76,8 +93,8 @@ export function AdvertiserAnalyticsView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Campaign leaderboard</CardTitle>
-          <CardDescription>Ranked by total views</CardDescription>
+          <CardTitle>{t("advAnalytics.campaignLeaderboard")}</CardTitle>
+          <CardDescription>{t("advAnalytics.rankedByViews")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
           {[...campaigns]

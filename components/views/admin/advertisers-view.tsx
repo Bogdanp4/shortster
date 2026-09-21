@@ -10,19 +10,24 @@ import { BrandAvatar } from "@/components/shared/brand-avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useT } from "@/components/i18n/locale-provider"
 
 export function AdminAdvertisersView() {
+  const t = useT()
   const advertisers = adminUsers.filter((u) => u.role === "advertiser")
   const totalSpend = advertisers.reduce((s, a) => s + (a.spend ?? 0), 0)
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Advertisers" description="Brands running campaigns on the platform." />
+      <PageHeader title={t("adminAdvertisers.title")} description={t("adminAdvertisers.description")} />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total advertisers" value={advertisers.length} icon={Building2} />
-        <StatCard label="Combined spend" value={formatCurrency(totalSpend)} />
-        <StatCard label="Live campaigns" value={campaigns.filter((c) => c.status === "active").length} />
+        <StatCard label={t("adminAdvertisers.totalAdvertisers")} value={advertisers.length} icon={Building2} />
+        <StatCard label={t("adminAdvertisers.combinedSpend")} value={formatCurrency(totalSpend)} />
+        <StatCard
+          label={t("adminAdvertisers.liveCampaigns")}
+          value={campaigns.filter((c) => c.status === "active").length}
+        />
       </div>
 
       <Card>
@@ -30,11 +35,11 @@ export function AdminAdvertisersView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Advertiser</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="text-right">Campaigns</TableHead>
-                <TableHead className="text-right">Total spend</TableHead>
+                <TableHead>{t("adminAdvertisers.advertiser")}</TableHead>
+                <TableHead>{t("adminUsers.status")}</TableHead>
+                <TableHead>{t("adminAdvertisers.joined")}</TableHead>
+                <TableHead className="text-right">{t("adminAdvertisers.campaigns")}</TableHead>
+                <TableHead className="text-right">{t("adminAdvertisers.totalSpend")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

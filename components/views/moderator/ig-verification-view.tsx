@@ -10,28 +10,27 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useT } from "@/components/i18n/locale-provider"
 
 export function IgVerificationView() {
+  const t = useT()
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Instagram Verification"
-        description="Manually confirm bio-challenge codes for creators verifying their Instagram accounts."
+        title={t("igVerify.title")}
+        description={t("igVerify.description")}
       />
 
       <Alert>
         <Camera />
-        <AlertTitle>How it works</AlertTitle>
-        <AlertDescription>
-          Creators add a unique code to their Instagram bio. Open their profile, confirm the code is present, then
-          approve. Codes expire after 60 minutes.
-        </AlertDescription>
+        <AlertTitle>{t("igVerify.howItWorks")}</AlertTitle>
+        <AlertDescription>{t("igVerify.howItWorksDesc")}</AlertDescription>
       </Alert>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Pending" value={igVerifications.length} icon={Clock} />
-        <StatCard label="Verified today" value={18} icon={Check} />
-        <StatCard label="Expired today" value={3} icon={X} />
+        <StatCard label={t("igVerify.pending")} value={igVerifications.length} icon={Clock} />
+        <StatCard label={t("igVerify.verifiedToday")} value={18} icon={Check} />
+        <StatCard label={t("igVerify.expiredToday")} value={3} icon={X} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -50,12 +49,12 @@ export function IgVerificationView() {
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs text-muted-foreground">Challenge code</span>
+                <span className="text-xs text-muted-foreground">{t("igVerify.challengeCode")}</span>
                 <code className="rounded-md bg-muted px-3 py-2 font-mono text-sm">{v.challenge}</code>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock className="size-3.5" />
-                Expires in {v.expiresInMinutes} min
+                {t("igVerify.expiresIn", { minutes: v.expiresInMinutes })}
                 <Badge variant="secondary" className="ml-auto">
                   {v.status}
                 </Badge>
@@ -68,11 +67,15 @@ export function IgVerificationView() {
                   onClick={() => window.open(`https://instagram.com/${v.handle.replace("@", "")}`, "_blank")}
                 >
                   <Camera data-icon="inline-start" />
-                  Open profile
+                  {t("igVerify.openProfile")}
                 </Button>
-                <Button size="sm" className="flex-1" onClick={() => toast.success(`Verified ${v.handle}`)}>
+                <Button
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => toast.success(t("igVerify.verifiedToast", { handle: v.handle }))}
+                >
                   <Check data-icon="inline-start" />
-                  Verify
+                  {t("igVerify.verify")}
                 </Button>
               </div>
             </CardContent>

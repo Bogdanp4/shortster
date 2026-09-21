@@ -11,6 +11,7 @@ import { StatCard } from "@/components/shared/stat-card"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
+import { useT } from "@/components/i18n/locale-provider"
 
 const chartConfig = {
   gmv: { label: "GMV", color: "var(--chart-1)" },
@@ -19,24 +20,44 @@ const chartConfig = {
 
 export function AdminDashboardView() {
   const { navigate } = useApp()
+  const t = useT()
   const gmv = adminStatsSeries.at(-1)!.gmv
   const revenue = adminStatsSeries.at(-1)!.revenue
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Dashboard" description="Platform-wide health and financials." />
+      <PageHeader title={t("adminDashboard.title")} description={t("adminDashboard.description")} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Monthly GMV" value={formatCurrency(gmv)} icon={DollarSign} trend={{ value: "+20.3%", positive: true }} />
-        <StatCard label="Platform revenue" value={formatCurrency(revenue)} icon={DollarSign} trend={{ value: "+20.3%", positive: true }} />
-        <StatCard label="Total users" value={formatNumber(adminUsers.length * 184)} icon={Users} trend={{ value: "+412", positive: true }} />
-        <StatCard label="Active campaigns" value={campaigns.filter((c) => c.status === "active").length} icon={Megaphone} />
+        <StatCard
+          label={t("adminDashboard.monthlyGmv")}
+          value={formatCurrency(gmv)}
+          icon={DollarSign}
+          trend={{ value: "+20.3%", positive: true }}
+        />
+        <StatCard
+          label={t("adminDashboard.platformRevenue")}
+          value={formatCurrency(revenue)}
+          icon={DollarSign}
+          trend={{ value: "+20.3%", positive: true }}
+        />
+        <StatCard
+          label={t("adminDashboard.totalUsers")}
+          value={formatNumber(adminUsers.length * 184)}
+          icon={Users}
+          trend={{ value: "+412", positive: true }}
+        />
+        <StatCard
+          label={t("adminDashboard.activeCampaigns")}
+          value={campaigns.filter((c) => c.status === "active").length}
+          icon={Megaphone}
+        />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>GMV & revenue</CardTitle>
-          <CardDescription>Gross marketplace volume and platform take-rate over time</CardDescription>
+          <CardTitle>{t("adminDashboard.gmvRevenue")}</CardTitle>
+          <CardDescription>{t("adminDashboard.gmvRevenueDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="aspect-[3/1] w-full">
@@ -65,8 +86,8 @@ export function AdminDashboardView() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Open fraud cases</CardTitle>
-            <CardDescription>Requires attention</CardDescription>
+            <CardTitle>{t("adminDashboard.openFraudCases")}</CardTitle>
+            <CardDescription>{t("adminDashboard.requiresAttention")}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {fraudCases.map((c) => (
@@ -82,7 +103,7 @@ export function AdminDashboardView() {
                     <span className="text-xs text-muted-foreground">{c.campaign}</span>
                   </div>
                 </div>
-                <Badge variant="destructive">Risk {c.riskScore}</Badge>
+                <Badge variant="destructive">{t("adminDashboard.risk", { score: c.riskScore })}</Badge>
               </button>
             ))}
           </CardContent>
@@ -90,8 +111,8 @@ export function AdminDashboardView() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent activity</CardTitle>
-            <CardDescription>Latest platform events</CardDescription>
+            <CardTitle>{t("adminDashboard.recentActivity")}</CardTitle>
+            <CardDescription>{t("adminDashboard.latestPlatformEvents")}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-1">
             {auditLogs.slice(0, 5).map((log, i, arr) => (

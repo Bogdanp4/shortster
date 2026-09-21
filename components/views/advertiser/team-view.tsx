@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useT } from "@/components/i18n/locale-provider"
 
 const members = [
   { id: "m1", name: "Jamie Fox", email: "jamie@stake.com", role: "Owner", status: "active" },
@@ -35,37 +36,49 @@ function initials(name: string) {
 }
 
 export function AdvertiserTeamView() {
+  const t = useT()
+  const roleLabel: Record<string, string> = {
+    Owner: t("advTeam.roleOwner"),
+    Admin: t("advTeam.roleAdmin"),
+    Editor: t("advTeam.roleEditor"),
+    Viewer: t("advTeam.roleViewer"),
+  }
+  const statusLabel: Record<string, string> = {
+    active: t("advTeam.statusActive"),
+    invited: t("advTeam.statusInvited"),
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Team" description="Invite teammates and manage their access.">
+      <PageHeader title={t("advTeam.title")} description={t("advTeam.description")}>
         <Dialog>
           <DialogTrigger asChild>
             <Button>
               <UserPlus data-icon="inline-start" />
-              Invite member
+              {t("advTeam.inviteMember")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Invite a team member</DialogTitle>
-              <DialogDescription>They&apos;ll receive an email invitation to join your workspace.</DialogDescription>
+              <DialogTitle>{t("advTeam.inviteDialogTitle")}</DialogTitle>
+              <DialogDescription>{t("advTeam.inviteDialogDesc")}</DialogDescription>
             </DialogHeader>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="email">Email address</FieldLabel>
+                <FieldLabel htmlFor="email">{t("advTeam.emailAddress")}</FieldLabel>
                 <Input id="email" type="email" placeholder="teammate@company.com" />
               </Field>
               <Field>
-                <FieldLabel htmlFor="role">Role</FieldLabel>
+                <FieldLabel htmlFor="role">{t("advTeam.role")}</FieldLabel>
                 <Select defaultValue="editor">
                   <SelectTrigger id="role">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="editor">Editor</SelectItem>
-                      <SelectItem value="viewer">Viewer</SelectItem>
+                      <SelectItem value="admin">{t("advTeam.roleAdmin")}</SelectItem>
+                      <SelectItem value="editor">{t("advTeam.roleEditor")}</SelectItem>
+                      <SelectItem value="viewer">{t("advTeam.roleViewer")}</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -73,12 +86,12 @@ export function AdvertiserTeamView() {
             </FieldGroup>
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
+                <Button variant="outline">{t("advTeam.cancel")}</Button>
               </DialogClose>
               <DialogClose asChild>
-                <Button onClick={() => toast.success("Invitation sent")}>
+                <Button onClick={() => toast.success(t("advTeam.invitationSent"))}>
                   <Mail data-icon="inline-start" />
-                  Send invite
+                  {t("advTeam.sendInvite")}
                 </Button>
               </DialogClose>
             </DialogFooter>
@@ -88,16 +101,16 @@ export function AdvertiserTeamView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Members</CardTitle>
-          <CardDescription>{members.length} people in this workspace</CardDescription>
+          <CardTitle>{t("advTeam.members")}</CardTitle>
+          <CardDescription>{t("advTeam.peopleInWorkspace", { count: members.length })}</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("advTeam.member")}</TableHead>
+                <TableHead>{t("advTeam.role")}</TableHead>
+                <TableHead>{t("advTeam.status")}</TableHead>
                 <TableHead className="text-right" />
               </TableRow>
             </TableHeader>
@@ -116,14 +129,14 @@ export function AdvertiserTeamView() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={m.role === "Owner" ? "default" : "secondary"}>{m.role}</Badge>
+                    <Badge variant={m.role === "Owner" ? "default" : "secondary"}>{roleLabel[m.role]}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={m.status === "active" ? "outline" : "secondary"}>{m.status}</Badge>
+                    <Badge variant={m.status === "active" ? "outline" : "secondary"}>{statusLabel[m.status]}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" disabled={m.role === "Owner"}>
-                      Manage
+                      {t("advTeam.manage")}
                     </Button>
                   </TableCell>
                 </TableRow>

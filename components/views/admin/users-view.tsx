@@ -22,13 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-const tabs: { value: Role | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "creator", label: "Creators" },
-  { value: "advertiser", label: "Advertisers" },
-  { value: "moderator", label: "Moderators" },
-]
+import { useT } from "@/components/i18n/locale-provider"
 
 const statusVariant: Record<string, "outline" | "secondary" | "destructive"> = {
   active: "outline",
@@ -41,6 +35,13 @@ function initials(name: string) {
 }
 
 export function AdminUsersView() {
+  const t = useT()
+  const tabs: { value: Role | "all"; label: string }[] = [
+    { value: "all", label: t("adminUsers.all") },
+    { value: "creator", label: t("adminUsers.creators") },
+    { value: "advertiser", label: t("adminUsers.advertisers") },
+    { value: "moderator", label: t("adminUsers.moderators") },
+  ]
   const [tab, setTab] = useState<Role | "all">("all")
   const [query, setQuery] = useState("")
 
@@ -57,7 +58,7 @@ export function AdminUsersView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Users" description="Manage every account on the platform." />
+      <PageHeader title={t("adminUsers.title")} description={t("adminUsers.description")} />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Tabs value={tab} onValueChange={(v) => setTab(v as Role | "all")}>
@@ -73,7 +74,11 @@ export function AdminUsersView() {
           <InputGroupAddon>
             <Search />
           </InputGroupAddon>
-          <InputGroupInput placeholder="Search users" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <InputGroupInput
+            placeholder={t("adminUsers.searchUsers")}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
         </InputGroup>
       </div>
 
@@ -82,11 +87,11 @@ export function AdminUsersView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="text-right">Volume</TableHead>
+                <TableHead>{t("adminUsers.user")}</TableHead>
+                <TableHead>{t("adminUsers.role")}</TableHead>
+                <TableHead>{t("adminUsers.status")}</TableHead>
+                <TableHead>{t("adminUsers.joined")}</TableHead>
+                <TableHead className="text-right">{t("adminUsers.volume")}</TableHead>
                 <TableHead className="text-right" />
               </TableRow>
             </TableHeader>
@@ -119,20 +124,24 @@ export function AdminUsersView() {
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon-sm">
                           <MoreHorizontal />
-                          <span className="sr-only">Actions</span>
+                          <span className="sr-only">{t("adminUsers.actions")}</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuGroup>
-                          <DropdownMenuItem onClick={() => toast.info(`Viewing ${u.name}`)}>View profile</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => toast.success(`Impersonating ${u.name}`)}>
-                            Impersonate
+                          <DropdownMenuItem onClick={() => toast.info(t("adminUsers.viewingToast", { name: u.name }))}>
+                            {t("adminUsers.viewProfile")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => toast.success(t("adminUsers.impersonatingToast", { name: u.name }))}
+                          >
+                            {t("adminUsers.impersonate")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             variant="destructive"
-                            onClick={() => toast.error(`Suspended ${u.name}`)}
+                            onClick={() => toast.error(t("adminUsers.suspendedToast", { name: u.name }))}
                           >
-                            Suspend
+                            {t("adminUsers.suspend")}
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>

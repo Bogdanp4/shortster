@@ -15,10 +15,12 @@ import { AddPaymentMethodDialog } from "@/components/advertiser/add-payment-meth
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useT } from "@/components/i18n/locale-provider"
 
 const methodIcon = { card: CreditCard, wire: Landmark, crypto: Bitcoin }
 
 export function AdvertiserWalletView() {
+  const t = useT()
   const { advertiserWallet, advertiserTransactions, paymentMethods } = useApp()
   const [depositOpen, setDepositOpen] = useState(false)
   const [addMethodOpen, setAddMethodOpen] = useState(false)
@@ -26,32 +28,42 @@ export function AdvertiserWalletView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Wallet & Billing" description="Manage your balance, deposits and campaign reserves.">
+      <PageHeader title={t("advWallet.title")} description={t("advWallet.description")}>
         <Button onClick={() => setDepositOpen(true)}>
           <Plus data-icon="inline-start" />
-          Add funds
+          {t("advWallet.addFunds")}
         </Button>
       </PageHeader>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Available" value={formatCurrency(advertiserWallet.available)} icon={Wallet} hint="Ready to reserve" />
-        <StatCard label="Reserved" value={formatCurrency(advertiserWallet.reserved)} icon={Lock} hint="Locked in campaigns" />
-        <StatCard label="Total deposited" value={formatCurrency(advertiserWallet.totalDeposited)} />
-        <StatCard label="Total spent" value={formatCurrency(advertiserWallet.totalSpent)} />
+        <StatCard
+          label={t("advWallet.available")}
+          value={formatCurrency(advertiserWallet.available)}
+          icon={Wallet}
+          hint={t("advWallet.availableHint")}
+        />
+        <StatCard
+          label={t("advWallet.reserved")}
+          value={formatCurrency(advertiserWallet.reserved)}
+          icon={Lock}
+          hint={t("advWallet.reservedHint")}
+        />
+        <StatCard label={t("advWallet.totalDeposited")} value={formatCurrency(advertiserWallet.totalDeposited)} />
+        <StatCard label={t("advWallet.totalSpent")} value={formatCurrency(advertiserWallet.totalSpent)} />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Payment methods</CardTitle>
-          <CardDescription>Funding sources for deposits</CardDescription>
+          <CardTitle>{t("advWallet.paymentMethods")}</CardTitle>
+          <CardDescription>{t("advWallet.paymentMethodsDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {paymentMethods.length === 0 ? (
             <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-border p-4">
-              <p className="text-sm text-muted-foreground">No payment method added</p>
+              <p className="text-sm text-muted-foreground">{t("advWallet.noPaymentMethod")}</p>
               <Button variant="secondary" size="sm" onClick={() => setAddMethodOpen(true)}>
                 <Plus data-icon="inline-start" />
-                Add payment method
+                {t("advWallet.addPaymentMethod")}
               </Button>
             </div>
           ) : (
@@ -66,7 +78,7 @@ export function AdvertiserWalletView() {
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{m.label}</span>
                       <span className="text-xs text-muted-foreground">
-                        {m.last4 === "WIRE" ? "Bank wire" : `•••• ${m.last4}`}
+                        {m.last4 === "WIRE" ? t("advWallet.bankWire") : `•••• ${m.last4}`}
                         {m.detail ? ` · ${m.detail}` : ""}
                       </span>
                     </div>
@@ -81,7 +93,7 @@ export function AdvertiserWalletView() {
                 <div className="flex size-9 items-center justify-center rounded-md bg-muted">
                   <Plus className="size-4" />
                 </div>
-                <span className="text-sm font-medium">Add method</span>
+                <span className="text-sm font-medium">{t("advWallet.addMethod")}</span>
               </Button>
             </div>
           )}
@@ -90,19 +102,19 @@ export function AdvertiserWalletView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Billing history</CardTitle>
-          <CardDescription>Deposits, reserves, spend and refunds</CardDescription>
+          <CardTitle>{t("advWallet.billingHistory")}</CardTitle>
+          <CardDescription>{t("advWallet.billingHistoryDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Reference</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>{t("advWallet.date")}</TableHead>
+                <TableHead>{t("advWallet.type")}</TableHead>
+                <TableHead>{t("advWallet.description2")}</TableHead>
+                <TableHead>{t("advWallet.reference")}</TableHead>
+                <TableHead>{t("advWallet.status")}</TableHead>
+                <TableHead className="text-right">{t("advWallet.amount")}</TableHead>
                 <TableHead className="w-8" />
               </TableRow>
             </TableHeader>

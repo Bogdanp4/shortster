@@ -854,6 +854,7 @@ function FailureAlert({
   onRetry: () => void
   onOpenSubmissions: () => void
 }) {
+  const t = useT()
   const copy: Record<VideoCheckOutcome, { title: string; body: React.ReactNode }> = {
     valid: { title: "", body: null },
     not_found: {
@@ -897,11 +898,11 @@ function FailureAlert({
         {c.body}
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={onRetry}>
-            Try another link
+            {t("submit.tryAnotherLink")}
           </Button>
           {failure.outcome === "duplicate" && (
             <Button size="sm" variant="ghost" onClick={onOpenSubmissions}>
-              View my submissions
+              {t("submit.viewMySubmissions")}
             </Button>
           )}
         </div>

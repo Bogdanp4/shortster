@@ -11,17 +11,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
+import { useT } from "@/components/i18n/locale-provider"
 
 export function AdminFraudView() {
+  const t = useT()
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Fraud Center" description="Platform-wide fraud monitoring and enforcement." />
+      <PageHeader title={t("adminFraud.title")} description={t("adminFraud.description")} />
 
       <div className="grid gap-4 sm:grid-cols-4">
-        <StatCard label="Open cases" value={fraudCases.length} icon={ShieldAlert} />
-        <StatCard label="Banned (30d)" value={12} icon={Ban} />
-        <StatCard label="Recovered" value="$4,820" />
-        <StatCard label="False positives" value="6%" />
+        <StatCard label={t("adminFraud.openCases")} value={fraudCases.length} icon={ShieldAlert} />
+        <StatCard label={t("adminFraud.banned30d")} value={12} icon={Ban} />
+        <StatCard label={t("adminFraud.recovered")} value="$4,820" />
+        <StatCard label={t("adminFraud.falsePositives")} value="6%" />
       </div>
 
       <div className="flex flex-col gap-6">
@@ -35,17 +37,25 @@ export function AdminFraudView() {
                     <RiskBadge score={c.riskScore} />
                   </CardTitle>
                   <CardDescription>
-                    {c.creatorHandle} · {c.campaign} · {c.linkedAccounts} linked accounts
+                    {c.creatorHandle} · {c.campaign} · {t("adminFraud.linkedAccounts", { count: c.linkedAccounts })}
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => toast.success(`Cleared ${c.creatorHandle}`)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toast.success(t("adminFraud.clearedToast", { handle: c.creatorHandle }))}
+                  >
                     <Check data-icon="inline-start" />
-                    Clear
+                    {t("adminFraud.clear")}
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => toast.error(`Banned ${c.creatorHandle}`)}>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => toast.error(t("adminFraud.bannedToast", { handle: c.creatorHandle }))}
+                  >
                     <Ban data-icon="inline-start" />
-                    Ban
+                    {t("adminFraud.ban")}
                   </Button>
                 </div>
               </div>

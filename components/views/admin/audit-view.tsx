@@ -9,23 +9,30 @@ import { PageHeader } from "@/components/shared/page-header"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useT } from "@/components/i18n/locale-provider"
 
-const categoryConfig: Record<AuditLog["category"], { icon: typeof Activity; label: string }> = {
-  moderation: { icon: ShieldCheck, label: "Moderation" },
-  financial: { icon: DollarSign, label: "Financial" },
-  account: { icon: UserCog, label: "Account" },
-  campaign: { icon: Megaphone, label: "Campaign" },
+const categoryIcon: Record<AuditLog["category"], typeof Activity> = {
+  moderation: ShieldCheck,
+  financial: DollarSign,
+  account: UserCog,
+  campaign: Megaphone,
 }
 
-const tabs: { value: AuditLog["category"] | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "moderation", label: "Moderation" },
-  { value: "financial", label: "Financial" },
-  { value: "account", label: "Account" },
-  { value: "campaign", label: "Campaign" },
-]
-
 export function AdminAuditView() {
+  const t = useT()
+  const categoryConfig: Record<AuditLog["category"], { icon: typeof Activity; label: string }> = {
+    moderation: { icon: categoryIcon.moderation, label: t("adminAudit.moderation") },
+    financial: { icon: categoryIcon.financial, label: t("adminAudit.financial") },
+    account: { icon: categoryIcon.account, label: t("adminAudit.account") },
+    campaign: { icon: categoryIcon.campaign, label: t("adminAudit.campaign") },
+  }
+  const tabs: { value: AuditLog["category"] | "all"; label: string }[] = [
+    { value: "all", label: t("adminAudit.all") },
+    { value: "moderation", label: t("adminAudit.moderation") },
+    { value: "financial", label: t("adminAudit.financial") },
+    { value: "account", label: t("adminAudit.account") },
+    { value: "campaign", label: t("adminAudit.campaign") },
+  ]
   const [tab, setTab] = useState<AuditLog["category"] | "all">("all")
   const filtered = useMemo(
     () => (tab === "all" ? auditLogs : auditLogs.filter((l) => l.category === tab)),
@@ -34,13 +41,13 @@ export function AdminAuditView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Audit Logs" description="Immutable record of every significant platform action." />
+      <PageHeader title={t("adminAudit.title")} description={t("adminAudit.description")} />
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as AuditLog["category"] | "all")}>
         <TabsList>
-          {tabs.map((t) => (
-            <TabsTrigger key={t.value} value={t.value}>
-              {t.label}
+          {tabs.map((tabItem) => (
+            <TabsTrigger key={tabItem.value} value={tabItem.value}>
+              {tabItem.label}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -48,8 +55,8 @@ export function AdminAuditView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Events</CardTitle>
-          <CardDescription>{filtered.length} entries</CardDescription>
+          <CardTitle>{t("adminAudit.events")}</CardTitle>
+          <CardDescription>{t("adminAudit.entries", { count: filtered.length })}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-1">
           {filtered.map((log, i, arr) => {

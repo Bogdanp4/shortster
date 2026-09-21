@@ -12,10 +12,12 @@ import { PlatformIcon } from "@/components/shared/platform-icon"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
+import { useT } from "@/components/i18n/locale-provider"
 
 const allSubmissions = [...moderationQueue, ...creatorSubmissions]
 
 export function AdminSubmissionsView() {
+  const t = useT()
   const [query, setQuery] = useState("")
   const filtered = useMemo(
     () =>
@@ -32,12 +34,12 @@ export function AdminSubmissionsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Submissions" description="Every submission across all campaigns and creators." />
+      <PageHeader title={t("adminSubmissions.title")} description={t("adminSubmissions.description")} />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total submissions" value={allSubmissions.length} icon={FileVideo} />
-        <StatCard label="Combined views" value={formatNumber(totalViews)} />
-        <StatCard label="Rewards paid" value={formatCurrency(totalRewards)} />
+        <StatCard label={t("adminSubmissions.totalSubmissions")} value={allSubmissions.length} icon={FileVideo} />
+        <StatCard label={t("adminSubmissions.combinedViews")} value={formatNumber(totalViews)} />
+        <StatCard label={t("adminSubmissions.rewardsPaid")} value={formatCurrency(totalRewards)} />
       </div>
 
       <div className="flex justify-end">
@@ -45,7 +47,11 @@ export function AdminSubmissionsView() {
           <InputGroupAddon>
             <Search />
           </InputGroupAddon>
-          <InputGroupInput placeholder="Search submissions" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <InputGroupInput
+            placeholder={t("adminSubmissions.searchSubmissions")}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
         </InputGroup>
       </div>
 
@@ -54,13 +60,13 @@ export function AdminSubmissionsView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Campaign</TableHead>
-                <TableHead>Creator</TableHead>
-                <TableHead>Platform</TableHead>
-                <TableHead className="text-right">Views</TableHead>
-                <TableHead className="text-right">Reward</TableHead>
-                <TableHead>Risk</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("adminSubmissions.campaign")}</TableHead>
+                <TableHead>{t("adminSubmissions.creator")}</TableHead>
+                <TableHead>{t("adminSubmissions.platform")}</TableHead>
+                <TableHead className="text-right">{t("adminSubmissions.views")}</TableHead>
+                <TableHead className="text-right">{t("adminSubmissions.reward")}</TableHead>
+                <TableHead>{t("adminSubmissions.risk")}</TableHead>
+                <TableHead>{t("adminSubmissions.status")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

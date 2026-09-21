@@ -10,37 +10,42 @@ import { Textarea } from "@/components/ui/textarea"
 import { Field, FieldGroup, FieldLabel, FieldDescription } from "@/components/ui/field"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
+import { useT } from "@/components/i18n/locale-provider"
 
 export function AdvertiserSettingsView() {
+  const t = useT()
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Settings" description="Manage your brand profile and notification preferences." />
+      <PageHeader title={t("advSettings.title")} description={t("advSettings.description")} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-1 lg:col-span-1">
-          <h3 className="text-sm font-medium">Brand profile</h3>
-          <p className="text-sm text-muted-foreground">How your brand appears to creators.</p>
+          <h3 className="text-sm font-medium">{t("advSettings.brandProfile")}</h3>
+          <p className="text-sm text-muted-foreground">{t("advSettings.brandProfileDesc")}</p>
         </div>
         <Card className="lg:col-span-2">
           <CardContent className="pt-6">
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="brand">Brand name</FieldLabel>
+                <FieldLabel htmlFor="brand">{t("advSettings.brandName")}</FieldLabel>
                 <Input id="brand" defaultValue="Stake" />
               </Field>
               <Field>
-                <FieldLabel htmlFor="website">Website</FieldLabel>
+                <FieldLabel htmlFor="website">{t("advSettings.website")}</FieldLabel>
                 <Input id="website" defaultValue="https://stake.com" />
               </Field>
               <Field>
-                <FieldLabel htmlFor="bio">Bio</FieldLabel>
+                <FieldLabel htmlFor="bio">{t("advSettings.bio")}</FieldLabel>
                 <Textarea id="bio" rows={3} defaultValue="The world's leading crypto casino and sportsbook." />
-                <FieldDescription>Shown on your public campaign pages.</FieldDescription>
+                <FieldDescription>{t("advSettings.bioHint")}</FieldDescription>
               </Field>
             </FieldGroup>
           </CardContent>
           <CardFooter className="justify-end">
-            <Button onClick={() => toast.success("Profile saved")}>Save changes</Button>
+            <Button onClick={() => toast.success(t("advSettings.profileSaved"))}>
+              {t("advSettings.saveChanges")}
+            </Button>
           </CardFooter>
         </Card>
       </div>
@@ -49,16 +54,16 @@ export function AdvertiserSettingsView() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-1 lg:col-span-1">
-          <h3 className="text-sm font-medium">Notifications</h3>
-          <p className="text-sm text-muted-foreground">Choose what you get emailed about.</p>
+          <h3 className="text-sm font-medium">{t("advSettings.notifications")}</h3>
+          <p className="text-sm text-muted-foreground">{t("advSettings.notificationsDesc")}</p>
         </div>
         <Card className="lg:col-span-2">
           <CardContent className="flex flex-col gap-1 pt-6">
             {[
-              { label: "New submissions", desc: "When a creator submits a video to your campaign", on: true },
-              { label: "Budget alerts", desc: "When a campaign reaches 80% of its budget", on: true },
-              { label: "Weekly summary", desc: "A digest of your campaign performance", on: false },
-              { label: "Fraud flags", desc: "When our system flags suspicious activity", on: true },
+              { label: t("advSettings.newSubmissions"), desc: t("advSettings.newSubmissionsDesc"), on: true },
+              { label: t("advSettings.budgetAlerts"), desc: t("advSettings.budgetAlertsDesc"), on: true },
+              { label: t("advSettings.weeklySummary"), desc: t("advSettings.weeklySummaryDesc"), on: false },
+              { label: t("advSettings.fraudFlags"), desc: t("advSettings.fraudFlagsDesc"), on: true },
             ].map((item, i, arr) => (
               <div key={item.label}>
                 <div className="flex items-center justify-between py-3">

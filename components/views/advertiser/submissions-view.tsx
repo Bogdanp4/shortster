@@ -15,15 +15,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-
-const tabs: { value: SubmissionStatus | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "pending", label: "Pending" },
-  { value: "approved", label: "Approved" },
-  { value: "credited", label: "Credited" },
-]
+import { useT } from "@/components/i18n/locale-provider"
 
 export function AdvertiserSubmissionsView() {
+  const t = useT()
+  const tabs: { value: SubmissionStatus | "all"; label: string }[] = [
+    { value: "all", label: t("advSubmissions.all") },
+    { value: "pending", label: t("statuses.pending") },
+    { value: "approved", label: t("statuses.approved") },
+    { value: "credited", label: t("statuses.credited") },
+  ]
   const [tab, setTab] = useState<SubmissionStatus | "all">("all")
   const filtered = useMemo(
     () => (tab === "all" ? moderationQueue : moderationQueue.filter((s) => s.status === tab)),
@@ -35,19 +36,19 @@ export function AdvertiserSubmissionsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Submissions" description="Every creator video submitted to your campaigns." />
+      <PageHeader title={t("advSubmissions.title")} description={t("advSubmissions.description")} />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total submissions" value={moderationQueue.length} />
-        <StatCard label="Combined views" value={formatNumber(totalViews)} />
-        <StatCard label="Reward value" value={formatCurrency(totalReward)} />
+        <StatCard label={t("advSubmissions.totalSubmissions")} value={moderationQueue.length} />
+        <StatCard label={t("advSubmissions.combinedViews")} value={formatNumber(totalViews)} />
+        <StatCard label={t("advSubmissions.rewardValue")} value={formatCurrency(totalReward)} />
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as SubmissionStatus | "all")}>
         <TabsList>
-          {tabs.map((t) => (
-            <TabsTrigger key={t.value} value={t.value}>
-              {t.label}
+          {tabs.map((tb) => (
+            <TabsTrigger key={tb.value} value={tb.value}>
+              {tb.label}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -58,13 +59,13 @@ export function AdvertiserSubmissionsView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Creator</TableHead>
-                <TableHead>Campaign</TableHead>
-                <TableHead>Platform</TableHead>
-                <TableHead className="text-right">Views</TableHead>
-                <TableHead className="text-right">Reward</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Submitted</TableHead>
+                <TableHead>{t("advSubmissions.creator")}</TableHead>
+                <TableHead>{t("advSubmissions.campaign")}</TableHead>
+                <TableHead>{t("advSubmissions.platform")}</TableHead>
+                <TableHead className="text-right">{t("advSubmissions.views")}</TableHead>
+                <TableHead className="text-right">{t("advSubmissions.reward")}</TableHead>
+                <TableHead>{t("advSubmissions.status")}</TableHead>
+                <TableHead>{t("advSubmissions.submitted")}</TableHead>
                 <TableHead className="text-right" />
               </TableRow>
             </TableHeader>
@@ -95,7 +96,7 @@ export function AdvertiserSubmissionsView() {
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon-sm" onClick={() => window.open(s.videoUrl, "_blank")}>
                       <ExternalLink />
-                      <span className="sr-only">Open video</span>
+                      <span className="sr-only">{t("advSubmissions.openVideo")}</span>
                     </Button>
                   </TableCell>
                 </TableRow>

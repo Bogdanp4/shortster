@@ -11,8 +11,10 @@ import { TransactionStatusBadge } from "@/components/shared/status-badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
+import { useT } from "@/components/i18n/locale-provider"
 
 export function AdminTransactionsView() {
+  const t = useT()
   const [query, setQuery] = useState("")
   const filtered = useMemo(
     () =>
@@ -29,12 +31,12 @@ export function AdminTransactionsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Transactions" description="The full financial ledger across the platform." />
+      <PageHeader title={t("adminTransactions.title")} description={t("adminTransactions.description")} />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total inflow" value={formatCurrency(inflow)} />
-        <StatCard label="Total outflow" value={formatCurrency(outflow)} />
-        <StatCard label="Net" value={formatCurrency(inflow - outflow)} />
+        <StatCard label={t("adminTransactions.totalInflow")} value={formatCurrency(inflow)} />
+        <StatCard label={t("adminTransactions.totalOutflow")} value={formatCurrency(outflow)} />
+        <StatCard label={t("adminTransactions.net")} value={formatCurrency(inflow - outflow)} />
       </div>
 
       <div className="flex justify-end">
@@ -42,7 +44,11 @@ export function AdminTransactionsView() {
           <InputGroupAddon>
             <Search />
           </InputGroupAddon>
-          <InputGroupInput placeholder="Search transactions" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <InputGroupInput
+            placeholder={t("adminTransactions.searchTransactions")}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
         </InputGroup>
       </div>
 
@@ -51,12 +57,12 @@ export function AdminTransactionsView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Reference</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>{t("adminTransactions.date")}</TableHead>
+                <TableHead>{t("adminTransactions.type")}</TableHead>
+                <TableHead>{t("adminTransactions.description2")}</TableHead>
+                <TableHead>{t("adminTransactions.reference")}</TableHead>
+                <TableHead>{t("adminTransactions.status")}</TableHead>
+                <TableHead className="text-right">{t("adminTransactions.amount")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
