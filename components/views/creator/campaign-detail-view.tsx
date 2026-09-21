@@ -5,7 +5,7 @@ import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
  import { getCampaign } from "@/lib/mock-data"
  import type { VideoLanguage } from "@/lib/types"
-import { formatMoney, formatNumber, compactNumber, percent, formatRelative, categoryLabel } from "@/lib/format"
+import { formatMoney, formatNumber, compactNumber, percent, formatRelative } from "@/lib/format"
 import { buildRequirementsChecklist } from "@/lib/domain/requirements"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -84,7 +84,7 @@ export function CampaignDetailView() {
         </div>
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 lg:p-8">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">{categoryLabel[campaign.category]}</Badge>
+            <Badge variant="secondary">{t(`card.category.${campaign.category}`)}</Badge>
             <CampaignStatusBadge status={campaign.status} />
           </div>
           <div className="flex flex-col gap-2">
