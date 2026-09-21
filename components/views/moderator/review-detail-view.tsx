@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import Image from "next/image"
 
 import { useApp } from "@/components/app/app-provider"
-import { moderationQueue, getCampaign } from "@/lib/mock-data"
+import { getCampaign } from "@/lib/mock-data"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { buildRequirementsChecklist } from "@/lib/domain/requirements"
 import { PageHeader } from "@/components/shared/page-header"
@@ -25,7 +25,7 @@ import { useT } from "@/components/i18n/locale-provider"
 
 export function ReviewDetailView() {
   const t = useT()
-  const { params, navigate } = useApp()
+  const { params, navigate, moderationQueue, approveSubmission, rejectSubmission, flagSubmissionForAdmin } = useApp()
   const submission = moderationQueue.find((s) => s.id === params.submissionId) ?? moderationQueue[0]
   const campaign = getCampaign(submission.campaignId)
 
@@ -67,26 +67,59 @@ export function ReviewDetailView() {
         { icon: Clock, label: t("reviewDetail.duration"), value: `${submission.duration}s` },
       ]
 
-  function approve() {
+  const [note, setNote] = useState("")
+  const [pending, setPending] = useState(false)
+
+  async function approve() {
     if (!allChecked) {
       toast.error(t("reviewDetail.completeChecklistError"), { description: t("reviewDetail.completeChecklistDesc") })
       return
     }
-    toast.success(t("reviewDetail.approvedToast", { id: submission.id.toUpperCase() }), {
-      description: manual
-        ? t("reviewDetail.approvedManualDesc", {
-            amount: formatCurrency(payableRewardMinor),
-            views: formatNumber(payableViews),
-          })
-        : t("reviewDetail.approvedAutoDesc"),
-    })
-    navigate("queue")
+    setPending(true)
+    try {
+      await approveSubmission(submission.id, note.trim() || undefined)
+      toast.success(t("reviewDetail.approvedToast", { id: submission.id.toUpperCase() }), {
+        description: manual
+          ? t("reviewDetail.approvedManualDesc", {
+              amount: formatCurrency(payableRewardMinor),
+              views: formatNumber(payableViews),
+            })
+          : t("reviewDetail.approvedAutoDesc"),
+      })
+      navigate("queue")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("reviewDetail.completeChecklistError"))
+    } finally {
+      setPending(false)
+    }
   }
-  function reject() {
-    toast.error(t("reviewDetail.rejectedToast", { id: submission.id.toUpperCase() }), {
-      description: t("reviewDetail.rejectedDesc"),
-    })
-    navigate("queue")
+
+  async function reject() {
+    setPending(true)
+    try {
+      await rejectSubmission(submission.id, note.trim() || t("reviewDetail.rejectedDesc"), note.trim() || undefined)
+      toast.error(t("reviewDetail.rejectedToast", { id: submission.id.toUpperCase() }), {
+        description: t("reviewDetail.rejectedDesc"),
+      })
+      navigate("queue")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("reviewDetail.rejectedDesc"))
+    } finally {
+      setPending(false)
+    }
+  }
+
+  async function flagForAdmin() {
+    setPending(true)
+    try {
+      await flagSubmissionForAdmin(submission.id, note.trim() || t("reviewDetail.flaggedToast"))
+      toast.warning(t("reviewDetail.flaggedToast"))
+      navigate("queue")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("reviewDetail.flaggedToast"))
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -279,7 +312,13 @@ export function ReviewDetailView() {
                   <FieldLabel htmlFor="note" className="sr-only">
                     {t("reviewDetail.noteTitle")}
                   </FieldLabel>
-                  <Textarea id="note" rows={3} placeholder={t("reviewDetail.notePlaceholder")} />
+                  <Textarea
+                    id="note"
+                    rows={3}
+                    placeholder={t("reviewDetail.notePlaceholder")}
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
                 </Field>
               </FieldGroup>
             </CardContent>
@@ -328,7 +367,7 @@ export function ReviewDetailView() {
 
           <Card>
             <CardContent className="flex flex-col gap-3 pt-6">
-              <Button size="lg" onClick={approve} disabled={!allChecked}>
+              <Button size="lg" onClick={approve} disabled={!allChecked || pending}>
                 <Check data-icon="inline-start" />
                 {t("reviewDetail.approveSubmission")}
               </Button>
@@ -337,18 +376,11 @@ export function ReviewDetailView() {
                   {t("reviewDetail.tickAllRequirements", { count: requirements.length })}
                 </p>
               )}
-              <Button size="lg" variant="outline" onClick={reject}>
+              <Button size="lg" variant="outline" onClick={reject} disabled={pending}>
                 <X data-icon="inline-start" />
                 {t("reviewDetail.rejectSubmission")}
               </Button>
-              <Button
-                size="lg"
-                variant="ghost"
-                onClick={() => {
-                  toast.warning(t("reviewDetail.flaggedToast"))
-                  navigate("queue")
-                }}
-              >
+              <Button size="lg" variant="ghost" onClick={flagForAdmin} disabled={pending}>
                 <Flag data-icon="inline-start" />
                 {t("reviewDetail.flagForAdminReview")}
               </Button>

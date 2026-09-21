@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import Image from "next/image"
 
 import { useApp } from "@/components/app/app-provider"
-import { campaigns, getCampaign, moderationQueue, advertiserStatsSeries } from "@/lib/mock-data"
+import { campaigns, getCampaign, advertiserStatsSeries } from "@/lib/mock-data"
 import { formatCurrency, formatNumber, categoryLabel } from "@/lib/format"
 import { buildRequirementsChecklist } from "@/lib/domain/requirements"
 import { PageHeader } from "@/components/shared/page-header"
@@ -23,7 +23,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { useT } from "@/components/i18n/locale-provider"
 
 export function AdvertiserCampaignDetailView() {
-  const { params, navigate } = useApp()
+  const { params, navigate, moderationQueue } = useApp()
   const t = useT()
   const campaign = getCampaign(params.id) ?? campaigns[0]
   const requirementsChecklist = buildRequirementsChecklist(campaign.requirements, t)

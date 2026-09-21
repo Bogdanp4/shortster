@@ -4,7 +4,6 @@ import { Check, X, ChevronRight, Clock, AlertTriangle, PencilLine } from "lucide
 import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
-import { moderationQueue } from "@/lib/mock-data"
 import { formatCurrency, formatNumber, formatRelative } from "@/lib/format"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
@@ -18,9 +17,27 @@ import { useT } from "@/components/i18n/locale-provider"
 
 export function ReviewQueueView() {
   const t = useT()
-  const { navigate } = useApp()
+  const { navigate, moderationQueue, approveSubmission, rejectSubmission } = useApp()
   const avgWait = "27 min"
   const highRisk = moderationQueue.filter((s) => s.riskScore >= 40).length
+
+  async function quickApprove(id: string) {
+    try {
+      await approveSubmission(id)
+      toast.success(t("reviewQueue.approvedToast", { id: id.toUpperCase() }))
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("reviewQueue.approvedToast", { id: id.toUpperCase() }))
+    }
+  }
+
+  async function quickReject(id: string) {
+    try {
+      await rejectSubmission(id, t("reviewDetail.rejectedDesc"))
+      toast.error(t("reviewQueue.rejectedToast", { id: id.toUpperCase() }))
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("reviewQueue.rejectedToast", { id: id.toUpperCase() }))
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -66,19 +83,11 @@ export function ReviewQueueView() {
                   </div>
                 </button>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toast.success(t("reviewQueue.approvedToast", { id: s.id.toUpperCase() }))}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => quickApprove(s.id)}>
                     <Check data-icon="inline-start" />
                     {t("reviewQueue.approve")}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toast.error(t("reviewQueue.rejectedToast", { id: s.id.toUpperCase() }))}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => quickReject(s.id)}>
                     <X data-icon="inline-start" />
                     {t("reviewQueue.reject")}
                   </Button>

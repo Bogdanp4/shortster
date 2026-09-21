@@ -10,6 +10,7 @@ import type {
   PaymentMethod,
   CreatorWallet,
   AdvertiserWallet,
+  FraudCase,
 } from "@/lib/types"
 import { defaultView } from "@/lib/nav"
 import { AppErrorException } from "@/lib/errors"
@@ -22,11 +23,16 @@ import {
   advertiserWallet as initialAdvertiserWallet,
   advertiserTransactions as initialAdvertiserTransactions,
   advertiserPaymentMethods as initialPaymentMethods,
+  moderationQueue as initialModerationQueue,
+  fraudCases as initialFraudCases,
 } from "@/lib/mock-data"
 import * as submissionService from "@/services/submission-service"
 import * as withdrawalService from "@/services/withdrawal-service"
 import * as billingService from "@/services/billing-service"
 import * as campaignService from "@/services/campaign-service"
+import * as moderationService from "@/services/moderation-service"
+import * as fraudService from "@/services/fraud-service"
+import type { FraudCaseAction } from "@/services/types"
 
 interface AppState {
   role: Role
@@ -61,6 +67,14 @@ interface AppState {
     platformFeePercent: number,
     campaignTitle: string,
   ) => Promise<WalletTransaction>
+
+  // Moderation & fraud
+  moderationQueue: Submission[]
+  approveSubmission: (submissionId: string, moderatorNote?: string) => Promise<Submission>
+  rejectSubmission: (submissionId: string, rejectionReason: string, moderatorNote?: string) => Promise<Submission>
+  flagSubmissionForAdmin: (submissionId: string, reason: string) => Promise<Submission>
+  fraudCases: FraudCase[]
+  resolveFraudCase: (caseId: string, action: FraudCaseAction, note?: string) => Promise<void>
 }
 
 const AppContext = createContext<AppState | null>(null)
@@ -88,6 +102,9 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
   const [advertiserTransactions, setAdvertiserTransactions] =
     useState<WalletTransaction[]>(initialAdvertiserTransactions)
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(initialPaymentMethods)
+
+  const [moderationQueue, setModerationQueue] = useState<Submission[]>(initialModerationQueue)
+  const [fraudCases, setFraudCases] = useState<FraudCase[]>(initialFraudCases)
 
   const setRole = useCallback((next: Role) => {
     setRoleState(next)
@@ -157,6 +174,36 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
     [],
   )
 
+  const approveSubmission = useCallback(async (submissionId: string, moderatorNote?: string) => {
+    const result = await moderationService.approve({ submissionId, moderatorNote })
+    if (!result.ok) throw new AppErrorException(result.error)
+    setModerationQueue((prev) => prev.filter((s) => s.id !== submissionId))
+    return result.data
+  }, [])
+
+  const rejectSubmission = useCallback(
+    async (submissionId: string, rejectionReason: string, moderatorNote?: string) => {
+      const result = await moderationService.reject({ submissionId, rejectionReason, moderatorNote })
+      if (!result.ok) throw new AppErrorException(result.error)
+      setModerationQueue((prev) => prev.filter((s) => s.id !== submissionId))
+      return result.data
+    },
+    [],
+  )
+
+  const flagSubmissionForAdmin = useCallback(async (submissionId: string, reason: string) => {
+    const result = await moderationService.flagForAdmin({ submissionId, reason })
+    if (!result.ok) throw new AppErrorException(result.error)
+    setModerationQueue((prev) => prev.filter((s) => s.id !== submissionId))
+    return result.data
+  }, [])
+
+  const resolveFraudCase = useCallback(async (caseId: string, action: FraudCaseAction, note?: string) => {
+    const result = await fraudService.resolveCase({ caseId, action, note })
+    if (!result.ok) throw new AppErrorException(result.error)
+    setFraudCases((prev) => prev.filter((c) => c.id !== caseId))
+  }, [])
+
   return (
     <AppContext.Provider
       value={{
@@ -182,6 +229,12 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
         addPaymentMethod,
         deposit,
         reserveForCampaign,
+        moderationQueue,
+        approveSubmission,
+        rejectSubmission,
+        flagSubmissionForAdmin,
+        fraudCases,
+        resolveFraudCase,
       }}
     >
       {children}
