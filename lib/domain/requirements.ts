@@ -4,6 +4,10 @@ import { formatNumber } from "@/lib/format"
 export interface RequirementChecklistItem {
   key: string
   label: string
+  // How this requirement is verified during moderation. "automatic" checks are
+  // machine-read from the video/account snapshot; "manual" checks require the
+  // moderator to confirm by watching the video or judging fit.
+  kind: "automatic" | "manual"
 }
 
 type Translate = (key: string, params?: Record<string, string | number>) => string
@@ -22,30 +26,46 @@ export function buildRequirementsChecklist(req: CampaignRequirements, t: Transla
   if (hasMin && hasMax) {
     items.push({
       key: "duration",
+      kind: "automatic",
       label: t("requirements.durationRange", { min: req.minVideoDurationSeconds, max: req.maxVideoDurationSeconds }),
     })
   } else if (hasMin) {
-    items.push({ key: "duration", label: t("requirements.durationMin", { min: req.minVideoDurationSeconds }) })
+    items.push({
+      key: "duration",
+      kind: "automatic",
+      label: t("requirements.durationMin", { min: req.minVideoDurationSeconds }),
+    })
   } else if (hasMax) {
-    items.push({ key: "duration", label: t("requirements.durationMax", { max: req.maxVideoDurationSeconds }) })
+    items.push({
+      key: "duration",
+      kind: "automatic",
+      label: t("requirements.durationMax", { max: req.maxVideoDurationSeconds }),
+    })
   }
 
   if (req.minViews > 0) {
-    items.push({ key: "minViews", label: t("requirements.minViews", { count: formatNumber(req.minViews) }) })
+    items.push({
+      key: "minViews",
+      kind: "automatic",
+      label: t("requirements.minViews", { count: formatNumber(req.minViews) }),
+    })
   }
 
   if (req.minFollowers > 0) {
     items.push({
       key: "minFollowers",
+      kind: "automatic",
       label: t("requirements.minFollowers", { count: formatNumber(req.minFollowers) }),
     })
   }
 
-  items.push({ key: "language", label: t(`requirements.language.${req.videoLanguage}`) })
+  // Spoken/on-screen language must be confirmed by a human watching the video.
+  items.push({ key: "language", kind: "manual", label: t(`requirements.language.${req.videoLanguage}`) })
 
   if (req.specificAudience) {
     items.push({
       key: "audience",
+      kind: "manual",
       label: req.audienceDescription
         ? t("requirements.audienceWithDescription", { description: req.audienceDescription })
         : t("requirements.audienceGeneric"),
@@ -53,7 +73,11 @@ export function buildRequirementsChecklist(req: CampaignRequirements, t: Transla
   }
 
   if (req.requiredHashtag) {
-    items.push({ key: "hashtag", label: t("requirements.hashtag", { tag: req.requiredHashtag }) })
+    items.push({
+      key: "hashtag",
+      kind: "automatic",
+      label: t("requirements.hashtag", { tag: req.requiredHashtag }),
+    })
   }
 
   return items

@@ -26,6 +26,12 @@ export interface ReserveForCampaignInput {
 export interface ModerationDecisionInput {
   submissionId: string
   moderatorNote?: string
+  // Manual submissions: the moderator-confirmed view count and the resulting
+  // payable reward (already capped at MIN(claimed, verified) and the per-video
+  // cap by the review UI). Omitted for automatic submissions, which fall back
+  // to the locked reward captured at submission time.
+  verifiedViews?: number
+  finalRewardMinor?: number
 }
 
 export interface RejectSubmissionInput extends ModerationDecisionInput {

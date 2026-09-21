@@ -16,5 +16,11 @@ export async function getMySubmissions(): Promise<Result<Submission[]>> {
 export async function createSubmission(submission: Submission): Promise<Result<Submission>> {
   await mockDelay()
   store.submissions = [submission, ...store.submissions]
+  // A newly submitted (pending) video also enters the moderator review queue
+  // as the same object/ID, so the creator's copy and the moderator's copy stay
+  // in sync end-to-end instead of being two independent records.
+  if (submission.status === "pending") {
+    store.moderationQueue = [submission, ...store.moderationQueue]
+  }
   return { ok: true, data: submission }
 }
