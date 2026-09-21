@@ -11,19 +11,19 @@ This document is a checklist for wiring up a real backend.
 schema, but expect to add fields the mock layer doesn't need (timestamps, foreign keys, audit
 fields, soft-delete flags).
 
-## 2. Money handling (important — do this before going live)
+## 2. Money handling
 
-All money in the UI today is a **plain JS number of whole currency units** (e.g. `42.50` means
-$42.50), formatted with `formatCurrency()` in `lib/format.ts`. This is fine for a prototype but
-is not safe for real financial data — floating point arithmetic on currency amounts can
-introduce rounding errors.
+All money fields (`*Minor` suffix: `availableMinor`, `budgetMinor`, `ratePerMillionViewsMinor`,
+etc.) are stored as **integer minor units** (cents) throughout `lib/types.ts`, `lib/mock-data.ts`,
+and every service in `services/`. `lib/domain/money.ts` holds the integer-safe arithmetic
+(`calculateReward`, `calculatePlatformFee`, `calculateCampaignReserve`, `calculateFinalReward`,
+etc.) — components never do money arithmetic inline, they call these helpers or the service
+layer. `formatMoney()` / `formatCurrency()` in `lib/format.ts` take minor units and divide by 100
+only at the display boundary.
 
-`lib/domain/money.ts` contains minor-units helpers (`toMinorUnits`, `fromMinorUnits`,
-`addMoney`, etc.) intended for a follow-up migration: store and compute all money server-side as
-integer minor units (cents), and only convert to/from major units at the display boundary. This
-migration was **intentionally deferred** — it touches money fields across mock data, every view
-that displays a rate/balance/budget, and any future API contracts — and should happen alongside
-backend integration rather than as an isolated UI refactor.
+When wiring a real database, keep amounts as integer columns (cents) and keep all
+addition/subtraction/percentage math server-side using the same integer-only approach — never
+reintroduce floating-point currency math.
 
 ## 3. Auth
 
@@ -52,13 +52,29 @@ Fraud flags are currently reviewed inline on the submission detail view
 the previous standalone `fraud-review-view.tsx` was removed as dead code. Confirm this is still
 the desired moderation flow before building a fraud API.
 
-## 6. What to build, roughly in order
+## 6. Service layer
+
+`services/` contains an async, mock-backed service per domain (`campaign-service.ts`,
+`submission-service.ts`, `moderation-service.ts`, `wallet-service.ts`, `withdrawal-service.ts`,
+`billing-service.ts`, `fraud-service.ts`, `social-account-service.ts`,
+`notification-service.ts`). Each currently reads/writes an in-memory store seeded from
+`lib/mock-data.ts` (`services/store.ts`) with artificial latency, but the function signatures are
+already async and return the `Result<T>` shape from `services/types.ts` — `AppProvider` and views
+call these services rather than mutating state directly. Swapping a service's internals to call a
+real API/database should not require call-site changes in components.
+
+Validation that currently lives in these mock services (min-withdrawal amount, budget checks,
+duplicate submission checks) must be re-implemented server-side for real — never trust the
+client — but the same function boundaries are a reasonable guide for where that logic belongs.
+
+## 7. What to build, roughly in order
 
 1. Database schema from `lib/types.ts` (Neon/Postgres recommended — see the `neon-on-vercel`
-   skill).
+   skill), with money columns as integers (minor units).
 2. Real auth (Better Auth), replacing `auth-mock-data.ts` and `auth-provider.tsx`.
-3. Money minor-units migration (`lib/domain/money.ts`) alongside API/schema work.
-4. Server data fetching (Server Components / SWR) to replace the in-memory arrays in
-   `lib/mock-data.ts`, one view at a time.
+3. Replace each mock service's internals (`services/*.ts`) with real API/database calls, one
+   domain at a time, keeping the existing function signatures so components don't change.
+4. Server data fetching (Server Components / SWR) to replace client-side `useEffect` loads where
+   present.
 5. Real routes per the plan in section 4, once the API shape is stable.
 6. Payment provider integration (Stripe) for advertiser deposits and creator withdrawals.
