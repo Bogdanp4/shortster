@@ -21,7 +21,7 @@ export function TransactionDetailDialog({
   onOpenChange: (open: boolean) => void
 }) {
   const t = useT()
-  const positive = (transaction?.amount ?? 0) >= 0
+  const positive = (transaction?.amountMinor ?? 0) >= 0
 
   return (
     <Dialog open={!!transaction} onOpenChange={onOpenChange}>
@@ -38,7 +38,7 @@ export function TransactionDetailDialog({
                 className={`text-3xl font-semibold tabular-nums ${positive ? "text-primary" : "text-foreground"}`}
               >
                 {positive ? "+" : "-"}
-                {formatCurrency(Math.abs(transaction.amount))}
+                {formatCurrency(Math.abs(transaction.amountMinor))}
               </span>
               <TransactionStatusBadge status={transaction.status} />
             </div>

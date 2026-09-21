@@ -16,8 +16,8 @@ import { Eye, Wallet, TrendingUp } from "lucide-react"
 export function CampaignCard({ campaign }: { campaign: Campaign }) {
   const { navigate } = useApp()
   const t = useT()
-  const spentPct = percent(campaign.spent, campaign.budget)
-  const remaining = campaign.budget - campaign.spent
+  const spentPct = percent(campaign.creatorBudgetSpentMinor, campaign.creatorBudgetMinor)
+  const remaining = campaign.creatorBudgetMinor - campaign.creatorBudgetSpentMinor
   const remainingPct = 100 - spentPct
   const isPaused = campaign.status === "paused"
   const lowBudget = campaign.status === "active" && remainingPct <= 10
@@ -56,7 +56,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
           <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-3 pt-10">
             <div className="flex flex-col">
               <span className="text-lg font-bold leading-none text-white">
-                {formatMoney(campaign.ratePerMillion)}
+                {formatMoney(campaign.ratePerMillionMinor)}
               </span>
               <span className="text-[11px] text-white/70">{t("card.per1M")}</span>
             </div>
@@ -92,7 +92,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
           <div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <TrendingUp className="size-3.5" />
-              {t("card.max", { amount: formatMoney(campaign.maxPayoutPerAccount, { compact: true }) })}
+              {t("card.max", { amount: formatMoney(campaign.maxPayoutPerAccountMinor, { compact: true }) })}
             </span>
             <span className="flex items-center gap-1">
               <Eye className="size-3.5" />

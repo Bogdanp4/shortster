@@ -25,7 +25,7 @@ import { useT } from "@/components/i18n/locale-provider"
 
 export function AdminCampaignsView() {
   const t = useT()
-  const totalBudget = campaigns.reduce((s, c) => s + c.budget, 0)
+  const totalBudget = campaigns.reduce((s, c) => s + c.creatorBudgetMinor, 0)
   const totalViews = campaigns.reduce((s, c) => s + c.views, 0)
 
   return (
@@ -69,7 +69,7 @@ export function AdminCampaignsView() {
                       ))}
                     </div>
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">{formatCurrency(c.budget)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{formatCurrency(c.creatorBudgetMinor)}</TableCell>
                   <TableCell className="text-right tabular-nums">{formatNumber(c.views)}</TableCell>
                   <TableCell>
                     <CampaignStatusBadge status={c.status} />

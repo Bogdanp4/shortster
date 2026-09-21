@@ -99,11 +99,11 @@ export function compactNumber(value: number): string {
   const suffixes = activeLocale === "ru" ? ruSuffixes : enSuffixes
   if (Math.abs(value) >= 1_000_000) {
     const n = (value / 1_000_000).toFixed(value % 1_000_000 === 0 ? 0 : 1)
-    return n.toLocaleString(intlLocale()) + " " + suffixes.million
+    return n + " " + suffixes.million
   }
   if (Math.abs(value) >= 1_000) {
     const n = (value / 1_000).toFixed(value % 1_000 === 0 ? 0 : 1)
-    return n.toLocaleString(intlLocale()) + " " + suffixes.thousand
+    return n + " " + suffixes.thousand
   }
   return value.toLocaleString(intlLocale())
 }

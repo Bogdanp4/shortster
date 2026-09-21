@@ -133,16 +133,16 @@ export function SubmissionDetailView() {
               <Separator />
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{t("submissionDetail.rate")}</span>
-                <span className="font-medium">{formatCurrency(submission.ratePerMillion)} / 1M</span>
+                <span className="font-medium">{formatCurrency(submission.ratePerMillionMinor)} / 1M</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{t("submissionDetail.rawReward")}</span>
-                <span className="font-medium tabular-nums">{formatCurrency(submission.reward)}</span>
+                <span className="font-medium tabular-nums">{formatCurrency(submission.calculatedRewardMinor)}</span>
               </div>
               {capped && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">{t("submissionDetail.perVideoCap")}</span>
-                  <span className="font-medium tabular-nums">{formatCurrency(submission.cappedReward!)}</span>
+                  <span className="font-medium tabular-nums">{formatCurrency(submission.finalRewardMinor!)}</span>
                 </div>
               )}
               <Separator />

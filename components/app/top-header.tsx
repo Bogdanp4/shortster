@@ -82,7 +82,7 @@ export function TopHeader() {
           >
             <div className="flex flex-col leading-tight">
               <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{t("shell.balance")}</span>
-              <span className="text-sm font-semibold tabular-nums">{formatCurrency(creatorWallet.available)}</span>
+              <span className="text-sm font-semibold tabular-nums">{formatCurrency(creatorWallet.availableMinor)}</span>
             </div>
           </button>
         )}
@@ -95,7 +95,7 @@ export function TopHeader() {
           >
             <div className="flex flex-col leading-tight">
               <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{t("shell.available")}</span>
-              <span className="text-sm font-semibold tabular-nums">{formatCurrency(advertiserWallet.available)}</span>
+              <span className="text-sm font-semibold tabular-nums">{formatCurrency(advertiserWallet.availableMinor)}</span>
             </div>
           </button>
         )}

@@ -100,7 +100,7 @@ export function SubmitView() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const account = eligibleAccounts.find((a) => a.id === accountId)
-  const remaining = campaign.budget - campaign.spent
+  const remaining = campaign.creatorBudgetMinor - campaign.creatorBudgetSpentMinor
   const manualMode = account?.metricsMode === "manual"
 
   // Group the campaign's allowed platforms with the creator's verified accounts

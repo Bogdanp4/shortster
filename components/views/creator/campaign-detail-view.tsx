@@ -280,7 +280,7 @@ export function CampaignDetailView() {
                 <p className="text-xs text-muted-foreground">
                   {t("campaignDetail.remaining", {
                     remaining: formatMoney(remaining, { compact: true }),
-                    budget: formatMoney(campaign.budget, { compact: true }),
+                    budget: formatMoney(campaign.creatorBudgetMinor, { compact: true }),
                   })}
                 </p>
               </div>

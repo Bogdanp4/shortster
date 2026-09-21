@@ -75,8 +75,8 @@ export function NotificationsMenu() {
                     <span className="text-xs text-muted-foreground">{n.detail}</span>
                     <div className="mt-0.5 flex items-center gap-2">
                       <span className="text-[11px] text-muted-foreground">{n.time}</span>
-                      {n.amount != null && (
-                        <span className="text-[11px] font-medium text-success">{formatMoney(n.amount)}</span>
+                      {n.amountMinor != null && (
+                        <span className="text-[11px] font-medium text-success">{formatMoney(n.amountMinor)}</span>
                       )}
                     </div>
                   </div>

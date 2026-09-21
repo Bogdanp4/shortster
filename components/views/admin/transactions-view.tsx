@@ -26,8 +26,8 @@ export function AdminTransactionsView() {
     [query],
   )
 
-  const inflow = adminTransactions.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0)
-  const outflow = adminTransactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0)
+  const inflow = adminTransactions.filter((tx) => tx.amountMinor > 0).reduce((s, tx) => s + tx.amountMinor, 0)
+  const outflow = adminTransactions.filter((tx) => tx.amountMinor < 0).reduce((s, tx) => s + Math.abs(tx.amountMinor), 0)
 
   return (
     <div className="flex flex-col gap-6">
@@ -76,10 +76,10 @@ export function AdminTransactionsView() {
                     <TransactionStatusBadge status={tx.status} />
                   </TableCell>
                   <TableCell
-                    className={`text-right font-medium tabular-nums ${tx.amount < 0 ? "text-muted-foreground" : "text-primary"}`}
+                    className={`text-right font-medium tabular-nums ${tx.amountMinor < 0 ? "text-muted-foreground" : "text-primary"}`}
                   >
-                    {tx.amount < 0 ? "-" : "+"}
-                    {formatCurrency(Math.abs(tx.amount))}
+                    {tx.amountMinor < 0 ? "-" : "+"}
+                    {formatCurrency(Math.abs(tx.amountMinor))}
                   </TableCell>
                 </TableRow>
               ))}

@@ -30,7 +30,7 @@ export function AdminSubmissionsView() {
   )
 
   const totalViews = allSubmissions.reduce((s, x) => s + x.viewsAtSubmission, 0)
-  const totalRewards = allSubmissions.reduce((s, x) => s + (x.cappedReward ?? x.reward), 0)
+  const totalRewards = allSubmissions.reduce((s, x) => s + (x.finalRewardMinor ?? x.calculatedRewardMinor), 0)
 
   return (
     <div className="flex flex-col gap-6">
@@ -79,7 +79,7 @@ export function AdminSubmissionsView() {
                   </TableCell>
                   <TableCell className="text-right tabular-nums">{formatNumber(s.viewsAtSubmission)}</TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {formatCurrency(s.cappedReward ?? s.reward)}
+                    {formatCurrency(s.finalRewardMinor ?? s.calculatedRewardMinor)}
                   </TableCell>
                   <TableCell>
                     <RiskBadge score={s.riskScore} />
