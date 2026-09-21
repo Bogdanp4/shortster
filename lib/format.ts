@@ -15,14 +15,6 @@ function intlLocale(): string {
   return activeLocale === "ru" ? "ru-RU" : "en-US"
 }
 
-// Human labels for campaign categories.
-export const categoryLabel: Record<CampaignCategory, string> = {
-  clipping: "Clipping",
-  logo: "Logo",
-  video_banner: "Video Banner",
-  music: "Music",
-}
-
 // All money inputs here are integer minor units (cents), matching
 // lib/domain/money.ts and every Minor-suffixed field in lib/types.ts.
 export function formatMoney(valueMinor: number, opts?: { compact?: boolean }): string {

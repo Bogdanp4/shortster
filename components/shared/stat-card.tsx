@@ -11,7 +11,7 @@ export function StatCard({
   accent = "default",
 }: {
   label: string
-  value: string
+  value: string | number
   icon?: LucideIcon
   hint?: string
   trend?: { value: string; positive: boolean }

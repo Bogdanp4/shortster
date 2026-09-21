@@ -5,7 +5,8 @@ import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
  import { getCampaign } from "@/lib/mock-data"
  import type { VideoLanguage } from "@/lib/types"
-import { formatMoney, formatNumber, compactNumber, percent, formatRelative, categoryLabel } from "@/lib/format"
+import { formatMoney, formatNumber, compactNumber, percent, formatRelative } from "@/lib/format"
+import { buildRequirementsChecklist } from "@/lib/domain/requirements"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -46,6 +47,7 @@ export function CampaignDetailView() {
   const t = useT()
   const campaign = getCampaign(params.id)
   const mySubmissions = submissions.filter((s) => s.campaignId === params.id)
+  const requirementsChecklist = campaign ? buildRequirementsChecklist(campaign.requirements, t) : []
   const languageLabels: Record<VideoLanguage, string> = {
     any: t("enums.videoLanguage.any"),
     en: t("enums.videoLanguage.en"),
@@ -82,7 +84,7 @@ export function CampaignDetailView() {
         </div>
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 lg:p-8">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">{categoryLabel[campaign.category]}</Badge>
+            <Badge variant="secondary">{t(`card.category.${campaign.category}`)}</Badge>
             <CampaignStatusBadge status={campaign.status} />
           </div>
           <div className="flex flex-col gap-2">
@@ -150,7 +152,7 @@ export function CampaignDetailView() {
                     rate: formatMoney(campaign.ratePerMillionMinor),
                     maxVideo: formatMoney(campaign.maxPayoutPerVideoMinor),
                     maxAccount: formatMoney(campaign.maxPayoutPerAccountMinor),
-                    minViews: formatNumber(campaign.req.minViews),
+                    minViews: formatNumber(campaign.requirements.minViews),
                   })}
                 </AlertDescription>
               </Alert>
@@ -164,10 +166,10 @@ export function CampaignDetailView() {
                 </CardHeader>
                 <CardContent>
                   <ul className="grid gap-2.5 sm:grid-cols-2">
-                    {campaign.requirements.map((req, i) => (
-                      <li key={i} className="flex items-start gap-2.5 rounded-lg border border-border/60 p-3 text-sm">
+                    {requirementsChecklist.map((req) => (
+                      <li key={req.key} className="flex items-start gap-2.5 rounded-lg border border-border/60 p-3 text-sm">
                         <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
-                        {req}
+                        {req.label}
                       </li>
                     ))}
                   </ul>
@@ -331,16 +333,16 @@ export function CampaignDetailView() {
               <Detail label={t("campaignDetail.minViewsToCredit")}>
                 <span className="flex items-center gap-1">
                   <Eye className="size-3.5" />
-                  {formatNumber(campaign.req.minViews)}
+                  {formatNumber(campaign.requirements.minViews)}
                 </span>
               </Detail>
               <Detail label={t("campaignDetail.duration")}>
                 <span className="flex items-center gap-1">
                   <Clock className="size-3.5" />
-                  {campaign.req.minDuration}&ndash;{campaign.req.maxDuration}s
+                  {campaign.requirements.minVideoDurationSeconds}&ndash;{campaign.requirements.maxVideoDurationSeconds}s
                 </span>
               </Detail>
-              <Detail label={t("campaignDetail.languages")}>{languageLabels[campaign.req.language]}</Detail>
+              <Detail label={t("campaignDetail.languages")}>{languageLabels[campaign.requirements.videoLanguage]}</Detail>
               <Detail label={t("campaignDetail.countries")}>
                 <span className="flex items-center gap-1">
                   <Globe className="size-3.5" />
@@ -353,7 +355,7 @@ export function CampaignDetailView() {
               </Detail>
               {campaign.requiredAudio && <Detail label={t("campaignDetail.audio")}>{campaign.requiredAudio}</Detail>}
               <div className="flex flex-wrap gap-1.5 pt-1">
-                {campaign.hashtags.map((h) => (
+                {campaign.optionalHashtags.map((h) => (
                   <span key={h} className="text-xs text-primary">{h}</span>
                 ))}
               </div>

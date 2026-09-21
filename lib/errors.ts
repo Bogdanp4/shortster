@@ -35,3 +35,9 @@ export class AppErrorException extends Error {
 export function toAppError(code: ErrorCode, message?: string, field?: string): AppError {
   return { code, message, field }
 }
+
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof AppErrorException) return error.message
+  if (error instanceof Error) return error.message
+  return "Something went wrong. Please try again."
+}

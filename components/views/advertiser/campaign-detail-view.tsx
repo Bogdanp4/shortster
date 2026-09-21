@@ -6,8 +6,9 @@ import { toast } from "sonner"
 import Image from "next/image"
 
 import { useApp } from "@/components/app/app-provider"
-import { campaigns, getCampaign, moderationQueue, advertiserStatsSeries } from "@/lib/mock-data"
-import { formatCurrency, formatNumber, categoryLabel } from "@/lib/format"
+import { campaigns, getCampaign, advertiserStatsSeries } from "@/lib/mock-data"
+import { formatCurrency, formatNumber } from "@/lib/format"
+import { buildRequirementsChecklist } from "@/lib/domain/requirements"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
 import { CampaignStatusBadge, SubmissionStatusBadge } from "@/components/shared/status-badge"
@@ -22,9 +23,10 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { useT } from "@/components/i18n/locale-provider"
 
 export function AdvertiserCampaignDetailView() {
-  const { selectedCampaignId, navigate } = useApp()
+  const { params, navigate, moderationQueue } = useApp()
   const t = useT()
-  const campaign = getCampaign(selectedCampaignId ?? "stake-highlights") ?? campaigns[0]
+  const campaign = getCampaign(params.id) ?? campaigns[0]
+  const requirementsChecklist = buildRequirementsChecklist(campaign.requirements, t)
   const pct = Math.round((campaign.creatorBudgetSpentMinor / campaign.creatorBudgetMinor) * 100)
   const submissions = moderationQueue.filter((s) => s.campaignId === campaign.id)
 
@@ -37,7 +39,7 @@ export function AdvertiserCampaignDetailView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title={campaign.title}
-        description={`${categoryLabel[campaign.category]} · ${campaign.brand}`}
+        description={`${t(`card.category.${campaign.category}`)} · ${campaign.brand}`}
         backLabel={t("advCampaignDetail.backToCampaigns")}
         onBack={() => navigate("campaigns")}
       >
@@ -61,8 +63,12 @@ export function AdvertiserCampaignDetailView() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label={t("advCampaignDetail.views")} value={formatNumber(campaign.views)} icon={Eye} />
         <StatCard label={t("advCampaignDetail.spent")} value={formatCurrency(campaign.creatorBudgetSpentMinor)} icon={DollarSign} />
-        <StatCard label={t("advCampaignDetail.submissions")} value={campaign.submissionsCount} icon={FileVideo} />
-        <StatCard label={t("advCampaignDetail.creators")} value={campaign.creators} icon={Users} />
+        <StatCard
+          label={t("advCampaignDetail.submissions")}
+          value={formatNumber(campaign.submissionsCount)}
+          icon={FileVideo}
+        />
+        <StatCard label={t("advCampaignDetail.creators")} value={formatNumber(campaign.creators)} icon={Users} />
       </div>
 
       <Card>
@@ -180,8 +186,8 @@ export function AdvertiserCampaignDetailView() {
                 <div className="flex flex-col gap-2">
                   <span className="text-sm font-medium">{t("advCampaignDetail.requirements")}</span>
                   <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
-                    {campaign.requirements.map((r) => (
-                      <li key={r}>· {r}</li>
+                    {requirementsChecklist.map((r) => (
+                      <li key={r.key}>· {r.label}</li>
                     ))}
                   </ul>
                 </div>
@@ -193,12 +199,12 @@ export function AdvertiserCampaignDetailView() {
               </CardHeader>
               <CardContent className="flex flex-col gap-3 text-sm">
                 <Row label={t("advCampaignDetail.rate")} value={`${formatCurrency(campaign.ratePerMillionMinor)} / 1M`} />
-                <Row label={t("advCampaignDetail.minViews")} value={formatNumber(campaign.req.minViews)} />
+                <Row label={t("advCampaignDetail.minViews")} value={formatNumber(campaign.requirements.minViews)} />
                 <Row label={t("advCampaignDetail.maxPerVideo")} value={formatCurrency(campaign.maxPayoutPerVideoMinor)} />
                 <Row label={t("advCampaignDetail.maxPerAccount")} value={formatCurrency(campaign.maxPayoutPerAccountMinor)} />
                 <Row
                   label={t("advCampaignDetail.duration")}
-                  value={`${campaign.req.minDuration}–${campaign.req.maxDuration}s`}
+                  value={`${campaign.requirements.minVideoDurationSeconds}–${campaign.requirements.maxVideoDurationSeconds}s`}
                 />
               </CardContent>
             </Card>

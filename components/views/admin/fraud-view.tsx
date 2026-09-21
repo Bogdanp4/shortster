@@ -1,9 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import { ShieldAlert, Ban, Check } from "lucide-react"
 import { toast } from "sonner"
 
-import { fraudCases } from "@/lib/mock-data"
+import { useApp } from "@/components/app/app-provider"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
 import { RiskBadge } from "@/components/shared/status-badge"
@@ -15,6 +16,25 @@ import { useT } from "@/components/i18n/locale-provider"
 
 export function AdminFraudView() {
   const t = useT()
+  const { fraudCases, resolveFraudCase } = useApp()
+  const [pendingId, setPendingId] = useState<string | null>(null)
+
+  async function handleResolve(caseId: string, handle: string, action: "clear" | "ban") {
+    setPendingId(caseId)
+    try {
+      await resolveFraudCase(caseId, action === "clear" ? "clear" : "suspend_creator")
+      if (action === "clear") {
+        toast.success(t("adminFraud.clearedToast", { handle }))
+      } else {
+        toast.error(t("adminFraud.bannedToast", { handle }))
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("adminFraud.title"))
+    } finally {
+      setPendingId(null)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={t("adminFraud.title")} description={t("adminFraud.description")} />
@@ -44,7 +64,8 @@ export function AdminFraudView() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => toast.success(t("adminFraud.clearedToast", { handle: c.creatorHandle }))}
+                    disabled={pendingId === c.id}
+                    onClick={() => handleResolve(c.id, c.creatorHandle, "clear")}
                   >
                     <Check data-icon="inline-start" />
                     {t("adminFraud.clear")}
@@ -52,7 +73,8 @@ export function AdminFraudView() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => toast.error(t("adminFraud.bannedToast", { handle: c.creatorHandle }))}
+                    disabled={pendingId === c.id}
+                    onClick={() => handleResolve(c.id, c.creatorHandle, "ban")}
                   >
                     <Ban data-icon="inline-start" />
                     {t("adminFraud.ban")}

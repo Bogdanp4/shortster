@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { FileVideo, Search } from "lucide-react"
 
-import { moderationQueue, creatorSubmissions } from "@/lib/mock-data"
+import { useApp } from "@/components/app/app-provider"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
@@ -14,10 +14,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
 import { useT } from "@/components/i18n/locale-provider"
 
-const allSubmissions = [...moderationQueue, ...creatorSubmissions]
-
 export function AdminSubmissionsView() {
   const t = useT()
+  const { moderationQueue, submissions: creatorSubmissions } = useApp()
+  const allSubmissions = useMemo(
+    () => [...moderationQueue, ...creatorSubmissions],
+    [moderationQueue, creatorSubmissions],
+  )
   const [query, setQuery] = useState("")
   const filtered = useMemo(
     () =>
@@ -26,7 +29,7 @@ export function AdminSubmissionsView() {
           s.campaignTitle.toLowerCase().includes(query.toLowerCase()) ||
           s.creatorHandle.toLowerCase().includes(query.toLowerCase()),
       ),
-    [query],
+    [query, allSubmissions],
   )
 
   const totalViews = allSubmissions.reduce((s, x) => s + x.viewsAtSubmission, 0)

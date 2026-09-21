@@ -76,12 +76,14 @@ export function AdminCampaignsView() {
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon-sm">
-                          <MoreHorizontal />
-                          <span className="sr-only">{t("adminCampaigns.actions")}</span>
-                        </Button>
-                      </DropdownMenuTrigger>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button variant="ghost" size="icon-sm">
+                            <MoreHorizontal />
+                            <span className="sr-only">{t("adminCampaigns.actions")}</span>
+                          </Button>
+                        }
+                      />
                       <DropdownMenuContent align="end">
                         <DropdownMenuGroup>
                           <DropdownMenuItem onClick={() => toast.info(t("adminCampaigns.viewingToast", { title: c.title }))}>

@@ -10,8 +10,10 @@ import type {
   PaymentMethod,
   CreatorWallet,
   AdvertiserWallet,
+  FraudCase,
 } from "@/lib/types"
 import { defaultView } from "@/lib/nav"
+import { AppErrorException } from "@/lib/errors"
 import {
   creatorSubmissions,
   creatorSocialAccounts,
@@ -21,7 +23,16 @@ import {
   advertiserWallet as initialAdvertiserWallet,
   advertiserTransactions as initialAdvertiserTransactions,
   advertiserPaymentMethods as initialPaymentMethods,
+  moderationQueue as initialModerationQueue,
+  fraudCases as initialFraudCases,
 } from "@/lib/mock-data"
+import * as submissionService from "@/services/submission-service"
+import * as withdrawalService from "@/services/withdrawal-service"
+import * as billingService from "@/services/billing-service"
+import * as campaignService from "@/services/campaign-service"
+import * as moderationService from "@/services/moderation-service"
+import * as fraudService from "@/services/fraud-service"
+import type { FraudCaseAction } from "@/services/types"
 
 interface AppState {
   role: Role
@@ -31,7 +42,7 @@ interface AppState {
   navigate: (view: string, params?: Record<string, string>) => void
 
   submissions: Submission[]
-  addSubmission: (s: Submission) => void
+  addSubmission: (s: Submission) => Promise<Submission>
 
   socialAccounts: SocialAccount[]
   addSocialAccount: (s: SocialAccount) => void
@@ -43,15 +54,27 @@ interface AppState {
   creatorTransactions: WalletTransaction[]
   payoutMethods: PayoutMethod[]
   addPayoutMethod: (m: PayoutMethod) => void
-  withdraw: (amountMinor: number, method: PayoutMethod) => WalletTransaction
+  withdraw: (amountMinor: number, method: PayoutMethod) => Promise<WalletTransaction>
 
   // Advertiser wallet
   advertiserWallet: AdvertiserWallet
   advertiserTransactions: WalletTransaction[]
   paymentMethods: PaymentMethod[]
   addPaymentMethod: (m: PaymentMethod) => void
-  deposit: (amountMinor: number, method: PaymentMethod) => WalletTransaction
-  reserveForCampaign: (amountMinor: number, campaignTitle: string) => WalletTransaction
+  deposit: (amountMinor: number, method: PaymentMethod) => Promise<WalletTransaction>
+  reserveForCampaign: (
+    creatorBudgetMinor: number,
+    platformFeePercent: number,
+    campaignTitle: string,
+  ) => Promise<WalletTransaction>
+
+  // Moderation & fraud
+  moderationQueue: Submission[]
+  approveSubmission: (submissionId: string, moderatorNote?: string) => Promise<Submission>
+  rejectSubmission: (submissionId: string, rejectionReason: string, moderatorNote?: string) => Promise<Submission>
+  flagSubmissionForAdmin: (submissionId: string, reason: string) => Promise<Submission>
+  fraudCases: FraudCase[]
+  resolveFraudCase: (caseId: string, action: FraudCaseAction, note?: string) => Promise<void>
 }
 
 const AppContext = createContext<AppState | null>(null)
@@ -80,6 +103,9 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
     useState<WalletTransaction[]>(initialAdvertiserTransactions)
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(initialPaymentMethods)
 
+  const [moderationQueue, setModerationQueue] = useState<Submission[]>(initialModerationQueue)
+  const [fraudCases, setFraudCases] = useState<FraudCase[]>(initialFraudCases)
+
   const setRole = useCallback((next: Role) => {
     setRoleState(next)
     setView(defaultView[next])
@@ -94,8 +120,11 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
     }
   }, [])
 
-  const addSubmission = useCallback((s: Submission) => {
-    setSubmissions((prev) => [s, ...prev])
+  const addSubmission = useCallback(async (s: Submission) => {
+    const result = await submissionService.createSubmission(s)
+    if (!result.ok) throw new AppErrorException(result.error)
+    setSubmissions((prev) => [result.data, ...prev])
+    return result.data
   }, [])
 
   const addSocialAccount = useCallback((s: SocialAccount) => {
@@ -114,62 +143,65 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
     setPayoutMethods((prev) => [...prev, m])
   }, [])
 
-  const withdraw = useCallback((amountMinor: number, method: PayoutMethod) => {
-    const tx: WalletTransaction = {
-      id: `tx-${Date.now()}`,
-      date: today(),
-      type: "Withdrawal",
-      description: `${method.asset} payout · ${method.label}`,
-      amountMinor: -Math.abs(amountMinor),
-      status: "pending",
-      reference: ref("WD"),
-    }
-    setCreatorTransactions((prev) => [tx, ...prev])
-    setCreatorWallet((prev) => ({ ...prev, availableMinor: prev.availableMinor - amountMinor }))
-    return tx
+  const withdraw = useCallback(async (amountMinor: number, method: PayoutMethod) => {
+    const result = await withdrawalService.createCryptoWithdrawal({ amountMinor, payoutMethodId: method.id })
+    if (!result.ok) throw new AppErrorException(result.error)
+    setCreatorTransactions((prev) => [result.data.transaction, ...prev])
+    setCreatorWallet(result.data.wallet)
+    return result.data.transaction
   }, [])
 
   const addPaymentMethod = useCallback((m: PaymentMethod) => {
     setPaymentMethods((prev) => [...prev, m])
   }, [])
 
-  const deposit = useCallback((amountMinor: number, method: PaymentMethod) => {
-    const tx: WalletTransaction = {
-      id: `atx-${Date.now()}`,
-      date: today(),
-      type: "Deposit",
-      description: `${method.label}${method.last4 ? ` •••• ${method.last4}` : ""}`,
-      amountMinor: Math.abs(amountMinor),
-      status: "completed",
-      reference: ref("DEP"),
-    }
-    setAdvertiserTransactions((prev) => [tx, ...prev])
-    setAdvertiserWallet((prev) => ({
-      ...prev,
-      availableMinor: prev.availableMinor + amountMinor,
-      totalDepositedMinor: prev.totalDepositedMinor + amountMinor,
-    }))
-    return tx
+  const deposit = useCallback(async (amountMinor: number, method: PaymentMethod) => {
+    const result = await billingService.createDeposit({ amountMinor, paymentMethodId: method.id })
+    if (!result.ok) throw new AppErrorException(result.error)
+    setAdvertiserTransactions((prev) => [result.data.transaction, ...prev])
+    setAdvertiserWallet(result.data.wallet)
+    return result.data.transaction
   }, [])
 
-  const reserveForCampaign = useCallback((amountMinor: number, campaignTitle: string) => {
-    const tx: WalletTransaction = {
-      id: `atx-${Date.now()}`,
-      date: today(),
-      type: "Campaign Reserve",
-      description: `${campaignTitle} budget`,
-      amountMinor: -Math.abs(amountMinor),
-      status: "completed",
-      reference: ref("RES"),
-      campaign: campaignTitle,
-    }
-    setAdvertiserTransactions((prev) => [tx, ...prev])
-    setAdvertiserWallet((prev) => ({
-      ...prev,
-      availableMinor: prev.availableMinor - amountMinor,
-      reservedCreatorBudgetMinor: prev.reservedCreatorBudgetMinor + amountMinor,
-    }))
-    return tx
+  const reserveForCampaign = useCallback(
+    async (creatorBudgetMinor: number, platformFeePercent: number, campaignTitle: string) => {
+      const result = await campaignService.reserveForCampaign({ creatorBudgetMinor, platformFeePercent, campaignTitle })
+      if (!result.ok) throw new AppErrorException(result.error)
+      setAdvertiserTransactions((prev) => [result.data.transaction, ...prev])
+      setAdvertiserWallet(result.data.wallet)
+      return result.data.transaction
+    },
+    [],
+  )
+
+  const approveSubmission = useCallback(async (submissionId: string, moderatorNote?: string) => {
+    const result = await moderationService.approve({ submissionId, moderatorNote })
+    if (!result.ok) throw new AppErrorException(result.error)
+    setModerationQueue((prev) => prev.filter((s) => s.id !== submissionId))
+    return result.data
+  }, [])
+
+  const rejectSubmission = useCallback(
+    async (submissionId: string, rejectionReason: string, moderatorNote?: string) => {
+      const result = await moderationService.reject({ submissionId, rejectionReason, moderatorNote })
+      if (!result.ok) throw new AppErrorException(result.error)
+      setModerationQueue((prev) => prev.filter((s) => s.id !== submissionId))
+      return result.data
+    },
+    [],
+  )
+
+  const flagSubmissionForAdmin = useCallback(async (submissionId: string, reason: string) => {
+    const result = await moderationService.flagForAdmin({ submissionId, reason })
+    if (!result.ok) throw new AppErrorException(result.error)
+    setModerationQueue((prev) => prev.filter((s) => s.id !== submissionId))
+    return result.data
+  }, [])
+
+  const resolveFraudCase = useCallback(async (caseId: string, action: FraudCaseAction, note?: string) => {
+    const result = await fraudService.resolveCase({ caseId, action, note })
+    if (!result.ok) throw new AppErrorException(result.error)
+    setFraudCases((prev) => prev.filter((c) => c.id !== caseId))
   }, [])
 
   return (
@@ -197,6 +229,12 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
         addPaymentMethod,
         deposit,
         reserveForCampaign,
+        moderationQueue,
+        approveSubmission,
+        rejectSubmission,
+        flagSubmissionForAdmin,
+        fraudCases,
+        resolveFraudCase,
       }}
     >
       {children}

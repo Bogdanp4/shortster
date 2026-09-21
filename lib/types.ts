@@ -24,7 +24,7 @@ export type SubmissionStatus =
   | "rejected"
   | "admin_review"
 
-export type CampaignStatus = "active" | "draft" | "paused" | "completed"
+export type CampaignStatus = "active" | "draft" | "paused" | "completed" | "cancelled"
 
 export type VerificationMethod = "oauth" | "google" | "bio_challenge"
 
@@ -107,13 +107,16 @@ export interface AdvertiserWallet {
   totalSpentMinor: number
 }
 
-// Structured, moderator-checkable campaign requirements.
+// Structured, moderator-checkable campaign requirements — the single source
+// of truth for what a submission must satisfy. Human-readable checklist text
+// is derived from this at render time (see lib/domain/requirements.ts)
+// instead of being duplicated as a parallel string array.
 export interface CampaignRequirements {
-  minDuration: number // seconds; 0 = no minimum
-  maxDuration: number // seconds; 0 = no maximum
+  minVideoDurationSeconds: number // 0 = no minimum
+  maxVideoDurationSeconds: number // 0 = no maximum
   minViews: number // 0 = no minimum
   minFollowers: number // 0 = no minimum
-  language: VideoLanguage
+  videoLanguage: VideoLanguage
   specificAudience: boolean
   audienceDescription?: string
   requiredHashtag?: string // normalized with leading "#"
@@ -126,10 +129,11 @@ export interface Campaign {
   category: CampaignCategory
   cover: string
   description: string
+  // How-to-create-content steps, shown in the Overview tab.
   instructions: string[]
-  requirements: string[]
-  // Structured requirements used by the create flow and moderator checklist.
-  req: CampaignRequirements
+  // Structured requirements — used by the create flow, the checklist shown to
+  // creators/advertisers, and the moderator's checkable review list.
+  requirements: CampaignRequirements
   status: CampaignStatus
   creatorBudgetMinor: number
   creatorBudgetSpentMinor: number
@@ -145,7 +149,9 @@ export interface Campaign {
   endDate: string
   requiredCta: string
   requiredAudio?: string
-  hashtags: string[]
+  // Decorative, non-required hashtags shown for flavor. The required hashtag
+  // (if any) lives only in `requirements.requiredHashtag`.
+  optionalHashtags: string[]
   // External link (Google Drive / Dropbox / URL) to promo materials.
   promoMaterialsUrl?: string
   creators: number

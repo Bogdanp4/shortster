@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react"
 import { CheckCircle2, Wallet, ArrowRight, Plus, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
 import { MIN_WITHDRAWAL_MINOR } from "@/lib/config"
-import { formatCurrency } from "@/lib/format"
+import { formatCurrency, payoutNetworkLabel } from "@/lib/format"
+import { getErrorMessage } from "@/lib/errors"
 import type { PayoutMethod } from "@/lib/types"
 import {
   Dialog,
@@ -23,14 +25,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
 import { AddPayoutMethodDialog } from "./add-payout-method-dialog"
-
-const networkLabel: Record<string, string> = {
-  ethereum: "Ethereum (ERC-20)",
-  tron: "Tron (TRC-20)",
-  bsc: "BNB Smart Chain (BEP-20)",
-  polygon: "Polygon",
-  solana: "Solana",
-}
 
 function shortenAddress(address: string) {
   return address.length > 12 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address
@@ -87,14 +81,17 @@ export function WithdrawDialog({
     setProcessing(false)
   }
 
-  function confirm() {
+  async function confirm() {
     if (!method) return
     setProcessing(true)
-    setTimeout(() => {
-      withdraw(numericMinor, method)
-      setProcessing(false)
+    try {
+      await withdraw(numericMinor, method)
       setStep("success")
-    }, 900)
+    } catch (e) {
+      toast.error(getErrorMessage(e))
+    } finally {
+      setProcessing(false)
+    }
   }
 
   function close() {
@@ -198,7 +195,7 @@ export function WithdrawDialog({
                             <div className="flex min-w-0 flex-col">
                               <span className="text-sm font-medium">{m.label}</span>
                               <span className="truncate text-xs text-muted-foreground">
-                                {m.asset} · {networkLabel[m.network] ?? m.network} · {shortenAddress(m.walletAddress)}
+                                {m.asset} · {payoutNetworkLabel[m.network] ?? m.network} · {shortenAddress(m.walletAddress)}
                               </span>
                             </div>
                             {selected && <CheckCircle2 className="ml-auto size-4 shrink-0 text-primary" />}
@@ -246,7 +243,7 @@ export function WithdrawDialog({
                 />
                 <Row
                   label={t("withdrawDialog.payoutWallet")}
-                  value={`${method.label} · ${networkLabel[method.network] ?? method.network}`}
+                  value={`${method.label} · ${payoutNetworkLabel[method.network] ?? method.network}`}
                 />
                 <Row label={t("withdrawDialog.address")} value={shortenAddress(method.walletAddress)} />
                 <Row

@@ -6,8 +6,9 @@ import { toast } from "sonner"
 import Image from "next/image"
 
 import { useApp } from "@/components/app/app-provider"
-import { moderationQueue, getCampaign } from "@/lib/mock-data"
+import { getCampaign } from "@/lib/mock-data"
 import { formatCurrency, formatNumber } from "@/lib/format"
+import { buildRequirementsChecklist } from "@/lib/domain/requirements"
 import { PageHeader } from "@/components/shared/page-header"
 import { PlatformIcon } from "@/components/shared/platform-icon"
 import { RiskBadge } from "@/components/shared/status-badge"
@@ -24,16 +25,19 @@ import { useT } from "@/components/i18n/locale-provider"
 
 export function ReviewDetailView() {
   const t = useT()
-  const { params, navigate } = useApp()
+  const { params, navigate, moderationQueue, approveSubmission, rejectSubmission, flagSubmissionForAdmin } = useApp()
   const submission = moderationQueue.find((s) => s.id === params.submissionId) ?? moderationQueue[0]
   const campaign = getCampaign(submission.campaignId)
 
   const manual = submission.metricsMode === "manual"
-  const requirements = campaign?.requirements ?? []
+  const requirements = useMemo(
+    () => (campaign ? buildRequirementsChecklist(campaign.requirements, t) : []),
+    [campaign, t],
+  )
 
   // Controlled requirement checklist — every item must be ticked to approve.
   const [checked, setChecked] = useState<Record<string, boolean>>({})
-  const allChecked = requirements.length > 0 && requirements.every((r) => checked[r])
+  const allChecked = requirements.length > 0 && requirements.every((r) => checked[r.key])
 
   // Manual submissions: moderator confirms the real view count. Payout is
   // capped at the lower of declared and verified, so overstating never pays.
@@ -63,26 +67,59 @@ export function ReviewDetailView() {
         { icon: Clock, label: t("reviewDetail.duration"), value: `${submission.duration}s` },
       ]
 
-  function approve() {
+  const [note, setNote] = useState("")
+  const [pending, setPending] = useState(false)
+
+  async function approve() {
     if (!allChecked) {
       toast.error(t("reviewDetail.completeChecklistError"), { description: t("reviewDetail.completeChecklistDesc") })
       return
     }
-    toast.success(t("reviewDetail.approvedToast", { id: submission.id.toUpperCase() }), {
-      description: manual
-        ? t("reviewDetail.approvedManualDesc", {
-            amount: formatCurrency(payableRewardMinor),
-            views: formatNumber(payableViews),
-          })
-        : t("reviewDetail.approvedAutoDesc"),
-    })
-    navigate("queue")
+    setPending(true)
+    try {
+      await approveSubmission(submission.id, note.trim() || undefined)
+      toast.success(t("reviewDetail.approvedToast", { id: submission.id.toUpperCase() }), {
+        description: manual
+          ? t("reviewDetail.approvedManualDesc", {
+              amount: formatCurrency(payableRewardMinor),
+              views: formatNumber(payableViews),
+            })
+          : t("reviewDetail.approvedAutoDesc"),
+      })
+      navigate("queue")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("reviewDetail.completeChecklistError"))
+    } finally {
+      setPending(false)
+    }
   }
-  function reject() {
-    toast.error(t("reviewDetail.rejectedToast", { id: submission.id.toUpperCase() }), {
-      description: t("reviewDetail.rejectedDesc"),
-    })
-    navigate("queue")
+
+  async function reject() {
+    setPending(true)
+    try {
+      await rejectSubmission(submission.id, note.trim() || t("reviewDetail.rejectedDesc"), note.trim() || undefined)
+      toast.error(t("reviewDetail.rejectedToast", { id: submission.id.toUpperCase() }), {
+        description: t("reviewDetail.rejectedDesc"),
+      })
+      navigate("queue")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("reviewDetail.rejectedDesc"))
+    } finally {
+      setPending(false)
+    }
+  }
+
+  async function flagForAdmin() {
+    setPending(true)
+    try {
+      await flagSubmissionForAdmin(submission.id, note.trim() || t("reviewDetail.flaggedToast"))
+      toast.warning(t("reviewDetail.flaggedToast"))
+      navigate("queue")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("reviewDetail.flaggedToast"))
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -236,12 +273,12 @@ export function ReviewDetailView() {
                 <p className="text-sm text-muted-foreground">{t("reviewDetail.noRequirements")}</p>
               )}
               {requirements.map((r) => (
-                <label key={r} className="flex items-center gap-3 text-sm">
+                <label key={r.key} className="flex items-center gap-3 text-sm">
                   <Checkbox
-                    checked={!!checked[r]}
-                    onCheckedChange={(v) => setChecked((prev) => ({ ...prev, [r]: v === true }))}
+                    checked={!!checked[r.key]}
+                    onCheckedChange={(v) => setChecked((prev) => ({ ...prev, [r.key]: v === true }))}
                   />
-                  <span className={checked[r] ? "text-foreground" : "text-muted-foreground"}>{r}</span>
+                  <span className={checked[r.key] ? "text-foreground" : "text-muted-foreground"}>{r.label}</span>
                 </label>
               ))}
               {submission.requiredHashtagPresent !== undefined && (
@@ -275,7 +312,13 @@ export function ReviewDetailView() {
                   <FieldLabel htmlFor="note" className="sr-only">
                     {t("reviewDetail.noteTitle")}
                   </FieldLabel>
-                  <Textarea id="note" rows={3} placeholder={t("reviewDetail.notePlaceholder")} />
+                  <Textarea
+                    id="note"
+                    rows={3}
+                    placeholder={t("reviewDetail.notePlaceholder")}
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
                 </Field>
               </FieldGroup>
             </CardContent>
@@ -324,7 +367,7 @@ export function ReviewDetailView() {
 
           <Card>
             <CardContent className="flex flex-col gap-3 pt-6">
-              <Button size="lg" onClick={approve} disabled={!allChecked}>
+              <Button size="lg" onClick={approve} disabled={!allChecked || pending}>
                 <Check data-icon="inline-start" />
                 {t("reviewDetail.approveSubmission")}
               </Button>
@@ -333,18 +376,11 @@ export function ReviewDetailView() {
                   {t("reviewDetail.tickAllRequirements", { count: requirements.length })}
                 </p>
               )}
-              <Button size="lg" variant="outline" onClick={reject}>
+              <Button size="lg" variant="outline" onClick={reject} disabled={pending}>
                 <X data-icon="inline-start" />
                 {t("reviewDetail.rejectSubmission")}
               </Button>
-              <Button
-                size="lg"
-                variant="ghost"
-                onClick={() => {
-                  toast.warning(t("reviewDetail.flaggedToast"))
-                  navigate("queue")
-                }}
-              >
+              <Button size="lg" variant="ghost" onClick={flagForAdmin} disabled={pending}>
                 <Flag data-icon="inline-start" />
                 {t("reviewDetail.flagForAdminReview")}
               </Button>

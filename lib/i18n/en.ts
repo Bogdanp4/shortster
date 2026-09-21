@@ -644,6 +644,26 @@ export const en = {
     },
   },
 
+  // Human-readable requirements checklist, derived from a campaign's
+  // structured CampaignRequirements — the single source of truth shared by
+  // the creator/advertiser detail views and the moderator checklist.
+  requirements: {
+    durationRange: "{min}–{max} sec video length",
+    durationMin: "At least {min} sec video length",
+    durationMax: "Up to {max} sec video length",
+    minViews: "At least {count} views",
+    minFollowers: "At least {count} followers",
+    language: {
+      any: "Any language",
+      en: "English language",
+      ru: "Russian language",
+      uk: "Ukrainian language",
+    },
+    audienceWithDescription: "Audience: {description}",
+    audienceGeneric: "Specific target audience required",
+    hashtag: "Must include hashtag {tag}",
+  },
+
   // Rejection reasons — every reason has a key; never show the raw enum.
   rejectReason: {
     wrong_content: "Wrong content",

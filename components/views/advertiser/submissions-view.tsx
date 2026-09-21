@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { ExternalLink } from "lucide-react"
 
-import { moderationQueue } from "@/lib/mock-data"
+import { useApp } from "@/components/app/app-provider"
 import { formatCurrency, formatNumber, formatRelative } from "@/lib/format"
 import type { SubmissionStatus } from "@/lib/types"
 import { PageHeader } from "@/components/shared/page-header"
@@ -19,6 +19,7 @@ import { useT } from "@/components/i18n/locale-provider"
 
 export function AdvertiserSubmissionsView() {
   const t = useT()
+  const { moderationQueue } = useApp()
   const tabs: { value: SubmissionStatus | "all"; label: string }[] = [
     { value: "all", label: t("advSubmissions.all") },
     { value: "pending", label: t("statuses.pending") },
@@ -28,7 +29,7 @@ export function AdvertiserSubmissionsView() {
   const [tab, setTab] = useState<SubmissionStatus | "all">("all")
   const filtered = useMemo(
     () => (tab === "all" ? moderationQueue : moderationQueue.filter((s) => s.status === tab)),
-    [tab],
+    [tab, moderationQueue],
   )
 
   const totalViews = moderationQueue.reduce((s, x) => s + x.viewsAtSubmission, 0)

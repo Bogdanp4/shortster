@@ -27,6 +27,8 @@ import { useT } from "@/components/i18n/locale-provider"
 import { getCampaign, resolveMockVideo } from "@/lib/mock-data"
 import { formatMoney, formatNumber, detectPlatformFromUrl, platformUrlPlaceholder } from "@/lib/format"
 import { calculateReward, calculateFinalReward } from "@/lib/domain/money"
+import { buildRequirementsChecklist } from "@/lib/domain/requirements"
+import { getErrorMessage } from "@/lib/errors"
 import type {
   Platform,
   ResolvedVideo,
@@ -85,6 +87,11 @@ export function SubmitView() {
   const eligibleAccounts = useMemo(
     () => socialAccounts.filter((a) => campaign.platforms.includes(a.platform) && a.status === "verified"),
     [socialAccounts, campaign],
+  )
+
+  const requirementsChecklist = useMemo(
+    () => buildRequirementsChecklist(campaign.requirements, t),
+    [campaign.requirements, t],
   )
 
   const [accountId, setAccountId] = useState(eligibleAccounts[0]?.id ?? "")
@@ -146,7 +153,10 @@ export function SubmitView() {
         })()
       : null
 
-  const durationOk = video ? video.duration >= campaign.req.minDuration && video.duration <= campaign.req.maxDuration : true
+  const durationOk = video
+    ? video.duration >= campaign.requirements.minVideoDurationSeconds &&
+      video.duration <= campaign.requirements.maxVideoDurationSeconds
+    : true
 
   // Manual submissions need a declared view count and at least one proof screenshot.
   const manualReady = !manualMode || (claimedViewsNum > 0 && proofFiles.length > 0)
@@ -242,12 +252,18 @@ export function SubmitView() {
         proofAssets: manualMode ? proofFiles : undefined,
       }
       addSubmission(submission)
-      toast.success(manualMode ? t("submit.toastManualTitle") : t("submit.toastAutoTitle"), {
-        description: manualMode
-          ? t("submit.toastManualBody", { campaign: campaign.title, views: formatNumber(claimedViewsNum) })
-          : t("submit.toastAutoBody", { campaign: campaign.title, views: formatNumber(video.views) }),
-      })
-      navigate("submissions")
+        .then(() => {
+          toast.success(manualMode ? t("submit.toastManualTitle") : t("submit.toastAutoTitle"), {
+            description: manualMode
+              ? t("submit.toastManualBody", { campaign: campaign.title, views: formatNumber(claimedViewsNum) })
+              : t("submit.toastAutoBody", { campaign: campaign.title, views: formatNumber(video.views) }),
+          })
+          navigate("submissions")
+        })
+        .catch((e) => {
+          setSubmitting(false)
+          toast.error(getErrorMessage(e))
+        })
     }, 900)
   }
 
@@ -612,8 +628,8 @@ export function SubmitView() {
                         <AlertTitle>{t("submit.durationOutOfRangeTitle")}</AlertTitle>
                         <AlertDescription>
                           {t("submit.durationOutOfRangeBodyManual", {
-                            min: campaign.req.minDuration,
-                            max: campaign.req.maxDuration,
+                            min: campaign.requirements.minVideoDurationSeconds,
+                            max: campaign.requirements.maxVideoDurationSeconds,
                             duration: video.duration,
                           })}
                         </AlertDescription>
@@ -667,8 +683,8 @@ export function SubmitView() {
                         <AlertTitle>{t("submit.durationOutOfRangeTitle")}</AlertTitle>
                         <AlertDescription>
                           {t("submit.durationOutOfRangeBodyAuto", {
-                            min: campaign.req.minDuration,
-                            max: campaign.req.maxDuration,
+                            min: campaign.requirements.minVideoDurationSeconds,
+                            max: campaign.requirements.maxVideoDurationSeconds,
                             duration: video.duration,
                           })}
                         </AlertDescription>
@@ -684,10 +700,10 @@ export function SubmitView() {
                   <CardDescription>{t("submit.step5Desc")}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3">
-                  {campaign.requirements.map((r) => (
-                    <div key={r} className="flex items-start gap-3 text-sm">
+                  {requirementsChecklist.map((r) => (
+                    <div key={r.key} className="flex items-start gap-3 text-sm">
                       <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
-                      <span className="text-muted-foreground">{r}</span>
+                      <span className="text-muted-foreground">{r.label}</span>
                     </div>
                   ))}
                   <Separator />
@@ -720,7 +736,7 @@ export function SubmitView() {
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               <Row label={t("submit.rowRate")}>{formatMoney(campaign.ratePerMillionMinor)} {t("submit.ratePerMillionSuffix")}</Row>
-              <Row label={t("submit.rowMinViews")}>{formatNumber(campaign.req.minViews)}</Row>
+              <Row label={t("submit.rowMinViews")}>{formatNumber(campaign.requirements.minViews)}</Row>
               <Row label={t("submit.rowMaxPerVideo")}>{formatMoney(campaign.maxPayoutPerVideoMinor)}</Row>
               <Row label={t("submit.rowBudgetRemaining")}>{formatMoney(remaining, { compact: true })}</Row>
 
