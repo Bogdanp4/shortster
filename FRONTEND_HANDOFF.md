@@ -56,12 +56,21 @@ the desired moderation flow before building a fraud API.
 
 `services/` contains an async, mock-backed service per domain (`campaign-service.ts`,
 `submission-service.ts`, `moderation-service.ts`, `wallet-service.ts`, `withdrawal-service.ts`,
-`billing-service.ts`, `fraud-service.ts`, `social-account-service.ts`,
-`notification-service.ts`). Each currently reads/writes an in-memory store seeded from
-`lib/mock-data.ts` (`services/store.ts`) with artificial latency, but the function signatures are
-already async and return the `Result<T>` shape from `services/types.ts` — `AppProvider` and views
-call these services rather than mutating state directly. Swapping a service's internals to call a
-real API/database should not require call-site changes in components.
+`billing-service.ts`, `fraud-service.ts`, `social-account-service.ts`, `account-service.ts`,
+`notification-service.ts`). Each reads/writes a single in-memory store seeded from
+`lib/mock-data.ts` (`services/store.ts`) with artificial latency — that store is the source of
+truth. `AppProvider` keeps its React state in sync with the store by applying the data returned
+from each service call (e.g. a moderation decision patches both the moderation queue and the
+creator's submission + wallet), rather than mutating state directly. The function signatures are
+already async and return the `Result<T>` shape from `services/types.ts`, so swapping a service's
+internals to call a real API/database should not require call-site changes in components.
+
+Cross-cutting flows are wired through the store so the demo stays consistent across roles: a
+creator submission feeds the moderator queue, a moderation approve/reject/flag propagates back to
+the creator's submission, wallet, and (when flagged) the admin fraud cases. `createCampaign`
+(`campaign-service.ts`) turns the full create-campaign form into a `Campaign`, reserving funds and
+going live when the wallet can cover the budget, or saving as a draft when it can't — no form data
+is lost either way.
 
 Validation that currently lives in these mock services (min-withdrawal amount, budget checks,
 duplicate submission checks) must be re-implemented server-side for real — never trust the

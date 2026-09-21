@@ -32,7 +32,10 @@ import * as billingService from "@/services/billing-service"
 import * as campaignService from "@/services/campaign-service"
 import * as moderationService from "@/services/moderation-service"
 import * as fraudService from "@/services/fraud-service"
-import type { FraudCaseAction } from "@/services/types"
+import * as accountService from "@/services/account-service"
+import { store } from "@/services/store"
+import type { CreateCampaignInput, FraudCaseAction } from "@/services/types"
+import type { Campaign } from "@/lib/types"
 
 interface AppState {
   role: Role
@@ -67,6 +70,7 @@ interface AppState {
     platformFeePercent: number,
     campaignTitle: string,
   ) => Promise<WalletTransaction>
+  createCampaign: (input: CreateCampaignInput) => Promise<Campaign>
 
   // Moderation & fraud
   moderationQueue: Submission[]
@@ -126,24 +130,27 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
   const addSubmission = useCallback(async (s: Submission) => {
     const result = await submissionService.createSubmission(s)
     if (!result.ok) throw new AppErrorException(result.error)
-    setSubmissions((prev) => [result.data, ...prev])
+    // The service also enqueues pending submissions for moderation, so mirror
+    // both slices from the store to keep the moderator queue in sync.
+    setSubmissions([...store.submissions])
+    setModerationQueue([...store.moderationQueue])
     return result.data
   }, [])
 
   const addSocialAccount = useCallback((s: SocialAccount) => {
-    setSocialAccounts((prev) => [...prev, s])
+    setSocialAccounts([...accountService.addSocialAccount(s)])
   }, [])
 
   const updateSocialAccount = useCallback((id: string, patch: Partial<SocialAccount>) => {
-    setSocialAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)))
+    setSocialAccounts([...accountService.updateSocialAccount(id, patch)])
   }, [])
 
   const removeSocialAccount = useCallback((id: string) => {
-    setSocialAccounts((prev) => prev.filter((a) => a.id !== id))
+    setSocialAccounts([...accountService.removeSocialAccount(id)])
   }, [])
 
   const addPayoutMethod = useCallback((m: PayoutMethod) => {
-    setPayoutMethods((prev) => [...prev, m])
+    setPayoutMethods([...accountService.addPayoutMethod(m)])
   }, [])
 
   const withdraw = useCallback(async (amountMinor: number, method: PayoutMethod) => {
@@ -218,10 +225,23 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
       if (!result.ok) throw new AppErrorException(result.error)
       setModerationQueue((prev) => prev.filter((s) => s.id !== submissionId))
       syncCreatorSubmission(result.data.submission)
+      // Flagging opens a fraud case in the store — mirror it so the admin
+      // fraud queue reflects the new case.
+      setFraudCases([...store.fraudCases])
       return result.data.submission
     },
     [syncCreatorSubmission],
   )
+
+  const createCampaign = useCallback(async (input: CreateCampaignInput) => {
+    const result = await campaignService.createCampaign(input)
+    if (!result.ok) throw new AppErrorException(result.error)
+    setAdvertiserWallet(result.data.wallet)
+    if (result.data.transaction) {
+      setAdvertiserTransactions((prev) => [result.data.transaction!, ...prev])
+    }
+    return result.data.campaign
+  }, [])
 
   const resolveFraudCase = useCallback(async (caseId: string, action: FraudCaseAction, note?: string) => {
     const result = await fraudService.resolveCase({ caseId, action, note })
@@ -254,6 +274,7 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
         addPaymentMethod,
         deposit,
         reserveForCampaign,
+        createCampaign,
         moderationQueue,
         approveSubmission,
         rejectSubmission,

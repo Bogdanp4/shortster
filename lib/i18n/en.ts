@@ -888,6 +888,9 @@ export const en = {
     launchCampaign: "Launch campaign",
     createdToast: "Campaign created",
     createdToastDesc: "{amount} reserved (incl. {fee} platform fee). Your campaign is now live and discoverable by creators.",
+    saveAsDraft: "Save as draft",
+    draftSavedToast: "Draft saved",
+    draftSavedToastDesc: "Your campaign was saved as a draft. Add funds and launch it whenever you're ready.",
   },
 
   advOverview: {
