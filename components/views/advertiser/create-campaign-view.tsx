@@ -112,9 +112,9 @@ export function CreateCampaignView() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Create Campaign"
-        description="Set up a new campaign for creators to clip and promote."
-        backLabel="Back to campaigns"
+        title={t("createCampaign.title")}
+        description={t("createCampaign.description")}
+        backLabel={t("createCampaign.backToCampaigns")}
         onBack={() => navigate("campaigns")}
       />
 
@@ -126,24 +126,24 @@ export function CreateCampaignView() {
               <div className="flex items-center gap-2">
                 <StepBadge n={1} />
                 <div className="flex flex-col">
-                  <CardTitle>Basics</CardTitle>
-                  <CardDescription>Name, category and brief</CardDescription>
+                  <CardTitle>{t("createCampaign.basics")}</CardTitle>
+                  <CardDescription>{t("createCampaign.basicsDesc")}</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-5">
                 <Field>
-                  <FieldLabel htmlFor="title">Campaign title</FieldLabel>
+                  <FieldLabel htmlFor="title">{t("createCampaign.campaignTitleLabel")}</FieldLabel>
                   <Input
                     id="title"
-                    placeholder="e.g. Summer Highlights"
+                    placeholder={t("createCampaign.campaignTitlePlaceholder")}
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                   />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="category">Category</FieldLabel>
+                  <FieldLabel htmlFor="category">{t("createCampaign.categoryLabel")}</FieldLabel>
                   <Select value={category} onValueChange={(v) => setCategory(v as CampaignCategory)}>
                     <SelectTrigger id="category">
                       <SelectValue />
@@ -160,9 +160,9 @@ export function CreateCampaignView() {
                   </Select>
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="desc">Description</FieldLabel>
-                  <Textarea id="desc" rows={4} placeholder="What should creators make?" />
-                  <FieldDescription>Explain the vibe, footage sources and any brand rules.</FieldDescription>
+                  <FieldLabel htmlFor="desc">{t("createCampaign.descriptionLabel")}</FieldLabel>
+                  <Textarea id="desc" rows={4} placeholder={t("createCampaign.descriptionPlaceholder")} />
+                  <FieldDescription>{t("createCampaign.descriptionHelp")}</FieldDescription>
                 </Field>
               </div>
             </CardContent>
@@ -174,14 +174,14 @@ export function CreateCampaignView() {
               <div className="flex items-center gap-2">
                 <StepBadge n={2} />
                 <div className="flex flex-col">
-                  <CardTitle>Platforms</CardTitle>
-                  <CardDescription>Where creators can publish content for this campaign</CardDescription>
+                  <CardTitle>{t("createCampaign.platforms")}</CardTitle>
+                  <CardDescription>{t("createCampaign.platformsDesc")}</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <FieldSet>
-                <FieldLegend className="sr-only">Platforms</FieldLegend>
+                <FieldLegend className="sr-only">{t("createCampaign.platforms")}</FieldLegend>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {platformOptions.map((p) => {
                     const active = selected.includes(p.value)
@@ -216,7 +216,7 @@ export function CreateCampaignView() {
                     )
                   })}
                 </div>
-                {noPlatform && <p className="mt-3 text-sm text-destructive">Select at least one platform.</p>}
+                {noPlatform && <p className="mt-3 text-sm text-destructive">{t("createCampaign.selectAtLeastOne")}</p>}
               </FieldSet>
             </CardContent>
           </Card>
@@ -227,8 +227,8 @@ export function CreateCampaignView() {
               <div className="flex items-center gap-2">
                 <StepBadge n={3} />
                 <div className="flex flex-col">
-                  <CardTitle>Requirements</CardTitle>
-                  <CardDescription>Rules moderators check on every submission</CardDescription>
+                  <CardTitle>{t("createCampaign.requirements")}</CardTitle>
+                  <CardDescription>{t("createCampaign.requirementsDesc")}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -236,7 +236,7 @@ export function CreateCampaignView() {
               <div className="flex flex-col gap-5">
                 <div className="grid gap-4 sm:grid-cols-3">
                   <Field>
-                    <FieldLabel htmlFor="minDuration">Min duration (sec)</FieldLabel>
+                    <FieldLabel htmlFor="minDuration">{t("createCampaign.minDuration")}</FieldLabel>
                     <Input
                       id="minDuration"
                       type="number"
@@ -246,7 +246,7 @@ export function CreateCampaignView() {
                     />
                   </Field>
                   <Field>
-                    <FieldLabel htmlFor="minViews">Min views</FieldLabel>
+                    <FieldLabel htmlFor="minViews">{t("createCampaign.minViews")}</FieldLabel>
                     <Input
                       id="minViews"
                       type="number"
@@ -256,7 +256,7 @@ export function CreateCampaignView() {
                     />
                   </Field>
                   <Field>
-                    <FieldLabel htmlFor="minFollowers">Min followers</FieldLabel>
+                    <FieldLabel htmlFor="minFollowers">{t("createCampaign.minFollowers")}</FieldLabel>
                     <Input
                       id="minFollowers"
                       type="number"
@@ -268,7 +268,7 @@ export function CreateCampaignView() {
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field>
-                    <FieldLabel htmlFor="language">Video language</FieldLabel>
+                    <FieldLabel htmlFor="language">{t("createCampaign.videoLanguage")}</FieldLabel>
                     <Select value={language} onValueChange={(v) => setLanguage(v as VideoLanguage)}>
                       <SelectTrigger id="language">
                         <SelectValue />
@@ -285,40 +285,40 @@ export function CreateCampaignView() {
                     </Select>
                   </Field>
                   <Field>
-                    <FieldLabel htmlFor="hashtag">Required hashtag</FieldLabel>
+                    <FieldLabel htmlFor="hashtag">{t("createCampaign.requiredHashtag")}</FieldLabel>
                     <Input
                       id="hashtag"
-                      placeholder="#brandname"
+                      placeholder={t("createCampaign.hashtagPlaceholder")}
                       value={requiredHashtag}
                       onChange={(e) => setRequiredHashtag(e.target.value)}
                     />
                     <FieldDescription>
-                      {normalizedHashtag ? `Creators must include ${normalizedHashtag}` : "Optional"}
+                      {normalizedHashtag ? t("createCampaign.hashtagMust", { hashtag: normalizedHashtag }) : t("createCampaign.optional")}
                     </FieldDescription>
                   </Field>
                 </div>
                 <Separator />
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-medium">Target a specific audience</span>
+                    <span className="text-sm font-medium">{t("createCampaign.targetAudience")}</span>
                     <span className="text-xs text-muted-foreground">
-                      Require creators to tailor content to a defined audience.
+                      {t("createCampaign.targetAudienceDesc")}
                     </span>
                   </div>
                   <Switch checked={specificAudience} onCheckedChange={setSpecificAudience} />
                 </div>
                 {specificAudience && (
                   <Field>
-                    <FieldLabel htmlFor="audience">Audience description</FieldLabel>
+                    <FieldLabel htmlFor="audience">{t("createCampaign.audienceDescription")}</FieldLabel>
                     <Textarea
                       id="audience"
                       rows={3}
-                      placeholder="e.g. Gen-Z gamers in the US who follow FPS titles"
+                      placeholder={t("createCampaign.audiencePlaceholder")}
                       value={audienceDescription}
                       onChange={(e) => setAudienceDescription(e.target.value)}
                     />
                     {audienceInvalid && (
-                      <p className="text-sm text-destructive">Describe the audience or turn this off.</p>
+                      <p className="text-sm text-destructive">{t("createCampaign.audienceInvalid")}</p>
                     )}
                   </Field>
                 )}
@@ -332,27 +332,27 @@ export function CreateCampaignView() {
               <div className="flex items-center gap-2">
                 <StepBadge n={4} />
                 <div className="flex flex-col">
-                  <CardTitle>Promo materials</CardTitle>
-                  <CardDescription>Footage, logos and brand assets for creators</CardDescription>
+                  <CardTitle>{t("createCampaign.promoMaterials")}</CardTitle>
+                  <CardDescription>{t("createCampaign.promoMaterialsDesc")}</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <Field>
-                <FieldLabel htmlFor="promo">Materials link</FieldLabel>
+                    <FieldLabel htmlFor="promo">{t("createCampaign.materialsLink")}</FieldLabel>
                 <InputGroup>
                   <InputGroupAddon>
                     <LinkIcon className="size-4" />
                   </InputGroupAddon>
                   <InputGroupInput
                     id="promo"
-                    placeholder="https://drive.google.com/…"
+                    placeholder={t("createCampaign.materialsPlaceholder")}
                     value={promoUrl}
                     onChange={(e) => setPromoUrl(e.target.value)}
                   />
                 </InputGroup>
                 <FieldDescription>
-                  Paste a Google Drive, Dropbox or direct URL. Creators can download source footage and brand kits.
+                  {t("createCampaign.materialsHelp")}
                 </FieldDescription>
               </Field>
             </CardContent>
@@ -364,8 +364,8 @@ export function CreateCampaignView() {
               <div className="flex items-center gap-2">
                 <StepBadge n={5} />
                 <div className="flex flex-col">
-                  <CardTitle>Budget & payout</CardTitle>
-                  <CardDescription>Total budget and rate per million views</CardDescription>
+                  <CardTitle>{t("createCampaign.budgetPayout")}</CardTitle>
+                  <CardDescription>{t("createCampaign.budgetPayoutDesc")}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -373,21 +373,21 @@ export function CreateCampaignView() {
               <div className="flex flex-col gap-5">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field>
-                    <FieldLabel htmlFor="budget">Total budget ($)</FieldLabel>
+                    <FieldLabel htmlFor="budget">{t("createCampaign.totalBudget")}</FieldLabel>
                     <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} />
                   </Field>
                   <Field>
-                    <FieldLabel htmlFor="rate">Rate per 1M views ($)</FieldLabel>
+                    <FieldLabel htmlFor="rate">{t("createCampaign.ratePerMillion")}</FieldLabel>
                     <Input id="rate" type="number" value={rate} onChange={(e) => setRate(e.target.value)} />
                   </Field>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field>
-                    <FieldLabel htmlFor="maxvid">Max payout / video ($)</FieldLabel>
+                    <FieldLabel htmlFor="maxvid">{t("createCampaign.maxPayoutVideo")}</FieldLabel>
                     <Input id="maxvid" type="number" defaultValue="200" />
                   </Field>
                   <Field>
-                    <FieldLabel htmlFor="maxacc">Max payout / account ($)</FieldLabel>
+                    <FieldLabel htmlFor="maxacc">{t("createCampaign.maxPayoutAccount")}</FieldLabel>
                     <Input id="maxacc" type="number" defaultValue="250" />
                   </Field>
                 </div>
@@ -403,14 +403,14 @@ export function CreateCampaignView() {
               <div className="flex items-center gap-2">
                 <StepBadge n={6} />
                 <div className="flex flex-col">
-                  <CardTitle>Review & launch</CardTitle>
-                  <CardDescription>Reserve budget to go live</CardDescription>
+                  <CardTitle>{t("createCampaign.reviewLaunch")}</CardTitle>
+                  <CardDescription>{t("createCampaign.reviewLaunchDesc")}</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
-                <span className="text-sm text-muted-foreground">Estimated views</span>
+                <span className="text-sm text-muted-foreground">{t("createCampaign.estimatedViews")}</span>
                 <span className="text-2xl font-semibold text-primary tabular-nums">
                   {estimatedViews >= 1_000_000
                     ? `${(estimatedViews / 1_000_000).toFixed(1)}M`
@@ -419,7 +419,7 @@ export function CreateCampaignView() {
               </div>
               <Separator />
               <div className="flex items-start justify-between gap-3 text-sm">
-                <span className="text-muted-foreground">Platforms</span>
+                <span className="text-muted-foreground">{t("createCampaign.summaryPlatforms")}</span>
                 {selected.length > 0 ? (
                   <div className="flex flex-wrap justify-end gap-1.5">
                     {selected.map((p) => (
@@ -430,36 +430,36 @@ export function CreateCampaignView() {
                     ))}
                   </div>
                 ) : (
-                  <span className="text-destructive">None selected</span>
+                  <span className="text-destructive">{t("createCampaign.noneSelected")}</span>
                 )}
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Rate</span>
-                <span className="font-medium">{formatCurrency(rateNum)} / 1M</span>
+                <span className="text-muted-foreground">{t("createCampaign.summaryRate")}</span>
+                <span className="font-medium">{t("createCampaign.ratePerMillionShort", { amount: formatCurrency(rateNum) })}</span>
               </div>
               <Separator />
               {/* Fee / reserve breakdown */}
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Campaign budget</span>
+                <span className="text-muted-foreground">{t("createCampaign.campaignBudget")}</span>
                 <span className="font-medium tabular-nums">{formatCurrency(budgetNum)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-1 text-muted-foreground">
-                  Platform fee ({FEE_PERCENT}%)
+                  {t("createCampaign.platformFee", { percent: String(FEE_PERCENT) })}
                   <Info className="size-3" />
                 </span>
                 <span className="font-medium tabular-nums">{formatCurrency(fee)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">Total to reserve</span>
+                <span className="font-medium">{t("createCampaign.totalToReserve")}</span>
                 <span className="font-semibold tabular-nums">{formatCurrency(totalReserve)}</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                The {FEE_PERCENT}% fee is paid by you — creators always receive 100% of their earned rate.
+                {t("createCampaign.feeNote", { percent: String(FEE_PERCENT) })}
               </p>
               <Separator />
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Wallet available</span>
+                <span className="text-muted-foreground">{t("createCampaign.walletAvailable")}</span>
                 <span className={`font-medium tabular-nums ${insufficient ? "text-destructive" : ""}`}>
                   {formatCurrency(advertiserWallet.available)}
                 </span>
@@ -467,21 +467,21 @@ export function CreateCampaignView() {
               {insufficient && (
                 <Alert variant="destructive">
                   <AlertTriangle className="size-4" />
-                  <AlertTitle>Insufficient balance</AlertTitle>
+                  <AlertTitle>{t("createCampaign.insufficientBalance")}</AlertTitle>
                   <AlertDescription>
-                    You need {formatCurrency(shortfall)} more to reserve this budget. Add funds to launch.
+                    {t("createCampaign.insufficientDesc", { amount: formatCurrency(shortfall) })}
                   </AlertDescription>
                 </Alert>
               )}
               {insufficient ? (
                 <Button size="lg" variant="secondary" onClick={() => setDepositOpen(true)}>
                   <Plus data-icon="inline-start" />
-                  Add {formatCurrency(shortfall)}
+                  {t("createCampaign.addAmount", { amount: formatCurrency(shortfall) })}
                 </Button>
               ) : (
                 <Button size="lg" onClick={launch} disabled={!canLaunch}>
                   <Rocket data-icon="inline-start" />
-                  Launch campaign
+                  {t("createCampaign.launchCampaign")}
                 </Button>
               )}
             </CardContent>

@@ -4,6 +4,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { Eye, DollarSign, FileVideo, Users, PlusCircle } from "lucide-react"
 
 import { useApp } from "@/components/app/app-provider"
+import { useT } from "@/components/i18n/locale-provider"
 import { campaigns, advertiserStatsSeries, advertiserWallet } from "@/lib/mock-data"
 import { formatCurrency, formatNumber } from "@/lib/format"
 import { PageHeader } from "@/components/shared/page-header"
@@ -15,12 +16,12 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 
-const chartConfig = {
-  views: { label: "Views", color: "var(--chart-1)" },
-} satisfies ChartConfig
-
 export function AdvertiserOverviewView() {
   const { navigate } = useApp()
+  const t = useT()
+  const chartConfig = {
+    views: { label: t("advOverview.totalViews"), color: "var(--chart-1)" },
+  } satisfies ChartConfig
   const active = campaigns.filter((c) => c.status === "active")
   const totalViews = campaigns.reduce((s, c) => s + c.views, 0)
   const totalSubmissions = campaigns.reduce((s, c) => s + c.submissionsCount, 0)
@@ -28,25 +29,25 @@ export function AdvertiserOverviewView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Overview" description="Performance across all your campaigns.">
+      <PageHeader title={t("advOverview.title")} description={t("advOverview.description")}>
         <Button onClick={() => navigate("create")}>
           <PlusCircle data-icon="inline-start" />
-          Create campaign
+          {t("advOverview.createCampaign")}
         </Button>
       </PageHeader>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total views" value={formatNumber(totalViews)} icon={Eye} trend={{ value: "+18.2%", positive: true }} />
-        <StatCard label="Total spent" value={formatCurrency(advertiserWallet.totalSpent)} icon={DollarSign} trend={{ value: "+9.4%", positive: true }} />
-        <StatCard label="Submissions" value={formatNumber(totalSubmissions)} icon={FileVideo} trend={{ value: "+12", positive: true }} />
-        <StatCard label="Creators" value={formatNumber(totalCreators)} icon={Users} trend={{ value: "+34", positive: true }} />
+        <StatCard label={t("advOverview.totalViews")} value={formatNumber(totalViews)} icon={Eye} trend={{ value: "+18.2%", positive: true }} />
+        <StatCard label={t("advOverview.totalSpent")} value={formatCurrency(advertiserWallet.totalSpent)} icon={DollarSign} trend={{ value: "+9.4%", positive: true }} />
+        <StatCard label={t("advOverview.submissions")} value={formatNumber(totalSubmissions)} icon={FileVideo} trend={{ value: "+12", positive: true }} />
+        <StatCard label={t("advOverview.creators")} value={formatNumber(totalCreators)} icon={Users} trend={{ value: "+34", positive: true }} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Views this week</CardTitle>
-            <CardDescription>Verified views across active campaigns</CardDescription>
+            <CardTitle>{t("advOverview.viewsThisWeek")}</CardTitle>
+            <CardDescription>{t("advOverview.viewsThisWeekDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="aspect-[2/1] w-full">
@@ -63,22 +64,22 @@ export function AdvertiserOverviewView() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Wallet</CardTitle>
-            <CardDescription>Available and reserved funds</CardDescription>
+            <CardTitle>{t("advOverview.wallet")}</CardTitle>
+            <CardDescription>{t("advOverview.walletDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-muted-foreground">Available</span>
+              <span className="text-sm text-muted-foreground">{t("advOverview.available")}</span>
               <span className="text-2xl font-semibold text-primary tabular-nums">
                 {formatCurrency(advertiserWallet.available)}
               </span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-muted-foreground">Reserved for campaigns</span>
+              <span className="text-sm text-muted-foreground">{t("advOverview.reservedForCampaigns")}</span>
               <span className="text-lg font-medium tabular-nums">{formatCurrency(advertiserWallet.reserved)}</span>
             </div>
             <Button variant="outline" onClick={() => navigate("wallet")}>
-              Add funds
+              {t("advOverview.addFunds")}
             </Button>
           </CardContent>
         </Card>
@@ -86,8 +87,8 @@ export function AdvertiserOverviewView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Active campaigns</CardTitle>
-          <CardDescription>Budget usage and reach</CardDescription>
+          <CardTitle>{t("advOverview.activeCampaigns")}</CardTitle>
+          <CardDescription>{t("advOverview.activeCampaignsDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
           {active.map((c) => {
@@ -104,7 +105,7 @@ export function AdvertiserOverviewView() {
                     <div className="flex flex-col">
                       <span className="font-medium">{c.title}</span>
                       <span className="text-xs text-muted-foreground">
-                        {formatNumber(c.views)} views · {c.submissionsCount} submissions
+                        {t("advOverview.viewsSubmissions", { views: formatNumber(c.views), count: c.submissionsCount })}
                       </span>
                     </div>
                   </div>
@@ -113,7 +114,7 @@ export function AdvertiserOverviewView() {
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">
-                      {formatCurrency(c.spent)} of {formatCurrency(c.budget)}
+                      {t("advOverview.spentOfBudget", { spent: formatCurrency(c.spent), budget: formatCurrency(c.budget) })}
                     </span>
                     <span className="text-muted-foreground">{pct}%</span>
                   </div>
