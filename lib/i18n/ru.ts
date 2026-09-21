@@ -701,7 +701,7 @@ export const ru: Dictionary = {
     selectPlatform: "Выберите хотя бы одну платформу",
     amountExceedsBalance: "Сумма превышает доступный баланс",
     minAmount: "Сумма меньше минимальной",
-    invalidNumber: "Введите корректное число",
+    invalidNumber: "Введите корректное ч��сло",
   },
 
   toast: {
@@ -818,7 +818,7 @@ export const ru: Dictionary = {
     langRu: "Русский",
     langUk: "Украинский",
     catClipping: "Клиппинг",
-    catLogo: "Логотип",
+    catLogo: "Ло��отип",
     catVideoBanner: "Видеобаннер",
     catMusic: "Музыка",
     basics: "Основное",
@@ -956,7 +956,7 @@ export const ru: Dictionary = {
 
   adminAudit: {
     title: "Журнал аудита",
-    description: "Неизменяемая запись всех значимых действий на платформе.",
+    description: "Неизменяемая запись всех значимых ��ействий на платформе.",
     all: "Все",
     moderation: "Модерация",
     financial: "Финансы",
@@ -1163,7 +1163,7 @@ export const ru: Dictionary = {
     approve: "Одобрить",
     reject: "Отклонить",
     reviewDetails: "Подробности проверки",
-    approvedToast: "Одобрено {id}",
+    approvedToast: "Одобр��но {id}",
     rejectedToast: "Отклонено {id}",
   },
 
@@ -1328,10 +1328,11 @@ export const ru: Dictionary = {
   submissionDetail: {
     submissionId: "Заявка {id}",
     backToSubmissions: "Назад к заявкам",
+    notFound: "Заявка не найдена.",
     viewVideo: "Смотреть видео",
     viewsLocked: "Счётчик просмотров зафиксирован при отправке{when}. Дальнейший рост не меняет вознаграждение.",
     flaggedAdminReview: "Отмечено для проверки администратором",
-    submissionRejected: "Заявка отклонена",
+    submissionRejected: "Заявка отклоне��а",
     timeline: "Хронология",
     submitted: "Отправлено",
     viewsVerified: "Просмотры подтверждены",
@@ -1411,7 +1412,7 @@ export const ru: Dictionary = {
     withdrawalsHint: "Ваши заявки на вывод появятся здесь.",
     queue: "Очередь проверок пуста",
     queueHint: "Новые заявки для проверки появятся здесь.",
-    fraud: "Нет случаев мошенничества",
+    fraud: "��ет случаев мошенничества",
     fraudHint: "��тмеченные случаи появятся здесь.",
     users: "Пользователи не найдены",
     generic: "Здесь пока пусто",

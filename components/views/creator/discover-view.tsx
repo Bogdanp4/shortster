@@ -41,7 +41,7 @@ export function DiscoverView() {
       const matchesCategory = category === "all" || c.category === category
       return matchesQuery && matchesCategory
     })
-  }, [query, category])
+  }, [query, category, campaigns])
 
   const activeCampaigns = campaigns.filter((c) => c.status === "active")
   const activeBudgetRemaining = activeCampaigns.reduce(
