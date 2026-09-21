@@ -37,7 +37,7 @@ export function SubmissionsView() {
 
   const totalEarned = submissions
     .filter((s) => s.status === "credited")
-    .reduce((sum, s) => sum + (s.cappedReward ?? s.reward), 0)
+    .reduce((sum, s) => sum + (s.finalRewardMinor ?? s.calculatedRewardMinor), 0)
   const totalViews = submissions.reduce((sum, s) => sum + s.viewsAtSubmission, 0)
   const pendingCount = submissions.filter((s) => s.status === "pending").length
 
@@ -99,7 +99,7 @@ export function SubmissionsView() {
                   </TableCell>
                   <TableCell className="text-right tabular-nums">{formatNumber(s.viewsAtSubmission)}</TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
-                    {formatCurrency(s.cappedReward ?? s.reward)}
+                    {formatCurrency(s.finalRewardMinor ?? s.calculatedRewardMinor)}
                   </TableCell>
                   <TableCell>
                     <SubmissionStatusBadge status={s.status} />

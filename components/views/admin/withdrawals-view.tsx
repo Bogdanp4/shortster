@@ -16,10 +16,10 @@ import { useT } from "@/components/i18n/locale-provider"
 export function AdminWithdrawalsView() {
   const t = useT()
   const pending = adminWithdrawals.filter((w) => w.status === "pending")
-  const pendingTotal = pending.reduce((s, w) => s + Math.abs(w.amount), 0)
+  const pendingTotal = pending.reduce((s, w) => s + Math.abs(w.amountMinor), 0)
   const paidTotal = adminWithdrawals
     .filter((w) => w.status === "completed")
-    .reduce((s, w) => s + Math.abs(w.amount), 0)
+    .reduce((s, w) => s + Math.abs(w.amountMinor), 0)
 
   return (
     <div className="flex flex-col gap-6">
@@ -54,7 +54,7 @@ export function AdminWithdrawalsView() {
                     <TransactionStatusBadge status={w.status} />
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
-                    {formatCurrency(Math.abs(w.amount))}
+                    {formatCurrency(Math.abs(w.amountMinor))}
                   </TableCell>
                   <TableCell className="text-right">
                     {w.status === "pending" ? (

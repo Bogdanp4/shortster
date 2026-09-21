@@ -6,12 +6,11 @@ export function mockHash(password: string) {
   return `mock:${password}`
 }
 
-function user(partial: Omit<AuthUser, "passwordHash" | "onboardingStep" | "createdAt" | "updatedAt"> & { password: string }): AuthUser {
+function user(partial: Omit<AuthUser, "passwordHash" | "createdAt" | "updatedAt"> & { password: string }): AuthUser {
   const { password, ...rest } = partial
   return {
     ...rest,
     passwordHash: mockHash(password),
-    onboardingStep: 0,
     createdAt: "Jan 3, 2025",
     updatedAt: "Jan 3, 2025",
   }
@@ -29,15 +28,6 @@ export const demoUsers: AuthUser[] = [
     activeWorkspace: "creator",
     emailVerified: true,
     onboardingCompleted: true,
-    creatorProfile: {
-      displayName: "Alex Carter",
-      username: "alexclips",
-      country: "United States",
-      language: "en",
-      socialConnected: true,
-      socialPlatform: "tiktok",
-      socialHandle: "@alexclips",
-    },
   }),
   user({
     id: "demo-advertiser",
@@ -90,15 +80,6 @@ export const demoUsers: AuthUser[] = [
     activeWorkspace: "creator",
     emailVerified: true,
     onboardingCompleted: true,
-    creatorProfile: {
-      displayName: "Jordan Blake",
-      username: "jordanblake",
-      country: "Canada",
-      language: "en",
-      socialConnected: true,
-      socialPlatform: "youtube",
-      socialHandle: "@jordanblake",
-    },
     advertiserProfile: {
       companyName: "Blake Growth Co",
       country: "Canada",

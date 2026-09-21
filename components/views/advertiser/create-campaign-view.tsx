@@ -76,12 +76,14 @@ export function CreateCampaignView() {
 
   const budgetNum = Number(budget) || 0
   const rateNum = Number(rate) || 0
-  const fee = Math.round(budgetNum * (FEE_PERCENT / 100) * 100) / 100
-  const totalReserve = budgetNum + fee
+  const budgetMinor = Math.round(budgetNum * 100)
+  const rateMinor = Math.round(rateNum * 100)
+  const feeMinor = Math.round(budgetMinor * (FEE_PERCENT / 100))
+  const totalReserveMinor = budgetMinor + feeMinor
   const estimatedViews = rateNum > 0 ? (budgetNum / rateNum) * 1_000_000 : 0
 
-  const insufficient = totalReserve > advertiserWallet.available
-  const shortfall = Math.max(0, totalReserve - advertiserWallet.available)
+  const insufficient = totalReserveMinor > advertiserWallet.availableMinor
+  const shortfall = Math.max(0, totalReserveMinor - advertiserWallet.availableMinor)
   const noPlatform = selected.length === 0
   const audienceInvalid = specificAudience && audienceDescription.trim().length === 0
   const canLaunch = !insufficient && !noPlatform && !audienceInvalid && budgetNum > 0
@@ -93,11 +95,11 @@ export function CreateCampaignView() {
   function launch() {
     if (!canLaunch) return
     const name = title.trim() || t("createCampaign.untitledCampaign")
-    reserveForCampaign(totalReserve, name)
+    reserveForCampaign(totalReserveMinor, name)
     toast.success(t("createCampaign.createdToast"), {
       description: t("createCampaign.createdToastDesc", {
-        amount: formatCurrency(totalReserve),
-        fee: formatCurrency(fee),
+        amount: formatCurrency(totalReserveMinor),
+        fee: formatCurrency(feeMinor),
       }),
     })
     navigate("campaigns")
@@ -435,24 +437,24 @@ export function CreateCampaignView() {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{t("createCampaign.summaryRate")}</span>
-                <span className="font-medium">{t("createCampaign.ratePerMillionShort", { amount: formatCurrency(rateNum) })}</span>
+                <span className="font-medium">{t("createCampaign.ratePerMillionShort", { amount: formatCurrency(rateMinor) })}</span>
               </div>
               <Separator />
               {/* Fee / reserve breakdown */}
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{t("createCampaign.campaignBudget")}</span>
-                <span className="font-medium tabular-nums">{formatCurrency(budgetNum)}</span>
+                <span className="font-medium tabular-nums">{formatCurrency(budgetMinor)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-1 text-muted-foreground">
                   {t("createCampaign.platformFee", { percent: String(FEE_PERCENT) })}
                   <Info className="size-3" />
                 </span>
-                <span className="font-medium tabular-nums">{formatCurrency(fee)}</span>
+                <span className="font-medium tabular-nums">{formatCurrency(feeMinor)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium">{t("createCampaign.totalToReserve")}</span>
-                <span className="font-semibold tabular-nums">{formatCurrency(totalReserve)}</span>
+                <span className="font-semibold tabular-nums">{formatCurrency(totalReserveMinor)}</span>
               </div>
               <p className="text-xs text-muted-foreground">
                 {t("createCampaign.feeNote", { percent: String(FEE_PERCENT) })}
@@ -461,7 +463,7 @@ export function CreateCampaignView() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{t("createCampaign.walletAvailable")}</span>
                 <span className={`font-medium tabular-nums ${insufficient ? "text-destructive" : ""}`}>
-                  {formatCurrency(advertiserWallet.available)}
+                  {formatCurrency(advertiserWallet.availableMinor)}
                 </span>
               </div>
               {insufficient && (

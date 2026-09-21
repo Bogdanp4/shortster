@@ -15,7 +15,7 @@ import { useT } from "@/components/i18n/locale-provider"
 export function AdminAdvertisersView() {
   const t = useT()
   const advertisers = adminUsers.filter((u) => u.role === "advertiser")
-  const totalSpend = advertisers.reduce((s, a) => s + (a.spend ?? 0), 0)
+  const totalSpend = advertisers.reduce((s, a) => s + (a.spendMinor ?? 0), 0)
 
   return (
     <div className="flex flex-col gap-6">
@@ -63,7 +63,7 @@ export function AdminAdvertisersView() {
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{a.joined}</TableCell>
                     <TableCell className="text-right tabular-nums">{brandCampaigns.length}</TableCell>
-                    <TableCell className="text-right tabular-nums">{formatCurrency(a.spend ?? 0)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{formatCurrency(a.spendMinor ?? 0)}</TableCell>
                   </TableRow>
                 )
               })}

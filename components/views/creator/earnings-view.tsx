@@ -25,7 +25,7 @@ export function EarningsView() {
   const t = useT()
   const { creatorWallet, creatorTransactions, payoutMethods } = useApp()
   const chartConfig = {
-    earnings: { label: t("earn.chartSeries"), color: "var(--chart-1)" },
+    earningsMinor: { label: t("earn.chartSeries"), color: "var(--chart-1)" },
   } satisfies ChartConfig
   const [withdrawOpen, setWithdrawOpen] = useState(false)
   const [addMethodOpen, setAddMethodOpen] = useState(false)
@@ -41,9 +41,13 @@ export function EarningsView() {
       </PageHeader>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label={t("earn.availableBalance")} value={formatCurrency(creatorWallet.available)} hint={t("earn.availableHint")} />
-        <StatCard label={t("earn.pending")} value={formatCurrency(creatorWallet.pending)} hint={t("earn.pendingHint")} />
-        <StatCard label={t("earn.lifetime")} value={formatCurrency(creatorWallet.lifetime)} hint={t("earn.lifetimeHint")} />
+        <StatCard
+          label={t("earn.availableBalance")}
+          value={formatCurrency(creatorWallet.availableMinor)}
+          hint={t("earn.availableHint")}
+        />
+        <StatCard label={t("earn.pending")} value={formatCurrency(creatorWallet.pendingMinor)} hint={t("earn.pendingHint")} />
+        <StatCard label={t("earn.lifetime")} value={formatCurrency(creatorWallet.lifetimeMinor)} hint={t("earn.lifetimeHint")} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -56,20 +60,20 @@ export function EarningsView() {
             <ChartContainer config={chartConfig} className="aspect-[3/1] w-full">
               <AreaChart data={creatorEarningsSeries} margin={{ left: 12, right: 12, top: 8 }}>
                 <defs>
-                  <linearGradient id="fillEarnings" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-earnings)" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="var(--color-earnings)" stopOpacity={0} />
+                  <linearGradient id="fillEarningsMinor" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-earningsMinor)" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="var(--color-earningsMinor)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
-                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `$${v}`} />
+                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `$${v / 100}`} />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Area
-                  dataKey="earnings"
+                  dataKey="earningsMinor"
                   type="natural"
-                  fill="url(#fillEarnings)"
-                  stroke="var(--color-earnings)"
+                  fill="url(#fillEarningsMinor)"
+                  stroke="var(--color-earningsMinor)"
                   strokeWidth={2}
                 />
               </AreaChart>
@@ -154,10 +158,10 @@ export function EarningsView() {
                     <TransactionStatusBadge status={tx.status} />
                   </TableCell>
                   <TableCell
-                    className={`text-right font-medium tabular-nums ${tx.amount < 0 ? "text-muted-foreground" : "text-primary"}`}
+                    className={`text-right font-medium tabular-nums ${tx.amountMinor < 0 ? "text-muted-foreground" : "text-primary"}`}
                   >
-                    {tx.amount < 0 ? "-" : "+"}
-                    {formatCurrency(Math.abs(tx.amount))}
+                    {tx.amountMinor < 0 ? "-" : "+"}
+                    {formatCurrency(Math.abs(tx.amountMinor))}
                   </TableCell>
                   <TableCell>
                     <ChevronRight className="size-4 text-muted-foreground" />
@@ -173,7 +177,7 @@ export function EarningsView() {
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border/60 bg-background/90 p-4 backdrop-blur-xl lg:hidden">
         <Button className="w-full" size="lg" onClick={() => setWithdrawOpen(true)}>
           <Banknote data-icon="inline-start" />
-          Withdraw funds
+          {t("common.withdrawFunds")}
         </Button>
       </div>
 

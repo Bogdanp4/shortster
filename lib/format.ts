@@ -23,13 +23,16 @@ export const categoryLabel: Record<CampaignCategory, string> = {
   music: "Music",
 }
 
-export function formatMoney(value: number, opts?: { compact?: boolean }): string {
-  if (opts?.compact && Math.abs(value) >= 1000) {
-    return "$" + compactNumber(value)
+// All money inputs here are integer minor units (cents), matching
+// lib/domain/money.ts and every Minor-suffixed field in lib/types.ts.
+export function formatMoney(valueMinor: number, opts?: { compact?: boolean }): string {
+  const dollars = valueMinor / 100
+  if (opts?.compact && Math.abs(dollars) >= 1000) {
+    return "$" + compactNumber(dollars)
   }
   // Keep USD currency formatting consistent across locales (the platform pays
   // in USD); only the grouping/decimal separators follow the active locale.
-  return value.toLocaleString(intlLocale(), {
+  return dollars.toLocaleString(intlLocale(), {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
@@ -37,9 +40,9 @@ export function formatMoney(value: number, opts?: { compact?: boolean }): string
   })
 }
 
-export function formatMoneySigned(value: number): string {
-  const sign = value >= 0 ? "+" : "-"
-  return sign + formatMoney(Math.abs(value))
+export function formatMoneySigned(valueMinor: number): string {
+  const sign = valueMinor >= 0 ? "+" : "-"
+  return sign + formatMoney(Math.abs(valueMinor))
 }
 
 export function formatNumber(value: number): string {
@@ -76,19 +79,33 @@ export function formatDate(input: string | number | Date): string {
   return date.toLocaleDateString(intlLocale(), { year: "numeric", month: "short", day: "numeric" })
 }
 
-export function compactNumber(value: number): string {
-  if (Math.abs(value) >= 1_000_000) {
-    return (value / 1_000_000).toFixed(value % 1_000_000 === 0 ? 0 : 1) + "M"
-  }
-  if (Math.abs(value) >= 1_000) {
-    return (value / 1_000).toFixed(value % 1_000 === 0 ? 0 : 1) + "K"
-  }
-  return String(value)
+// Absolute date + time, formatted for the active locale.
+export function formatDateTime(input: string | number | Date): string {
+  const date = input instanceof Date ? input : new Date(input)
+  const time = date.getTime()
+  if (!Number.isFinite(time)) return typeof input === "string" ? input : "—"
+  return date.toLocaleString(intlLocale(), {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
 }
 
-// reward = views * (rate per 1,000,000 views)
-export function computeReward(views: number, ratePerMillion: number): number {
-  return (views / 1_000_000) * ratePerMillion
+export function compactNumber(value: number): string {
+  const enSuffixes = { million: "M", thousand: "K" }
+  const ruSuffixes = { million: "млн", thousand: "тыс." }
+  const suffixes = activeLocale === "ru" ? ruSuffixes : enSuffixes
+  if (Math.abs(value) >= 1_000_000) {
+    const n = (value / 1_000_000).toFixed(value % 1_000_000 === 0 ? 0 : 1)
+    return n + " " + suffixes.million
+  }
+  if (Math.abs(value) >= 1_000) {
+    const n = (value / 1_000).toFixed(value % 1_000 === 0 ? 0 : 1)
+    return n + " " + suffixes.thousand
+  }
+  return value.toLocaleString(intlLocale())
 }
 
 // Normalize a platform video ID from a URL so the same video posted under
@@ -108,41 +125,6 @@ export function extractVideoId(url: string): string {
   // Fall back to the last non-empty path segment.
   const seg = clean.split(/[/?#]/).filter(Boolean).pop()
   return seg ?? clean
-}
-
-export interface PayoutInput {
-  views: number
-  ratePerMillion: number
-  maxPayoutPerVideo: number
-  remainingBudget: number
-}
-
-export function calcPayout({
-  views,
-  ratePerMillion,
-  maxPayoutPerVideo,
-  remainingBudget,
-}: PayoutInput) {
-  const rawReward = computeReward(views, ratePerMillion)
-  let finalReward = rawReward
-  let limitReason: "per_video" | "budget" | null = null
-  if (finalReward > maxPayoutPerVideo) {
-    finalReward = maxPayoutPerVideo
-    limitReason = "per_video"
-  }
-  if (finalReward > remainingBudget) {
-    finalReward = remainingBudget
-    limitReason = "budget"
-  }
-  return {
-    views,
-    ratePerMillion,
-    rawReward: Number(rawReward.toFixed(2)),
-    perVideoCap: maxPayoutPerVideo,
-    remainingBudget,
-    finalReward: Number(finalReward.toFixed(2)),
-    limitReason,
-  }
 }
 
 export function percent(part: number, whole: number): number {

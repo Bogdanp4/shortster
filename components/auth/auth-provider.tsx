@@ -1,15 +1,9 @@
 "use client"
 
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react"
-import type {
-  AuthScreen,
-  AuthUser,
-  CreatorOnboardingProfile,
-  AdvertiserOnboardingProfile,
-  PublicRole,
-  Role,
-} from "@/lib/types"
+import type { AuthScreen, AuthUser, AdvertiserOnboardingProfile, PublicRole, Role } from "@/lib/types"
 import { mockHash, seedAccountsDb } from "@/lib/auth-mock-data"
+import { getDefaultDemoMode } from "@/lib/dev-config"
 
 export type SignInError =
   | "invalid_credentials"
@@ -41,8 +35,6 @@ interface AuthState {
   resetPassword: (password: string) => void
 
   selectRole: (role: PublicRole) => void
-  setOnboardingStep: (step: number) => void
-  completeCreatorOnboarding: (profile: CreatorOnboardingProfile) => void
   completeAdvertiserOnboarding: (profile: AdvertiserOnboardingProfile) => void
 
   switchWorkspace: (role: Role) => void
@@ -54,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const dbRef = useRef<AuthUser[]>([...seedAccountsDb])
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
   const [screen, setScreen] = useState<AuthScreen>("landing")
-  const [demoMode, setDemoMode] = useState(true)
+  const [demoMode, setDemoMode] = useState(getDefaultDemoMode())
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
 
   const navigateAuth = useCallback((next: AuthScreen) => {
@@ -95,7 +87,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       activeWorkspace: "creator",
       emailVerified: false,
       onboardingCompleted: false,
-      onboardingStep: 0,
       createdAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
     }
@@ -162,34 +153,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             activeWorkspace: role,
             status: "active",
             onboardingCompleted: true,
-            onboardingStep: 0,
           }
         : {
             ...currentUser,
             roles,
             activeWorkspace: role,
             status: "onboarding",
-            onboardingStep: 0,
           }
-    setCurrentUser(next)
-    persist(next)
-  }, [currentUser, persist])
-
-  const setOnboardingStep = useCallback((step: number) => {
-    if (!currentUser) return
-    const next: AuthUser = { ...currentUser, onboardingStep: step }
-    setCurrentUser(next)
-    persist(next)
-  }, [currentUser, persist])
-
-  const completeCreatorOnboarding = useCallback((profile: CreatorOnboardingProfile) => {
-    if (!currentUser) return
-    const next: AuthUser = {
-      ...currentUser,
-      creatorProfile: profile,
-      onboardingCompleted: true,
-      status: "active",
-    }
     setCurrentUser(next)
     persist(next)
   }, [currentUser, persist])
@@ -232,8 +202,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         requestPasswordReset,
         resetPassword,
         selectRole,
-        setOnboardingStep,
-        completeCreatorOnboarding,
         completeAdvertiserOnboarding,
         switchWorkspace,
       }}

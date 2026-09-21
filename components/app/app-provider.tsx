@@ -43,15 +43,15 @@ interface AppState {
   creatorTransactions: WalletTransaction[]
   payoutMethods: PayoutMethod[]
   addPayoutMethod: (m: PayoutMethod) => void
-  withdraw: (amount: number, method: PayoutMethod) => WalletTransaction
+  withdraw: (amountMinor: number, method: PayoutMethod) => WalletTransaction
 
   // Advertiser wallet
   advertiserWallet: AdvertiserWallet
   advertiserTransactions: WalletTransaction[]
   paymentMethods: PaymentMethod[]
   addPaymentMethod: (m: PaymentMethod) => void
-  deposit: (amount: number, method: PaymentMethod) => WalletTransaction
-  reserveForCampaign: (amount: number, campaignTitle: string) => WalletTransaction
+  deposit: (amountMinor: number, method: PaymentMethod) => WalletTransaction
+  reserveForCampaign: (amountMinor: number, campaignTitle: string) => WalletTransaction
 }
 
 const AppContext = createContext<AppState | null>(null)
@@ -114,18 +114,18 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
     setPayoutMethods((prev) => [...prev, m])
   }, [])
 
-  const withdraw = useCallback((amount: number, method: PayoutMethod) => {
+  const withdraw = useCallback((amountMinor: number, method: PayoutMethod) => {
     const tx: WalletTransaction = {
       id: `tx-${Date.now()}`,
       date: today(),
       type: "Withdrawal",
       description: `${method.asset} payout · ${method.label}`,
-      amount: -Math.abs(amount),
+      amountMinor: -Math.abs(amountMinor),
       status: "pending",
       reference: ref("WD"),
     }
     setCreatorTransactions((prev) => [tx, ...prev])
-    setCreatorWallet((prev) => ({ ...prev, available: Math.round((prev.available - amount) * 100) / 100 }))
+    setCreatorWallet((prev) => ({ ...prev, availableMinor: prev.availableMinor - amountMinor }))
     return tx
   }, [])
 
@@ -133,32 +133,32 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
     setPaymentMethods((prev) => [...prev, m])
   }, [])
 
-  const deposit = useCallback((amount: number, method: PaymentMethod) => {
+  const deposit = useCallback((amountMinor: number, method: PaymentMethod) => {
     const tx: WalletTransaction = {
       id: `atx-${Date.now()}`,
       date: today(),
       type: "Deposit",
       description: `${method.label}${method.last4 ? ` •••• ${method.last4}` : ""}`,
-      amount: Math.abs(amount),
+      amountMinor: Math.abs(amountMinor),
       status: "completed",
       reference: ref("DEP"),
     }
     setAdvertiserTransactions((prev) => [tx, ...prev])
     setAdvertiserWallet((prev) => ({
       ...prev,
-      available: prev.available + amount,
-      totalDeposited: prev.totalDeposited + amount,
+      availableMinor: prev.availableMinor + amountMinor,
+      totalDepositedMinor: prev.totalDepositedMinor + amountMinor,
     }))
     return tx
   }, [])
 
-  const reserveForCampaign = useCallback((amount: number, campaignTitle: string) => {
+  const reserveForCampaign = useCallback((amountMinor: number, campaignTitle: string) => {
     const tx: WalletTransaction = {
       id: `atx-${Date.now()}`,
       date: today(),
       type: "Campaign Reserve",
       description: `${campaignTitle} budget`,
-      amount: -Math.abs(amount),
+      amountMinor: -Math.abs(amountMinor),
       status: "completed",
       reference: ref("RES"),
       campaign: campaignTitle,
@@ -166,8 +166,8 @@ export function AppProvider({ children, initialRole = "creator" }: { children: R
     setAdvertiserTransactions((prev) => [tx, ...prev])
     setAdvertiserWallet((prev) => ({
       ...prev,
-      available: prev.available - amount,
-      reserved: prev.reserved + amount,
+      availableMinor: prev.availableMinor - amountMinor,
+      reservedCreatorBudgetMinor: prev.reservedCreatorBudgetMinor + amountMinor,
     }))
     return tx
   }, [])

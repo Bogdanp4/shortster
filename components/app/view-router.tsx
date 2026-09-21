@@ -24,7 +24,6 @@ import { AdvertiserSettingsView } from "@/components/views/advertiser/settings-v
 import { ReviewQueueView } from "@/components/views/moderator/review-queue-view"
 import { ReviewDetailView } from "@/components/views/moderator/review-detail-view"
 import { IgVerificationView } from "@/components/views/moderator/ig-verification-view"
-import { FraudReviewView } from "@/components/views/moderator/fraud-review-view"
 import { ModerationHistoryView } from "@/components/views/moderator/history-view"
 
 import { AdminDashboardView } from "@/components/views/admin/dashboard-view"
@@ -61,7 +60,6 @@ const registry: Record<string, () => React.JSX.Element> = {
   queue: ReviewQueueView,
   review: ReviewDetailView,
   "ig-verify": IgVerificationView,
-  fraud: FraudReviewView,
   history: ModerationHistoryView,
   // admin
   dashboard: AdminDashboardView,

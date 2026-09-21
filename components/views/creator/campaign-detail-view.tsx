@@ -3,7 +3,8 @@
 import Image from "next/image"
 import { useApp } from "@/components/app/app-provider"
 import { useT } from "@/components/i18n/locale-provider"
-import { getCampaign } from "@/lib/mock-data"
+ import { getCampaign } from "@/lib/mock-data"
+ import type { VideoLanguage } from "@/lib/types"
 import { formatMoney, formatNumber, compactNumber, percent, formatRelative, categoryLabel } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -45,6 +46,12 @@ export function CampaignDetailView() {
   const t = useT()
   const campaign = getCampaign(params.id)
   const mySubmissions = submissions.filter((s) => s.campaignId === params.id)
+  const languageLabels: Record<VideoLanguage, string> = {
+    any: t("enums.videoLanguage.any"),
+    en: t("enums.videoLanguage.en"),
+    ru: t("enums.videoLanguage.ru"),
+    uk: t("enums.videoLanguage.uk"),
+  }
 
   if (!campaign) {
     return (
@@ -58,14 +65,14 @@ export function CampaignDetailView() {
     )
   }
 
-  const spentPct = percent(campaign.spent, campaign.budget)
-  const remaining = campaign.budget - campaign.spent
+  const spentPct = percent(campaign.creatorBudgetSpentMinor, campaign.creatorBudgetMinor)
+  const remaining = campaign.creatorBudgetMinor - campaign.creatorBudgetSpentMinor
 
   return (
     <div className="flex flex-col gap-6">
       <Button variant="ghost" onClick={() => navigate("discover")} className="w-fit">
         <ArrowLeft data-icon="inline-start" />
-        Back to Discover
+        {t("campaignDetail.backToDiscover")}
       </Button>
 
       <div className="relative overflow-hidden rounded-xl border border-border/60">
@@ -140,10 +147,10 @@ export function CampaignDetailView() {
                 <AlertTitle>{t("campaignDetail.howPaidTitle")}</AlertTitle>
                 <AlertDescription>
                   {t("campaignDetail.howPaidBody", {
-                    rate: formatMoney(campaign.ratePerMillion),
-                    maxVideo: formatMoney(campaign.maxPayoutPerVideo),
-                    maxAccount: formatMoney(campaign.maxPayoutPerAccount),
-                    minViews: formatNumber(campaign.minViews),
+                    rate: formatMoney(campaign.ratePerMillionMinor),
+                    maxVideo: formatMoney(campaign.maxPayoutPerVideoMinor),
+                    maxAccount: formatMoney(campaign.maxPayoutPerAccountMinor),
+                    minViews: formatNumber(campaign.req.minViews),
                   })}
                 </AlertDescription>
               </Alert>
@@ -221,7 +228,7 @@ export function CampaignDetailView() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-medium tabular-nums">
-                          {formatMoney(s.cappedReward ?? s.reward)}
+                          {formatMoney(s.finalRewardMinor ?? s.calculatedRewardMinor)}
                         </span>
                         <SubmissionStatusBadge status={s.status} />
                       </div>
@@ -267,7 +274,7 @@ export function CampaignDetailView() {
           <Card>
             <CardContent className="flex flex-col gap-4 p-5">
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-semibold text-primary">{formatMoney(campaign.ratePerMillion)}</span>
+                <span className="text-3xl font-semibold text-primary">{formatMoney(campaign.ratePerMillionMinor)}</span>
                 <span className="text-sm text-muted-foreground">{t("campaignDetail.perMillionViews")}</span>
               </div>
 
@@ -280,7 +287,7 @@ export function CampaignDetailView() {
                 <p className="text-xs text-muted-foreground">
                   {t("campaignDetail.remaining", {
                     remaining: formatMoney(remaining, { compact: true }),
-                    budget: formatMoney(campaign.budget, { compact: true }),
+                    budget: formatMoney(campaign.creatorBudgetMinor, { compact: true }),
                   })}
                 </p>
               </div>
@@ -317,23 +324,23 @@ export function CampaignDetailView() {
                 </div>
               </Detail>
               <Separator />
-              <Detail label={t("campaignDetail.maxPerVideo")}>{formatMoney(campaign.maxPayoutPerVideo)}</Detail>
-              <Detail label={t("campaignDetail.maxPerAccount")}>{formatMoney(campaign.maxPayoutPerAccount)}</Detail>
+                <Detail label={t("campaignDetail.maxPerVideo")}>{formatMoney(campaign.maxPayoutPerVideoMinor)}</Detail>
+                <Detail label={t("campaignDetail.maxPerAccount")}>{formatMoney(campaign.maxPayoutPerAccountMinor)}</Detail>
               <Detail label={t("campaignDetail.maxSubmissions")}>{t("campaignDetail.perAccount", { count: campaign.maxSubmissionsPerAccount })}</Detail>
               <Separator />
               <Detail label={t("campaignDetail.minViewsToCredit")}>
                 <span className="flex items-center gap-1">
                   <Eye className="size-3.5" />
-                  {formatNumber(campaign.minViews)}
+                  {formatNumber(campaign.req.minViews)}
                 </span>
               </Detail>
               <Detail label={t("campaignDetail.duration")}>
                 <span className="flex items-center gap-1">
                   <Clock className="size-3.5" />
-                  {campaign.minDuration}&ndash;{campaign.maxDuration}s
+                  {campaign.req.minDuration}&ndash;{campaign.req.maxDuration}s
                 </span>
               </Detail>
-              <Detail label={t("campaignDetail.languages")}>{campaign.languages.join(", ")}</Detail>
+              <Detail label={t("campaignDetail.languages")}>{languageLabels[campaign.req.language]}</Detail>
               <Detail label={t("campaignDetail.countries")}>
                 <span className="flex items-center gap-1">
                   <Globe className="size-3.5" />

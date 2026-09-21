@@ -17,11 +17,11 @@ export function AdminDashboardView() {
   const { navigate } = useApp()
   const t = useT()
   const chartConfig = {
-    gmv: { label: "GMV", color: "var(--chart-1)" },
-    revenue: { label: t("adminDashboard.revenue"), color: "var(--chart-2)" },
+    gmvMinor: { label: "GMV", color: "var(--chart-1)" },
+    revenueMinor: { label: t("adminDashboard.revenue"), color: "var(--chart-2)" },
   } satisfies ChartConfig
-  const gmv = adminStatsSeries.at(-1)!.gmv
-  const revenue = adminStatsSeries.at(-1)!.revenue
+  const gmvMinor = adminStatsSeries.at(-1)!.gmvMinor
+  const revenueMinor = adminStatsSeries.at(-1)!.revenueMinor
 
   return (
     <div className="flex flex-col gap-6">
@@ -30,13 +30,13 @@ export function AdminDashboardView() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label={t("adminDashboard.monthlyGmv")}
-          value={formatCurrency(gmv)}
+          value={formatCurrency(gmvMinor)}
           icon={DollarSign}
           trend={{ value: "+20.3%", positive: true }}
         />
         <StatCard
           label={t("adminDashboard.platformRevenue")}
-          value={formatCurrency(revenue)}
+          value={formatCurrency(revenueMinor)}
           icon={DollarSign}
           trend={{ value: "+20.3%", positive: true }}
         />
@@ -63,20 +63,20 @@ export function AdminDashboardView() {
             <AreaChart data={adminStatsSeries} margin={{ left: 12, right: 12, top: 8 }}>
               <defs>
                 <linearGradient id="fillGmv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-gmv)" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="var(--color-gmv)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--color-gmvMinor)" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="var(--color-gmvMinor)" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-revenue)" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="var(--color-revenue)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--color-revenueMinor)" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="var(--color-revenueMinor)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} />
               <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
-              <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `$${v / 1000}K`} />
+              <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `$${v / 100_000}K`} />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Area dataKey="gmv" type="natural" fill="url(#fillGmv)" stroke="var(--color-gmv)" strokeWidth={2} />
-              <Area dataKey="revenue" type="natural" fill="url(#fillRevenue)" stroke="var(--color-revenue)" strokeWidth={2} />
+              <Area dataKey="gmvMinor" type="natural" fill="url(#fillGmv)" stroke="var(--color-gmvMinor)" strokeWidth={2} />
+              <Area dataKey="revenueMinor" type="natural" fill="url(#fillRevenue)" stroke="var(--color-revenueMinor)" strokeWidth={2} />
             </AreaChart>
           </ChartContainer>
         </CardContent>

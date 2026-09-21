@@ -29,6 +29,8 @@ export const en = {
     loading: "Loading…",
     openMenu: "Open menu",
     accountMenu: "Account menu",
+    addScreenshot: "Add screenshot",
+    withdrawFunds: "Withdraw funds",
   },
   notif: {
     ariaLabel: "Notifications",
@@ -253,6 +255,8 @@ export const en = {
     advertiserDesc: "Launch campaigns",
     moderatorDesc: "Review submissions",
     adminDesc: "Platform control",
+    demoBadge: "Demo",
+    demoModeOnly: "Demo mode only",
   },
   shell: {
     searchWorkspace: "Search {role} workspace...",
@@ -276,7 +280,6 @@ export const en = {
     "adv-settings": "Settings",
     queue: "Review Queue",
     "ig-verify": "Instagram Verification",
-    fraud: "Fraud Review",
     history: "History",
     dashboard: "Dashboard",
     users: "Users",
@@ -563,7 +566,7 @@ export const en = {
       approved: "Approved",
       credited: "Credited",
       rejected: "Rejected",
-      fraud: "Admin Review",
+      admin_review: "Admin Review",
     },
     campaign: {
       draft: "Draft",
@@ -1046,26 +1049,6 @@ export const en = {
     approvedToast: "Approved {reference}",
   },
 
-  fraudReview: {
-    title: "Fraud Review",
-    description: "Investigate high-risk creators and take action on suspicious activity.",
-    openCases: "Open cases",
-    accountsBanned: "Accounts banned",
-    thisMonth: "This month",
-    recovered: "Recovered",
-    reversedPayouts: "Reversed payouts",
-    flaggedOn: "flagged on {campaign}",
-    clear: "Clear",
-    banAccount: "Ban account",
-    clearedToast: "Cleared {handle}",
-    bannedToast: "Banned {handle}",
-    riskSignals: "Risk signals",
-    history: "History",
-    submissions: "Submissions",
-    rejected: "Rejected",
-    linkedAccounts: "Linked accounts",
-  },
-
   reviewDetail: {
     title: "Review submission",
     backLabel: "Back to queue",
@@ -1112,7 +1095,7 @@ export const en = {
     approveSubmission: "Approve submission",
     tickAllRequirements: "Tick all {count} requirements to enable approval",
     rejectSubmission: "Reject submission",
-    flagForFraud: "Flag for fraud",
+    flagForAdminReview: "Flag for admin review",
     completeChecklistError: "Complete the checklist",
     completeChecklistDesc: "Tick every requirement before approving.",
     approvedToast: "Approved {id}",
@@ -1120,7 +1103,7 @@ export const en = {
     approvedAutoDesc: "Creator will be credited.",
     rejectedToast: "Rejected {id}",
     rejectedDesc: "Creator has been notified.",
-    flaggedToast: "Flagged for fraud review",
+    flaggedToast: "Flagged for admin review",
   },
 
   igVerify: {
@@ -1330,7 +1313,7 @@ export const en = {
     backToSubmissions: "Back to submissions",
     viewVideo: "View video",
     viewsLocked: "View count locked at submission{when}. Later growth doesn't change your reward.",
-    flaggedFraud: "Flagged for fraud",
+    flaggedAdminReview: "Flagged for admin review",
     submissionRejected: "Submission rejected",
     timeline: "Timeline",
     submitted: "Submitted",

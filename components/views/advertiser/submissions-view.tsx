@@ -32,7 +32,7 @@ export function AdvertiserSubmissionsView() {
   )
 
   const totalViews = moderationQueue.reduce((s, x) => s + x.viewsAtSubmission, 0)
-  const totalReward = moderationQueue.reduce((s, x) => s + (x.cappedReward ?? x.reward), 0)
+  const totalReward = moderationQueue.reduce((s, x) => s + (x.finalRewardMinor ?? x.calculatedRewardMinor), 0)
 
   return (
     <div className="flex flex-col gap-6">
@@ -88,7 +88,9 @@ export function AdvertiserSubmissionsView() {
                     <PlatformIcon platform={s.platform} className="size-4" />
                   </TableCell>
                   <TableCell className="text-right tabular-nums">{formatNumber(s.viewsAtSubmission)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatCurrency(s.cappedReward ?? s.reward)}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {formatCurrency(s.finalRewardMinor ?? s.calculatedRewardMinor)}
+                  </TableCell>
                   <TableCell>
                     <SubmissionStatusBadge status={s.status} />
                   </TableCell>

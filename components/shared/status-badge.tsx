@@ -43,7 +43,7 @@ const submissionTone: Record<SubmissionStatus, Tone> = {
   approved: "info",
   credited: "success",
   rejected: "danger",
-  fraud: "danger",
+  admin_review: "danger",
 }
 
 export function SubmissionStatusBadge({ status }: { status: SubmissionStatus }) {

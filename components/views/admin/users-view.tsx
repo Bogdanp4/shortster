@@ -117,7 +117,11 @@ export function AdminUsersView() {
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{u.joined}</TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {u.earnings != null ? formatCurrency(u.earnings) : u.spend != null ? formatCurrency(u.spend) : "—"}
+                    {u.earningsMinor != null
+                      ? formatCurrency(u.earningsMinor)
+                      : u.spendMinor != null
+                        ? formatCurrency(u.spendMinor)
+                        : "—"}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

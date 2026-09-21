@@ -20,8 +20,8 @@ export function SubmissionDetailView() {
   const t = useT()
   const submission = submissions.find((s) => s.id === params.id) ?? submissions[0]
 
-  const reward = submission.cappedReward ?? submission.reward
-  const capped = submission.cappedReward != null && submission.cappedReward < submission.reward
+  const reward = submission.finalRewardMinor ?? submission.calculatedRewardMinor
+  const capped = submission.finalRewardMinor != null && submission.finalRewardMinor < submission.calculatedRewardMinor
 
   const stats = [
     { icon: Eye, label: t("submissionDetail.views"), value: formatNumber(submission.viewsAtSubmission) },
@@ -75,11 +75,13 @@ export function SubmissionDetailView() {
             </CardContent>
           </Card>
 
-          {(submission.status === "rejected" || submission.status === "fraud") &&
+          {(submission.status === "rejected" || submission.status === "admin_review") &&
             (submission.rejectionReason || submission.moderatorNote) && (
               <Alert variant="destructive">
                 <AlertTitle>
-                  {submission.status === "fraud" ? t("submissionDetail.flaggedFraud") : t("submissionDetail.submissionRejected")}
+                  {submission.status === "admin_review"
+                    ? t("submissionDetail.flaggedAdminReview")
+                    : t("submissionDetail.submissionRejected")}
                 </AlertTitle>
                 <AlertDescription>
                   {submission.rejectionReason ?? submission.moderatorNote}
@@ -131,16 +133,16 @@ export function SubmissionDetailView() {
               <Separator />
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{t("submissionDetail.rate")}</span>
-                <span className="font-medium">{formatCurrency(submission.ratePerMillion)} / 1M</span>
+                <span className="font-medium">{formatCurrency(submission.ratePerMillionMinor)} / 1M</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{t("submissionDetail.rawReward")}</span>
-                <span className="font-medium tabular-nums">{formatCurrency(submission.reward)}</span>
+                <span className="font-medium tabular-nums">{formatCurrency(submission.calculatedRewardMinor)}</span>
               </div>
               {capped && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">{t("submissionDetail.perVideoCap")}</span>
-                  <span className="font-medium tabular-nums">{formatCurrency(submission.cappedReward!)}</span>
+                  <span className="font-medium tabular-nums">{formatCurrency(submission.finalRewardMinor!)}</span>
                 </div>
               )}
               <Separator />

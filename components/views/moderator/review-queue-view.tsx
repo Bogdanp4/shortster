@@ -60,7 +60,7 @@ export function ReviewQueueView() {
                         {s.creatorName} · {s.accountHandle}
                       </span>
                       <span>{formatNumber(s.viewsAtSubmission)} {t("reviewQueue.views")}</span>
-                      <span>{formatCurrency(s.cappedReward ?? s.reward)} {t("reviewQueue.reward")}</span>
+                      <span>{formatCurrency(s.finalRewardMinor ?? s.calculatedRewardMinor)} {t("reviewQueue.reward")}</span>
                       <span>{formatRelative(s.submittedAt)}</span>
                     </div>
                   </div>
