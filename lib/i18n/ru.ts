@@ -651,6 +651,23 @@ export const ru: Dictionary = {
     },
   },
 
+  requirements: {
+    durationRange: "{min}–{max} сек длительность видео",
+    durationMin: "Не менее {min} сек длительность видео",
+    durationMax: "До {max} сек длительность видео",
+    minViews: "Не менее {count} просмотров",
+    minFollowers: "Не менее {count} подписчиков",
+    language: {
+      any: "Любой язык",
+      en: "Английский язык",
+      ru: "Русский язык",
+      uk: "Украинский язык",
+    },
+    audienceWithDescription: "Аудитория: {description}",
+    audienceGeneric: "Требуется специфическая целевая аудитория",
+    hashtag: "Должен содержать хэштег {tag}",
+  },
+
   rejectReason: {
     wrong_content: "Неподходящий контент",
     wrong_language: "Неверный язык",
@@ -817,7 +834,7 @@ export const ru: Dictionary = {
     selectAtLeastOne: "Выберите хотя бы одну платформу.",
     requirements: "Требования",
     requirementsDesc: "Правила, которые модераторы проверяют в каждой заявке",
-    minDuration: "Мин. длительность (сек)",
+    minDuration: "Мин. длитель��ость (сек)",
     minViews: "Мин. просмотры",
     minFollowers: "Мин. подписчики",
     videoLanguage: "Язык видео",
@@ -884,7 +901,7 @@ export const ru: Dictionary = {
 
   adminDashboard: {
     title: "Дашборд",
-    description: "Состояние и финансы платформы в целом.",
+    description: "С��стояние и финансы платформы в целом.",
     monthlyGmv: "Месячный GMV",
     platformRevenue: "Доход платформы",
     totalUsers: "Всего пользователей",
@@ -1410,7 +1427,7 @@ export const ru: Dictionary = {
     rejectSubmissionTitle: "Отклонить заявку?",
     rejectSubmissionBody: "Выберите причину. Автор получит уведомление.",
     signOutTitle: "Выйти?",
-    signOutBody: "Чтобы вернуться в рабочее пространство, нужно будет войти снова.",
+    signOutBody: "Чтобы вернуться в рабочее пространство, нужно буде�� войти снова.",
     removeMemberTitle: "Удалить участника?",
     removeMemberBody: "Участник потеряет доступ к рабочему пространству.",
   },

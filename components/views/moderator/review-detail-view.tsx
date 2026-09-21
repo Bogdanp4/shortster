@@ -8,6 +8,7 @@ import Image from "next/image"
 import { useApp } from "@/components/app/app-provider"
 import { moderationQueue, getCampaign } from "@/lib/mock-data"
 import { formatCurrency, formatNumber } from "@/lib/format"
+import { buildRequirementsChecklist } from "@/lib/domain/requirements"
 import { PageHeader } from "@/components/shared/page-header"
 import { PlatformIcon } from "@/components/shared/platform-icon"
 import { RiskBadge } from "@/components/shared/status-badge"
@@ -29,11 +30,14 @@ export function ReviewDetailView() {
   const campaign = getCampaign(submission.campaignId)
 
   const manual = submission.metricsMode === "manual"
-  const requirements = campaign?.requirements ?? []
+  const requirements = useMemo(
+    () => (campaign ? buildRequirementsChecklist(campaign.requirements, t) : []),
+    [campaign, t],
+  )
 
   // Controlled requirement checklist — every item must be ticked to approve.
   const [checked, setChecked] = useState<Record<string, boolean>>({})
-  const allChecked = requirements.length > 0 && requirements.every((r) => checked[r])
+  const allChecked = requirements.length > 0 && requirements.every((r) => checked[r.key])
 
   // Manual submissions: moderator confirms the real view count. Payout is
   // capped at the lower of declared and verified, so overstating never pays.
@@ -236,12 +240,12 @@ export function ReviewDetailView() {
                 <p className="text-sm text-muted-foreground">{t("reviewDetail.noRequirements")}</p>
               )}
               {requirements.map((r) => (
-                <label key={r} className="flex items-center gap-3 text-sm">
+                <label key={r.key} className="flex items-center gap-3 text-sm">
                   <Checkbox
-                    checked={!!checked[r]}
-                    onCheckedChange={(v) => setChecked((prev) => ({ ...prev, [r]: v === true }))}
+                    checked={!!checked[r.key]}
+                    onCheckedChange={(v) => setChecked((prev) => ({ ...prev, [r.key]: v === true }))}
                   />
-                  <span className={checked[r] ? "text-foreground" : "text-muted-foreground"}>{r}</span>
+                  <span className={checked[r.key] ? "text-foreground" : "text-muted-foreground"}>{r.label}</span>
                 </label>
               ))}
               {submission.requiredHashtagPresent !== undefined && (
